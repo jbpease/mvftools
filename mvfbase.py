@@ -9,6 +9,7 @@ MVFbase: Base class MVF handler and functions
 @author: Ben K. Rosenzweig
 
 Version: 2015-02-01 - First Public Release
+Version: 2015-02-26 - Efficiency upgrades for iterators
 
 
 This file is part of MVFtools.
@@ -122,7 +123,7 @@ class MultiVariantFile(object):
         self.filemode = filemode
         self.entrystart = 0
         ## Check for Gzip and establish file object
-        self.metadata['isgzip'] = (self.path.endswith(".gz") or
+        self.metadata['isgzip'] = (self.path.endswith(".gz")  or
                                    kwargs.get('isgzip', False))
         ## READ MODE
         if filemode in ('read', 'r', 'rb'):
@@ -242,6 +243,13 @@ class MultiVariantFile(object):
                 return contigid
         raise IndexError("contig '{}' not found".format(label))
 
+    def get_contig_label(self, contigid):
+        """Returns contig label given contig id
+        """
+        if contigid in self.metadata['contigs']:
+            return self.metadata['contigs'][contigid]['label']
+        raise IndexError("contig '{}' not found".format(contigid))
+
     def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
         maxid = 0
@@ -251,8 +259,8 @@ class MultiVariantFile(object):
         return maxid
 
     def __iter__(self, quiet=False):
-        """Base entry iterator caller
-           Returns (str(chrom), int(pos), str(alleles))
+        """Simple entry iterator
+           Returns (str(chrom), int(pos), list(allele entries))
             Arguments:
                 quiet: True=show progress meter, False=no meter
         """
@@ -288,7 +296,9 @@ class MultiVariantFile(object):
                     no_gap=False, no_ambig=False, no_nonref=False,
                     onlyalleles=False, quiet=False, subset=None):
         """
-        Iterates entries and returns information flags with data
+        Fully-optioned iterator for MVF entries with filtering
+        Returns (str(chrom), int(pos), list(allele entries))
+                 or list(allele entries) with 'onlyalleles'
 
         Arguments:
             contigs: list of contig ids to include (default=all)
@@ -304,7 +314,6 @@ class MultiVariantFile(object):
         Note: for codons, filters must apply to all allele strings
         Note: using subset without decode returns encoded subset
         """
-
         if not contigs:
             if no_nonref:
                 contigs = sorted([x for x in self.metadata['contigs']
@@ -314,46 +323,77 @@ class MultiVariantFile(object):
                 contigs = sorted(self.metadata['contigs'].keys())
         subset = subset or ''
         current_contigid = ''
-        for contigid, pos, allelesets in self.__iter__(quiet=quiet):
-            if contigid != current_contigid:
-                if current_contigid in contigs:
-                    contigs.remove(current_contigid)
-                    if not contigs:
-                        break
-                current_contigid = contigid[:]
-            if contigid not in contigs:
-                continue
-            if subset:
-                try:
-                    allelesets = [''.join([alleles[j] for j in subset])
-                                  for alleles in [self.decode(x)
-                                                  for x in allelesets]]
-                except:
-                    raise RuntimeError(allelesets)
-            if no_gap:
-                if any(x in allelesets[0] for x in '-@'):
+        linecount = 0
+        if self.metadata['isgzip']:
+            filehandler = gzip.open(self.path, 'rb')
+            filesize = os.stat(self.path).st_size
+
+        else:
+            filehandler = open(self.path, 'rb')
+            filesize = os.stat(self.path).st_size
+        if not quiet:
+            progress_meter(0, filesize)
+        filehandler.seek(self.entrystart)
+        for line in filehandler:
+            if not quiet:
+                if not linecount % 1000000:
+                    progress_meter(filehandler.tell(), filesize)
+            try:
+                arr = line.rstrip().split()
+                loc = arr[0].split(':')
+                contigid = loc[0]
+                pos = int(loc[1])
+                allelesets = arr[1:]
+                linecount += 1
+
+                if contigid != current_contigid:
+                    if current_contigid in contigs:
+                        contigs.remove(current_contigid)
+                        if not contigs:
+                            break
+                    current_contigid = contigid[:]
+                if contigid not in contigs:
                     continue
-            if no_ambig:
-                if any('X' in x for x in allelesets):
-                    continue
-            if no_invariant:
-                if all(len(x) == 1 for x in allelesets):
-                    continue
-                elif len(allelesets[0]) > 1 and (
-                        allelesets[0][1] == '+' and
-                        allelesets[0][2] == allelesets[0][0]):
-                    continue
-                elif subset:
-                    if all(x == allelesets[0][0] for x in allelesets[0][1:]):
+                if subset:
+                    try:
+                        allelesets = [''.join([alleles[j] for j in subset])
+                                      for alleles in [self.decode(x)
+                                                      for x in allelesets]]
+                    except:
+                        raise RuntimeError(allelesets)
+                if no_gap:
+                    if any(x in allelesets[0] for x in '-@'):
                         continue
-            if subset and not decode:
-                allelesets = [self.encode(x) for x in allelesets]
-            if decode and not subset:
-                allelesets = [self.decode(x) for x in allelesets]
-            if onlyalleles:
-                yield allelesets
-            else:
-                yield (contigid, pos, allelesets)
+                if no_ambig:
+                    if any('X' in x for x in allelesets):
+                        continue
+                if no_invariant:
+                    if all(len(x) == 1 for x in allelesets):
+                        continue
+                    elif len(allelesets[0]) > 1 and (
+                            allelesets[0][1] == '+' and
+                            allelesets[0][2] == allelesets[0][0]):
+                        continue
+                    elif subset:
+                        if all(x == allelesets[0][0]
+                               for x in allelesets[0][1:]):
+                            continue
+
+                if subset and not decode:
+                    allelesets = [self.encode(x) for x in allelesets]
+                if decode and not subset:
+                    allelesets = [self.decode(x) for x in allelesets]
+                if onlyalleles:
+                    yield allelesets
+                else:
+                    yield (contigid, pos, allelesets)
+            except:
+                raise RuntimeError(
+                    "Error processing MVF at line# {} = {} ".format(
+                        linecount, line))
+        if not quiet:
+            progress_meter(filesize, filesize)
+        filehandler.close()
 
     def get_header(self):
         """Returns formatted header string (with final newline)
@@ -435,8 +475,8 @@ class MultiVariantFile(object):
                 encoded: entries have been pre-encoded (default=True)
         """
         self.write_data('\n'.join(["{}:{} {}".format(
-            entry[0], entry[1], (''.join([encoded and x or encode_mvfstring(x)
-                                          for x in entry[2]])))
+            entry[0], entry[1], (' '.join([encoded and x or encode_mvfstring(x)
+                                           for x in entry[2]])))
                                    for entry in entries]) + '\n')
         return ''
 
@@ -465,5 +505,5 @@ def encode_mvfstring(alleles):
     return alleles
 
 if __name__ == ("__main__"):
-    print("""MVF base handler library v. 2015-02-01, please run one of the
+    print("""MVF base handler library v. 2015-02-26, please run one of the
           other MVFtools scripts to access these functions""")

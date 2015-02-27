@@ -18,6 +18,12 @@ Simply clone MVFtools to use the scripts, unless other dependencies are required
 * James B. Pease ([website](http://pages.iu.edu/~jbpease/))([@jamesbpease](https://twitter.com/jamesbpease/))
 * Ben K. Rosenzweig
 
+## Version History:
+
+2015-02-01: First Public Release
+2015-02-26: Patch upgrade for multiple modules.  Featured upgrades are efficiency increases to mvfbase and major overhaul of mvf_window_tree.
+
+
 ## License
 This file is part of MVFtools.
 

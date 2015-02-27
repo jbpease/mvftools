@@ -8,6 +8,7 @@ mvf_filter: Filtering and Transformation for Mulitsample Variant Format files
 @author: Ben K. Rosenzweig
 
 Version: 2015-02-01 - First Public Release
+Version: 2015-02-26 - Fixes issues mulitple transformations
 
 This file is part of MVFtools.
 
@@ -44,8 +45,46 @@ from copy import deepcopy
 from mvfbase import MultiVariantFile, encode_mvfstring
 from time import time
 
+def get_linetype(alleles):
+    """Determine the MVF encoding type or return empty if contains no data
+        Arguments:
+            alleles: string of alleles from MVF file
+       Returns:
+           string name of MVF line encoding class
+    """
+
+    if not alleles:
+        return 'empty'
+    if len(alleles) == 1:
+        linetype = 'invar'
+        if alleles[0] == '-':
+            linetype = 'empty'
+    elif len(alleles) == 2:
+        linetype = 'refvar'
+        if alleles[0:1] == '--':
+            linetype = 'empty'
+    elif alleles[1] == '+':
+        linetype = 'onecov'
+        if alleles[0] == '-' and alleles[2] == '-':
+            linetype = 'empty'
+    elif alleles[2] == '+':
+        linetype = 'onevar'
+        if all([alleles[x] == '-' for x in (0, 1, 3)]):
+            linetype = 'empty'
+    else:
+        linetype = 'full'
+        if all([x == '-' for x in alleles]):
+            return 'empty'
+    return linetype
+
 def make_module(modulename, ncol, optarg=None):
-    """Generate Modules"""
+    """Generate Modules for filtering/transformation
+        Arguments:
+            modulename: name of the module
+            ncol: number of allele columns in MVF
+            optarg: optional list argument used for some modules
+        Returns: function object of module
+    """
 
     ### COLLAPSEPRIORITY
     if modulename == "collapsepriority":
@@ -131,10 +170,15 @@ def make_module(modulename, ncol, optarg=None):
                                         entry[2] in optarg and 'X' or entry[2],
                                         entry[3:])
             elif mvfenc == 'onevar':
+                if entry[1] in optarg and entry[3] in optarg:
+                    if entry[0] in optarg:
+                        return 'X'
+                    else:
+                        return '{}X'.format(entry[0])
                 return "{}{}+{}{}".format(
                     entry[0] in optarg and 'X' or entry[0],
                     entry[1] in optarg and 'X' or entry[1],
-                    entry[3] in optarg and 'X' or entry[2],
+                    entry[3] in optarg and 'X' or entry[3],
                     entry[4:])
 
     ### MASKLOWER
@@ -182,22 +226,27 @@ def make_module(modulename, ncol, optarg=None):
         def notchar(entry, mvfenc):
             """filter out if any specified character present in entry"""
             if mvfenc == 'full':
-                return all(x not in optarg for x in entry)
+                return all([x not in optarg for x in entry])
             elif mvfenc in ('invar', 'refvar'):
-                return all(x not in optarg for x in entry)
+                return all([x not in optarg for x in entry])
             elif mvfenc == 'onecov':
-                return all(entry[x] not in optarg for x in (0, 2))
+                return all([entry[x] not in optarg for x in (0, 2)])
             elif mvfenc == 'onevar':
-                return all(entry[x] not in optarg for x in (0, 1, 3))
-
-
+                return all([entry[x] not in optarg for x in (0, 1, 3)])
 
     ### PROMOTELOWER
     elif modulename == 'promotelower':
         moduletype = 'transform'
-        def promotelower(entry, _):
+        def promotelower(entry, mvfenc):
             """turn lower case to upper case"""
-            return entry.upper()
+            if mvfenc in ['full', 'refvar', 'onecov', 'invar']:
+                return entry.upper()
+            elif mvfenc == 'onevar':
+                if entry[1].upper() == entry[3].upper():
+                    return entry[0:2].upper()
+                else:
+                    return entry.upper()
+
 
     ### REMOVELOWER
     elif modulename == 'removelower':
@@ -213,19 +262,25 @@ def make_module(modulename, ncol, optarg=None):
             elif mvfenc == 'invar':
                 return entry.isupper() and entry or ''
             elif mvfenc == 'onecov':
-                if all(entry[x].islower() for x in (0, 2)):
-                    return ''
-                return '{}+{}{}'.format(
-                    (entry[0].isupper() or entry[0] == '-') and entry[0] or '-',
-                    (entry[2].isupper() or entry[2] == '-') and entry[2] or '-',
-                    entry[3:])
+                if entry[2].islower() or entry[2] == '-':
+                    if entry[0].islower() or entry[0] == '-':
+                        return ''
+                    else:
+                        return "{}-".format(entry[0])
+                if entry[0].islower() or entry[0] == '-':
+                    return "-{}".format(entry[1:])
+                return entry
             elif mvfenc == 'onevar':
-                if all(entry[x].islower() for x in (0, 1, 3)):
-                    return ''
+                if all([(entry[x].islower()
+                         or entry[x] == '-') for x in (1, 3)]):
+                    if entry[0].islower() or entry[0] == '-':
+                        return ''
+                    else:
+                        return "{}-".format(entry[0])
                 return '{}{}+{}{}'.format(
-                    (entry[0].isupper() or entry[0] == '-') and entry[0] or '-',
-                    (entry[1].isupper() or entry[1] == '-') and entry[1] or '-',
-                    (entry[3].isupper() or entry[3] == '-') and entry[3] or '-',
+                    (entry[0].islower() or entry[0] == '-') and '-' or entry[0],
+                    (entry[1].isupper() or entry[1] != '-') and entry[1] or '',
+                    (entry[3].islower() or entry[3] == '-') and '-' or entry[3],
                     entry[4:])
 
     ### REMOVECHAR
@@ -234,34 +289,48 @@ def make_module(modulename, ncol, optarg=None):
         def removechar(entry, mvfenc):
             """"replace specified characters with '-'"""
             if mvfenc in ('refvar', 'full'):
+                if all([x in optarg or x == '-' for x in entry]):
+                    return ''
                 return ''.join([x in optarg and '-' or x for x in entry])
             elif mvfenc == 'invar':
                 return entry not in optarg and entry or ''
             elif mvfenc == 'onecov':
-                if all(entry[x] in optarg for x in (0, 2)):
-                    return ''
-                return "{}+{}{}".format(entry[0] in optarg and '-' or entry[0],
-                                        entry[2] in optarg and '-' or entry[2],
-                                        entry[3:])
+                if entry[2] in optarg or entry[2] == '-':
+                    if entry[0] in optarg or entry[0] == '-':
+                        return ''
+                    else:
+                        return "{}-".format(entry[0])
+                if entry[0] in optarg or entry[0] == '-':
+                    return '-{}'.format(entry[1:])
+                return entry
             elif mvfenc == 'onevar':
-                if all(entry[x] in optarg for x in (0, 1, 3)):
-                    return ''
+                if all([(entry[x] in optarg or entry[x] == '-')
+                        for x in (1, 3)]):
+                    if entry[0] in optarg or entry[0] == '-':
+                        return ''
+                    else:
+                        return "{}-".format(entry[0])
                 return '{}{}+{}{}'.format(
-                    (entry[0] in optarg or entry[0] == '-') and entry[0] or '-',
-                    (entry[1] in optarg or entry[1] == '-') and entry[1] or '-',
-                    (entry[3] in optarg or entry[3] == '-') and entry[3] or '-',
+                    (entry[0] in optarg or entry[0] == '-')
+                    and '-' or entry[0],
+                    (entry[1] not in optarg and entry[1] != '-')
+                    and entry[1] or '',
+                    (entry[3] in optarg or entry[3] == '-')
+                    and '-' or entry[3],
                     entry[4:])
+
     ### REQALLCHAR
     elif modulename == "reqallchar":
         moduletype = "filter"
         def reqallchar(entry, mvfenc):
             """require all of the specified characters appear in the entry"""
             if mvfenc in ('full', 'invar', 'refvar'):
-                return all(x in entry for x in optarg)
+                return all([x in entry for x in optarg])
             elif mvfenc == 'onecov':
-                return all(x in (entry[0], entry[2]) for x in optarg)
+                return all([x in (entry[0], entry[2]) for x in optarg])
             elif mvfenc == 'onevar':
-                return all(x in (entry[0], entry[1], entry[3]) for x in optarg)
+                return all([x in (entry[0], entry[1], entry[3])
+                            for x in optarg])
 
     ### REQCONTIG
     elif modulename == 'reqcontig':
@@ -309,11 +378,12 @@ def make_module(modulename, ncol, optarg=None):
             """require one of the specified characters appear in entry
             """
             if mvfenc in ('full', 'invar', 'refvar'):
-                return any(x in entry for x in optarg)
+                return any([x in entry for x in optarg])
             elif mvfenc == 'onecov':
-                return any(x in (entry[0], entry[2]) for x in optarg)
+                return any([x in (entry[0], entry[2]) for x in optarg])
             elif mvfenc == 'onevar':
-                return any(x in (entry[0], entry[1], entry[3]) for x in optarg)
+                return any([x in (entry[0], entry[1], entry[3])
+                            for x in optarg])
 
     ### REQSAMPLE
     elif modulename == "reqsample":
@@ -322,11 +392,11 @@ def make_module(modulename, ncol, optarg=None):
             """require specific samples to be present
             """
             if mvfenc == 'full':
-                return all(entry[x] not in 'NX-' for x in optarg)
+                return all([entry[x] not in 'NX-' for x in optarg])
             elif mvfenc == 'invar':
                 return True
             elif mvfenc == 'onecov':
-                return all(x in [0, int(entry[3:])] for x in optarg)
+                return all([x in [0, int(entry[3:])] for x in optarg])
             elif mvfenc == 'onevar':
                 return not (entry[3] == '-' and int(entry[4:]) in optarg)
 
@@ -353,7 +423,8 @@ def make_module(modulename, ncol, optarg=None):
 
 ## END OF MODULE DEFINITION
 
-MODULENAMES = ['columns', 'maskchar', 'masklower', 'mincoverage',
+MODULENAMES = ['collapsepriority',
+               'columns', 'maskchar', 'masklower', 'mincoverage',
                'notchar', 'promotelower', 'removechar', 'removelower',
                'reqallchar', 'reqcontig', 'reqinformative',
                'reqinvariant', 'reqonechar', 'reqregion',
@@ -377,6 +448,8 @@ def build_actionset(moduleargs, ncol):
         Arguments:
             moduleargs: arguments for using the module
             ncol: int number of columns in the base MVF
+
+        Returns: list of module functions
 
     """
     actionset = []
@@ -433,15 +506,15 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-02-26")
         sys.exit()
     args = parser.parse_args(args=arguments)
     time0 = time()
     if args.modulehelp:
         modulehelp()
-    if not args.mvf:
+    if not args.mvf and not args.test:
         raise RuntimeError("No input file specified with --mvf")
-    if not args.out:
+    if not args.out and not args.test:
         raise RuntimeError("No output file specified with --outs")
     if not args.actions:
         raise RuntimeError("No --actions specified!")
@@ -463,17 +536,9 @@ def main(arguments=sys.argv[1:]):
         #onecov (single coverage, + is second character)
         #onevar (one variable base, + is third character)
         #full = full alleles (all chars)
-        linetype = 'full'
         if args.verbose:
             print(alleles)
-        if len(alleles) == 1:
-            linetype = 'invar'
-        elif len(alleles) == 2:
-            linetype = 'refvar'
-        elif alleles[1] == '+':
-            linetype = 'onecov'
-        elif alleles[2] == '+':
-            linetype = 'onevar'
+        linetype = get_linetype(alleles)
         sys.stdout.write("MVF Encoding type '{}' detected\n".format(linetype))
         for actionname, actiontype, actionfunc, actionarg in actionset:
             sys.stdout.write("Applying action {} ({}): ".format(
@@ -488,8 +553,8 @@ def main(arguments=sys.argv[1:]):
             elif actiontype == 'transform':
                 transformed = True
                 alleles = actionfunc(alleles, linetype)
-
-                if not alleles:
+                linetype = get_linetype(alleles)
+                if linetype == 'empty':
                     linefail = True
                     sys.stdout.write("Transform removed all alleles\n")
                     break
@@ -548,18 +613,12 @@ def main(arguments=sys.argv[1:]):
         #onecov (single coverage, + is second character)
         #onevar (one variable base, + is third character)
         #full = full alleles (all chars)
-        linetype = 'full'
         alleles = allelesets[0]
+        linetype = get_linetype(alleles)
+        if linetype == 'empty':
+            continue
         if args.verbose:
-            sys.stdout.write("{}    ".format(alleles))
-        if len(alleles) == 1:
-            linetype = 'invar'
-        elif len(alleles) == 2:
-            linetype = 'refvar'
-        elif alleles[1] == '+':
-            linetype = 'onecov'
-        elif alleles[2] == '+':
-            linetype = 'onevar'
+            sys.stdout.write(" {} {}".format(alleles, linetype))
         for actionname, actiontype, actionfunc, actionarg in actionset:
             if actiontype == 'filter':
                 if not actionfunc(alleles, linetype):
@@ -567,7 +626,8 @@ def main(arguments=sys.argv[1:]):
             elif actiontype == 'transform':
                 transformed = True
                 alleles = actionfunc(alleles, linetype)
-                if not alleles:
+                linetype = get_linetype(alleles)
+                if linetype == 'empty':
                     linefail = True
             elif actiontype == 'location':
                 if not actionfunc([chrom, pos]):
@@ -582,7 +642,7 @@ def main(arguments=sys.argv[1:]):
                     linefail = True
         if not linefail:
             nbuffer += 1
-            linebuffer.append((chrom, pos, alleles))
+            linebuffer.append((chrom, pos, (alleles,)))
             if args.verbose:
                 sys.stdout.write("{}\n".format(alleles))
             if nbuffer == args.linebuffer:

@@ -8,6 +8,7 @@ VCF2MVF: Variant Call Format (VCF) to MVF conversion program
 @author: Ben K. Rosenzweig
 
 Version: 2015-02-01 - First Public Release
+Version: 2015-02-26 - Fixes for 'N' characters still appearing in nucleotide MVF
 
 This file is part of MVFtools.
 
@@ -189,7 +190,10 @@ class VariantCallFile(object):
             else:
                 record['tagindex'][tag] = -1
         record['samples'] = arr[9:]
-        record['genotypes'] = [record['alleles'][0]]
+        if record['alleles'][0] in 'NnXxBbDdHhVv':
+            record['genotypes'] = ['X']
+        else:
+            record['genotypes'] = [record['alleles'][0]]
         for j in xrange(len(record['samples'])):
             record['genotypes'].append(
                 self._call_allele(record['samples'][j].split(':'),
@@ -282,6 +286,8 @@ class VariantCallFile(object):
         elif (res[1] < kwargs.get("lowqual", 20)
               or -1 < sample_depth < kwargs.get("lowdepth", 3)):
             sample_allele = sample_allele.lower()
+        if sample_allele in 'NnBbDdHhVvXx':
+            sample_allele = 'X'
         return sample_allele
 
 def main(arguments=sys.argv[1:]):
@@ -329,7 +335,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-02-26")
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
@@ -397,7 +403,7 @@ def main(arguments=sys.argv[1:]):
         if mvf_alleles:
             mvfentries.append(
                 (contig_translate.get(vcfrecord['contig'], vcfrecord['contig']),
-                 vcfrecord['coord'], mvf_alleles))
+                 vcfrecord['coord'], (mvf_alleles,)))
             nentry += 1
             if nentry == args.linebuffer:
                 mvf.write_entries(mvfentries, encoded=True)

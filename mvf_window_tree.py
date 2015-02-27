@@ -9,6 +9,12 @@ mvf_window_tree: RAxML trees from sequence regions encoded by MVF format
 @author: Ben K. Rosenzweig
 
 Version: 2015-02-01 - First Public Release
+Version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
+                      enhancements.  Added additional options for RAxML
+                      including custom temporary directories, rapid
+                      bootstrapping, and custom arguments to pass to RAxML.
+                      Fixes to post-processing and duplicate sequence
+                      handling.  Addition of whole-contig mode.
 
 This file is part of MVFtools.
 
@@ -45,68 +51,163 @@ class WindowData(object):
             hapsplt: split mode (none, randomone, randomboth, majorminor)
             seqs: list of sequence strings
     """
-    def __init__(self, labels=None, hapmode="none", seqs=None):
-        if hapmode in ['randomboth', 'majorminor']:
-            self.labels = [label + x for x in ['a', 'b'] for label in labels]
-        else:
-            self.labels = labels[:]
+    def __init__(self, window_params=None, seqs=None):
+        self.contigname = window_params.get('contigname', 'CONTIG')
+        self.windowstart = window_params.get('windowstart', -1)
+        self.windowsize = window_params.get('windowsize', -1)
+        self.labels = window_params.get('labels', '')
         if not seqs:
             self.seqs = [[] for _ in xrange(len(self.labels))]
-        self.hapmode = hapmode
 
-    def append_alleles(self, alleles):
+    def append_alleles(self, alleles, minsitedepth=1):
         """Add alleles to the window
             Arguments:
                 alleles: list of allele strings
         """
-        for j, allele in enumerate(alleles):
-            try:
-                self.seqs[j].append(allele)
-            except:
-                raise RuntimeError(alleles, len(self.seqs), len(alleles))
+        site_depth = minsitedepth + 0
+        if site_depth:
+            for i in xrange(len(alleles)):
+                if alleles[i] in 'AaTtGgCcUu':
+                    site_depth -= 1
+                    if not site_depth:
+                        break
+        if not site_depth:
+            for j, allele in enumerate(alleles):
+                try:
+                    self.seqs[j].append(allele)
+                except:
+                    raise RuntimeError(alleles, len(self.seqs), len(alleles))
+        return ''
 
-    def maketree_raxml(self, **kwargs):
-        """Makes alignment, runs RAXML, and processes output
+    def prepare_alignment(self, params):
+        """Checks and prepares alignment for RAxML
             Arguments:
-                kwargs: passthrough arguments
-        """
-        jobname = 'mvftree-' + datetime.now().strftime(
-            '%Y-%m-%d-%H-%M-%S-') + str(randint(100000, 999999))
-        if not os.path.exists("raxmltemp"):
-            os.mkdir("raxmltemp")
-        os.chdir('raxmltemp')
-        temp_labels = {}
-        rev_labels = {}
-        if len(self.seqs[0]) < kwargs.get('minsites', 0):
-            os.chdir('..')
-            return 'nodata'
-        duplicates = ''
-        if not kwargs.get('keep_duplicate_sequences', False):
-            duplicates = self.remove_duplicates()
-        for j in xrange(len(self.labels)):
-            if len(self.labels[j]) > 10:
-                temp_labels['s' + str(j)] = self.labels[j]
-                rev_labels[self.labels[j]] = 's' + str(j)
-                self.labels[j] = 's' + str(j)
-        kwargs['outgroups'] = kwargs.get('outgroups', False) and [
-            rev_labels.get(x, x) for x in kwargs['outgroups']] or []
+                params: dict job parameters
 
-        temp_file = os.path.abspath(os.curdir + "/" + jobname + "_temp.phy")
-        self.write_reduced_phylip(temp_file)
+            Returns list of any duplicates and empty entry when all checks pass
+            In the case of errors, returns entry with information
+        """
+         ## CHECK OVERALL ALIGNMENT DEPTH
+        if len(self.seqs) < params.get('mindepth', 4):
+            return ('', {'status': 'few',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': self.seqs and len(self.seqs[0]) or 0,
+                         'aligndepth': len(self.seqs) or 0})
+        ## CHECK FOR OVERALL ALIGNMENT LENGTH
+        if len(self.seqs[0]) < params.get('minsites', 0):
+            return ('', {'status': 'short',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': len(self.seqs[0]),
+                         'aligndepth': len(self.seqs)})
+        ## CHECK FOR EMPTY SEQUENCES
+        self.remove_empty_sequences()
+        if not self.seqs:
+            return ('', {'status': 'few.proc',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': (self.seqs and
+                                         len(self.seqs[0]) or 0),
+                         'aligndepth': len(self.seqs) or 0})
+        ## CHECK FOR EMPTY SITES
+        self.remove_empty_sites()
+        if not self.seqs[0]:
+            return ('', {'status': 'short.proc',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': (self.seqs and
+                                         len(self.seqs[0]) or 0),
+                         'aligndepth': len(self.seqs) or 0})
+        ##CHECK FOR MINIMUM SEQUENCE COVERAGE
+        if params.get('minseqcoverage', 0):
+            self.remove_low_coverage_sequences(
+                mincov=params.get('minseqcoverage', 0))
+            if not self.seqs:
+                return ('', {'status': 'spotty.proc',
+                             'contig': self.contigname,
+                             'windowstart': self.windowstart,
+                             'windowsize': self.windowsize,
+                             'alignlength': (self.seqs and
+                                             len(self.seqs[0]) or 0),
+                             'aligndepth': len(self.seqs) or 0})
+        ## CHECK AGAIN FOR EMPTY SITES
+        self.remove_empty_sites()
+        if len(self.seqs[0]) < params.get('minsites', 0):
+            return ('', {'status': 'short.proc',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': len(self.seqs[0]),
+                         'aligndepth': len(self.seqs)})
+        ## CHECK FOR IDENTICAL DUPLICATE SEQUENCES BY BASE COMPOSITION
+        duplicates = ''
+        if params.get('duplicateseq', 'dontuse') in ('dontuse', 'remove'):
+            duplicates = self.remove_duplicates(params.get('duplicateseq',
+                                                           'dontuse'))
+        ## CHECK AGAIN FOR OVERALL ALIGNMENT DEPTH
+        if len(self.seqs) < params.get('few.dup', 4):
+            return ('', {'status': 'mindepth',
+                         'contig': self.contigname,
+                         'windowstart': self.windowstart,
+                         'windowsize': self.windowsize,
+                         'alignlength': self.seqs and len(self.seqs[0]) or 0,
+                         'aligndepth': len(self.seqs) or 0})
+
+        ## IF ALL OTHER CHECKS PASS, RETURN DUPLICATE LIST AND EMPTY ENTRY
+        return (duplicates, {})
+
+    def maketree_raxml(self, params):
+        """Runs RAXML, and processes output
+            Arguments:
+                params: dict job parameters
+        """
+        ### Prepare alignment and check for problems
+        (duplicates, entry) = self.prepare_alignment(params)
+        if entry:
+            return entry
+        ## Alignment Has Passed Preliminary Checks, ready for RAxML run
+        ## Establish Temporary Directory
+        jobname = (params.get("tempprefix", "mvftree") + '.' +
+                   datetime.now().strftime('%Y-%m-%d-%H-%M-%S-')
+                   + str(randint(100000, 999999)))
+        temp_filepath = os.path.abspath(
+            "{}/{}_temp.phy".format(params['tempdir'], jobname))
+        ## Temporarily Shorten Labels for Use in Phylip
+        temp_labels = {'encode':{}, 'decode':{}}
+        for labellen in (len(x) > 10 for x in self.labels):
+            if labellen:
+                for j, oldlabel in enumerate(self.labels):
+                    newlabel = 's{}'.format(j)
+                    temp_labels['encode'][oldlabel] = newlabel
+                    temp_labels['decode'][newlabel] = oldlabel
+                    self.labels[j] = newlabel
+                break
+        params['outgroups'] = params.get('outgroups', False) and [
+            temp_labels['encode'].get(x, x) for x in params['outgroups']] or []
+        self.write_phylip(temp_filepath)
         try:
-            run_raxml(temp_file, jobname, **kwargs)
-            #REGULAR TREE
-            if kwargs.get('bootstrap', 0):
+            run_raxml(temp_filepath, jobname, params)
+            if params.get('bootstrap', 0):
                 tree = Phylo.read('RAxML_bipartitions.' + jobname, 'newick',
                                   comments_are_confidence=True)
             else:
                 tree = Phylo.read('RAxML_bestTree.' + jobname, 'newick')
         except IOError:
-            os.chdir('..')
-            return 'nodata'
+            return {'status': 'IOerror',
+                    'contig': self.contigname,
+                    'windowstart': self.windowstart,
+                    'windowsize': self.windowsize,
+                    'alignlength': len(self.seqs[0]),
+                    'aligndepth': len(self.seqs)}
+        if temp_labels['decode']:
+            self.labels = [temp_labels.get(x, x) for x in self.labels]
         for node in tree.get_terminals():
-            kwargs['outgroup'] = temp_labels.get(node.name, node.name)
-            node.name = temp_labels.get(node.name, node.name)
+            node.name = temp_labels['decode'].get(node.name, node.name)
             if node.name in duplicates:
                 name_list = [node.name] + duplicates[node.name]
                 node.split(
@@ -121,22 +222,30 @@ class WindowData(object):
             node.branch_length = None
             if not node.is_terminal:
                 node.name = ''
-        if kwargs['outgroups']:
-            rootwith = kwargs['outgroups'][0]
-        else:
-            rootwith = self.labels[0]
-        topology = ladderize_alpha_tree(tree.__format__('newick'),
-                                        rootwith=rootwith,
-                                        prune=kwargs.get('prune', []))
-        os.chdir('..')
-        return {'tree': full_tree.strip(),
+        if params['rootwith']:
+            params['rootwith'] = [x for x in params['rootwith']
+                                  if x in self.labels]
+        topology = ladderize_alpha_tree(
+            tree.__format__('newick'),
+            rootwith=params.get('rootwith', self.labels[0]),
+            prune=params.get('prune', []))
+        return {'status': 'ok',
+                'duplicates': bool(duplicates),
+                'contig': self.contigname,
+                'windowstart': self.windowstart,
+                'windowsize': self.windowsize,
+                'tree': full_tree.strip(),
                 'topology': topology.strip(),
-                'templabels': ';'.join(["{}={}".format(k, v)
-                                        for (k, v) in temp_labels.items()]),
                 'alignlength': len(self.seqs[0]),
                 'aligndepth': len(self.seqs)}
+####               THIS WAS USED FOR DEBUGGING
+#                'templabels': temp_labels['encode'] and (
+#                    ';'.join(["{}={}".format(k, v) for (k, v) in (
+#                    temp_labels['encode'].items())])) or '.'}
+####               THIS WAS USED FOR DEBUGGING
 
-    def write_reduced_phylip(self, outpath):
+
+    def write_phylip(self, outpath):
         """Write Phylip"""
         with open(outpath, 'w') as alignfile:
             alignfile.write("{} {}\n".format(len(self.seqs),
@@ -146,23 +255,99 @@ class WindowData(object):
                                                  ''.join(self.seqs[j])))
         return ''
 
-    def remove_duplicates(self):
+    def remove_empty_sequences(self):
+        """Remove sequences with no data"""
+        removal_list = []
+        for j in xrange(len(self.seqs)):
+            if all([x in 'Xx-' for x in self.seqs[j]]):
+                removal_list.append(j)
+        for j in sorted(removal_list, reverse=True):
+            del self.seqs[j]
+            del self.labels[j]
+        return ''
+
+    def remove_low_coverage_sequences(self, mincov=0.):
+        """Removes lowcoverage sequences"""
+        removal_list = []
+        if mincov:
+            for i, seq in enumerate(self.seqs):
+                cov = (float(sum([int(x in 'AaTtGgCcUu') for x in seq]))
+                       / (float(len(seq))))
+                if cov < mincov:
+                    removal_list.append(i)
+        for j in sorted(removal_list, reverse=True):
+            del self.seqs[j]
+            del self.labels[j]
+        return ''
+
+    def remove_empty_sites(self):
+        """Remove sites without data"""
+        removal_list = []
+        for j in xrange(len(self.seqs[0])):
+            isempty = True
+            for base in (seq[j] for seq in self.seqs):
+                if base in 'AaTtGgCcUu':
+                    isempty = False
+                    break
+            if isempty:
+                removal_list.append(j)
+        if removal_list:
+            self.seqs = [[base for (j, base) in enumerate(seq)
+                          if j not in removal_list]
+                         for seq in self.seqs]
+        return ''
+
+    def remove_duplicates(self, mode='dontuse'):
         """Remove duplicate sequences"""
         duplicates = {}
         remove_indices = set([])
         for i, j in combinations(range(len(self.seqs)), 2):
-            if self.seqs[i] == self.seqs[j]:
+            duplicate = True
+            for k, base in enumerate(self.seqs[i]):
+                if base != self.seqs[j][k]:
+                    duplicate = False
+                    break
+            if duplicate:
                 remove_indices.update([j])
-                if self.labels[i] in duplicates:
+                if mode == 'dontuse':
+                    if self.labels[i] not in duplicates:
+                        duplicates[self.labels[i]] = []
+
                     duplicates[self.labels[i]].append(self.labels[j])
-                else:
-                    duplicates[self.labels[i]] = [self.labels[j]]
         for j in sorted(remove_indices, reverse=True):
             del self.seqs[j]
             del self.labels[j]
         return duplicates
 
-def run_raxml(filename, jobname, **kwargs):
+class OutputFile(object):
+    """Set up Output File
+        Params:
+            path: file path
+            headers: list of header elements
+    """
+
+    def __init__(self, path, headers):
+        self.headers = headers
+        self.path = os.path.abspath(path)
+        self.write_headers()
+
+    def write_headers(self):
+        """Write headers to file"""
+        with open(self.path, 'w') as outfile:
+            outfile.write('#' + '\t'.join(self.headers) + "\n")
+        return ''
+
+    def write_entry(self, entry):
+        """Writes entry to file
+            Arguments:
+                entry: dict of values with keys matching header
+        """
+        with open(self.path, 'a') as outfile:
+            outfile.write("\t".join([str(entry.get(k, '.'))
+                                     for k in self.headers]) + "\n")
+        return ''
+
+def run_raxml(filename, jobname, params):
     """Runs RAxML
         Parameters:
             filename: temporary phy filepath
@@ -172,28 +357,28 @@ def run_raxml(filename, jobname, **kwargs):
             threads: multithreading tasks (experimental)
             bootstrap: int bootstrap replicates (default=none)
             optbranch: run -k option for RAxML
+            opts: any additional options (as a string)
     """
-    raxml_exec = 'raxmlpath' in kwargs and kwargs['raxmlpath'] or 'raxmlHPC'
-    model = 'model' in kwargs and kwargs['model'] or 'GTRGAMMA'
-    outgroups = kwargs.get('outgroups', '') or []
-    logpath = 'logpath' in kwargs and kwargs['logpath'] or (jobname + '.log')
+    outgroups = params.get('outgroups', '') or []
+    logpath = params.get('logpath', jobname + '.log')
     log_file = open(logpath, 'a')
-    arr_cmd = [raxml_exec, '-m', model, '-n', jobname,
-               '-s', filename, '-p', str(randint(1000000, 999999999))]
+    cmd = [params.get('raxmlpath', 'raxmlHPC'),
+           '-m', params.get('model', 'GTRGAMMA'),
+           '-n', jobname,
+           '-s', filename,
+           '-p', str(randint(1, 100000000))]
     if outgroups:
-        arr_cmd.extend(['-o', ','.join(outgroups)])
-    if kwargs.get('threads', 1) > 1:
-        arr_cmd.extend(['-T', str(kwargs['threads'])])
-    if kwargs.get('bootstrap', 0):
-        if kwargs.get('optbranch', 0):
-            arr_cmd.extend(['-k', '-#',
-                            str(kwargs['bootstrap']), '-f', 'a', '-x',
-                            str(randint(1, 100000000))])
+        cmd.extend(['-o', ','.join(outgroups)])
+    if params.get('bootstrap', 0):
+        if params.get('optbranch', 0):
+            cmd.extend(['-k', '-#', str(params['bootstrap']),
+                        '-f', 'a', '-x', str(randint(1, 100000000))])
         else:
-            arr_cmd.extend(['-#', str(kwargs['bootstrap']), '-f', 'a', '-x',
-                            str(randint(1, 100000000))])
-    process = subprocess.Popen(' '.join(arr_cmd),
-                               shell=True, stdout=log_file, stderr=log_file)
+            cmd.extend(['-#', str(params['bootstrap']), '-f', 'a', '-x',
+                        str(randint(1, 100000000))])
+    cmd.append(params.get('raxmlopts', ''))
+    process = subprocess.Popen(' '.join(cmd), shell=True,
+                               stdout=log_file, stderr=log_file)
     process.communicate()
     log_file.close()
     return ''
@@ -205,10 +390,8 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
     tree0 = Phylo.read(StringIO(treestring), 'newick')
     for node in tree0.get_terminals():
         if prune:
-            if any(x in node.name for x in prune):
+            if any([x in node.name for x in prune]):
                 tree0.prune(node)
-            elif rootwith in node.name:
-                tree0.root_with_outgroup(node)
     for node in tree0.find_clades():
         node.branch_length = 1.0
     for node in tree0.get_nonterminals(order="postorder"):
@@ -218,165 +401,217 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
         else:
             node.clades.sort(key=lambda c: c.name)
     tree0.ladderize()
+    if rootwith:
+        for node in tree0.get_nonterminals():
+            if all([subnode.name in rootwith for subnode
+                    in node.get_terminals()]):
+                tree0.root_with_outgroup(node)
+                break
     tree_string = tree0.__format__('newick').replace(
         ':1.00000', '').rstrip()
     return tree_string
 
 def hapsplit(alleles, mode):
     """Process Alleles into Haplotypes"""
-    if all(x not in 'RYMKWS' for x in alleles):
-        if mode in ['major', 'minor', 'randomone']:
-            return alleles
-        elif mode in ['majorminor', 'randomboth']:
-            return ''.join([base*2 for base in alleles])
-    else:
-        if mode in ['major', 'minor', 'majorminor']:
-            hapleles = ''.join([HAPSPLIT[x] for x in alleles])
-            counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
-                            reverse=True)
-            order = [x[1] for x in counts]
-            newalleles = []
-            for base in alleles:
-                if base in 'RYMKWS':
-                    newalleles.extend([x for x in order if x in HAPSPLIT[base]])
-                else:
-                    newalleles.extend([base, base])
-            if mode == 'major':
-                alleles = ''.join([x[0] for base in newalleles])
-            elif mode == 'minor':
-                alleles = ''.join([x[1] for x in newalleles])
-            elif mode == 'majorminor':
-                alleles = ''.join([x for x in newalleles])
-        elif mode == 'randomone':
-            alleles = ''.join([HAPSPLIT[x][randint(0, 1)] for x in alleles])
-        elif mode == 'randomboth':
-            randx = randint(0, 1)
-            alleles = ''.join([HAPSPLIT[x][randx] + HAPSPLIT[x][1 - randx]
-                               for x in alleles])
-        return alleles
+    if all([x not in 'RYMKWS' for x in alleles]):
+        return (mode in ['major', 'minor', 'randomone'] and alleles
+                or ''.join([base*2 for base in alleles]))
+    elif mode in ['major', 'minor', 'majorminor']:
+        hapleles = ''.join([HAPSPLIT[x] for x in alleles])
+        counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
+                        reverse=True)
+        order = [x[1] for x in counts]
+        newalleles = []
+        for base in alleles:
+            if base in 'RYMKWS':
+                newalleles.extend([x for x in order if x in HAPSPLIT[base]])
+            else:
+                newalleles.extend([base, base])
+        if mode == 'major':
+            alleles = ''.join([x[0] for base in newalleles])
+        elif mode == 'minor':
+            alleles = ''.join([x[1] for x in newalleles])
+        elif mode == 'majorminor':
+            alleles = ''.join([x for x in newalleles])
+    elif mode == 'randomone':
+        alleles = ''.join([HAPSPLIT[x][randint(0, 1)] for x in alleles])
+    elif mode == 'randomboth':
+        randx = randint(0, 1)
+        alleles = ''.join([HAPSPLIT[x][randx] + HAPSPLIT[x][1 - randx]
+                           for x in alleles])
+    return alleles
 
 def main(arguments=sys.argv[1:]):
     """Main MVF Treemaker"""
     parser = argparse.ArgumentParser(description="""
     Process MVF into alignment""")
     parser.add_argument("--mvf", help="inputmvf")
-    parser.add_argument("--out", help="alignment file")
-    parser.add_argument("--regions", nargs='*',
-                        help="one or more regions id,start,stop (inclusive)")
+    parser.add_argument("--out", help="tree list output file")
     parser.add_argument("--samples", nargs='*',
-                        help="one or more taxon labels, leave blank for all")
-    parser.add_argument("--outgroups", nargs="*")
-    parser.add_argument("--contigs", nargs='*')
+                        help="one or more taxon labels, default=all")
+    parser.add_argument("--raxml_outgroups", nargs="*",
+                        help="select outgroups to use in RAxML")
+    parser.add_argument("--rootwith", nargs='*',
+                        help="""root output trees with
+                                these taxa after RAxML""")
+    parser.add_argument("--contigs", nargs='*',
+                        help="choose one or more contigs, default=all")
+    parser.add_argument("--outputcontiglabels", action="store_true",
+                        help="output contig labels instead of ids")
+    parser.add_argument("--outputempty", action="store_true",
+                        help="output entries of windows with no data")
     parser.add_argument("--hapmode", default="none",
                         choices=["none", "randomone", "randomboth",
-                                 "major", "minor", "majorminor"])
-    parser.add_argument("--windowsize", type=int, default=10000)
-    parser.add_argument("--minsites", type=int, default=100)
+                                 "major", "minor", "majorminor"],
+                        help="""haplotype splitting mode.
+                                'none' = no splitting;
+                                'randomone' = pick one allele randomly
+                                              (recommended);
+                                'randomboth = pick alleles randomly,
+                                              keep both;
+                                'major' = pick the more common allele;
+                                'minor' = pick the less common allele;
+                                'majorminor' = put the major in 'a' and
+                                               minor in 'b'
+                            """)
+    parser.add_argument("--windowsize", type=int, default=10000,
+                        help="""specify genomic region size,
+                                or use -1 for whole contig""")
+    parser.add_argument("--minsites", type=int, default=100,
+                        help="""minimum number of sites [100]""")
+    parser.add_argument("--minsitedepth", type=int, default=1,
+                        help="""mininum depth of sites to use in alignment
+                                [1]""")
+    parser.add_argument("--minseqcoverage", type=float, default=0.1,
+                        help="""proportion of total alignment a sequence
+                                must cover to be retianed [0.1]""")
+    parser.add_argument("--mindepth", type=int, default=4,
+                        help="""minimum number of sequences [4]""")
+    parser.add_argument("--bootstrap", type=int,
+                        help="""turn on rapid bootstrapping for RAxML and
+                             perform specified number of replicates""")
+    parser.add_argument("--raxml_model", default="GTRGAMMA",
+                        help="""choose custom RAxML model [GTRGAMMA]""")
     parser.add_argument("--raxmlpath",
                         help="manually specify RAxML path")
-    parser.add_argument("--keep_duplicate_sequences", action="store_true")
+    parser.add_argument("--raxmlopts", default="",
+                        help="specify additional RAxML arguments")
+    parser.add_argument("--duplicateseq", default="dontuse",
+                        choices=["dontuse", "keep", "remove"],
+                        help="""[dontuse] remove for tree making,
+                                replace as zero-branch-length sister taxa;
+                                keep=keep in for tree making,
+                                may cause errors for RAxML;
+                                remove=remove entirely from alignment""")
+    parser.add_argument("--tempdir", default='raxmltemp',
+                        help="""temporary dir. location default=./tempdir""")
+    parser.add_argument("--tempprefix", default="mvftree",
+                        help="""temporary file prefix, default=mvftree""")
     parser.add_argument("--quiet", action="store_true",
                         help="suppress screen output")
     parser.add_argument("-v", "--version", action="store_true",
                         help="display version information")
+
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-02-26")
         sys.exit()
+    ## ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []
-    args.outgroups = args.outgroups or []
-    regions = []
-    if args.regions:
-        try:
-            regions = [tuple([x.split(',')[0], int(x.split(',')[1]),
-                              int(x.split(',')[2])])
-                       for x in args.regions]
-            for j, (contig, rmin, rmax) in enumerate(regions):
-                if rmin > rmax:
-                    args.complement = True
-                    regions[j] = (contig, rmax, rmin)
-            regions.sort()
-
-        except:
-            raise RuntimeError(args.regions, "invalid regions")
     mvf = MultiVariantFile(args.mvf, 'read')
+    treefile = OutputFile(args.out,
+                          headers=['contig', 'windowstart', 'windowsize',
+                                   'tree', 'topology', 'topoid',
+                                   # 'templabels', ### USED FOR DEBUGGING ###
+                                   'alignlength', 'aligndepth', 'status'])
+    topofile = OutputFile(args.out + '.counts',
+                          headers=['rank', 'topology', 'count'])
     sample_cols = args.samples and mvf.get_sample_indices(args.samples) or []
-    labels = mvf.get_sample_labels(sample_cols)
-    ## WINDOW START
-    headers = ['contig', 'winstart', 'winlen', 'tree', 'topology', 'topoid',
-               'templabels', 'alignlength', 'aligndepth']
-    with open(args.out, 'w') as outfile:
-        outfile.write("\t".join(headers) + "\n")
-        current_contig = ''
-        window_start = 0
-        window = None
-        topo_ids = {}
-        topo_counts = {}
-        for contig, pos, allelesets in mvf.iterentries(
-                contigs=args.contigs, subset=sample_cols, quiet=args.quiet,
-                no_invariant=True, no_ambig=True, no_gap=True, decode=True):
-            if regions:
-                if not any(rcontig == contig and rstart <= pos <= rstop
-                           for (rcontig, rstart, rstop) in regions):
-                    continue
-            if not current_contig:
-                current_contig = contig[:]
-                window = WindowData(labels=labels, hapmode=args.hapmode)
-                window_start = 0
-            elif (pos > window_start + args.windowsize
-                  or contig != current_contig):
-                entry = window.maketree_raxml(
-                    outgroups=args.outgroups, minsites=args.minsites,
-                    raxmlpath=args.raxmlpath,
-                    keep_duplicate_sequences=args.keep_duplicate_sequences)
-                if entry != 'nodata':
-                    entry.update([("contig", current_contig),
-                                  ("winstart", window_start),
-                                  ("winlen", args.windowsize)])
+    if args.tempdir:
+        tmpdir = os.path.abspath(args.tempdir)
+    else:
+        tmpdir = os.path.abspath('./raxmltemp')
+    if not os.path.exists(tmpdir):
+        os.mkdir(tmpdir)
+    os.chdir(tmpdir)
+    ## SETUP PARAMS
+    main_labels = mvf.get_sample_labels(sample_cols)
+    if args.hapmode in ['randomboth', 'majorminor']:
+        main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
+    params = {'outgroups': args.raxml_outgroups or [],
+              'rootwith': args.rootwith or [],
+              'minsites': args.minsites,
+              'minseqcoverage': args.minseqcoverage,
+              'mindepth': args.mindepth,
+              'raxmlpath': args.raxmlpath,
+              'raxmlopts': args.raxmlopts,
+              'duplicateseq': args.duplicateseq,
+              'model': args.raxml_model,
+              'bootstrap': args.bootstrap,
+              'windowsize': args.windowsize,
+              'hapmode': args.hapmode,
+              'tempdir': tmpdir,
+              'tempprefix': args.tempprefix}
+    ## WINDOW START INTERATION
+    current_contig = ''
+    window_start = 0
+    window = None
+    topo_ids = {}
+    topo_counts = {}
+    for contig, pos, allelesets in mvf.iterentries(
+            contigs=args.contigs, subset=sample_cols, quiet=args.quiet,
+            no_invariant=False, no_ambig=False, no_gap=False, decode=True):
+        if contig != current_contig or (args.windowsize != -1 and (
+                pos > window_start + args.windowsize)):
+            if window:
+                entry = window.maketree_raxml(params)
+                if entry['status'] != 'ok':
+                    if args.outputempty:
+                        treefile.write_entry(entry)
+                else:
                     topo = entry["topology"]
                     topo_counts[topo] = topo_counts.get(topo, 0) + 1
                     if topo not in topo_ids:
-                        topo_ids[topo] = (
-                            topo_ids and max(topo_ids.values()) + 1 or 0)
+                        topo_ids[topo] = (topo_ids
+                                          and max(topo_ids.values()) + 1 or 0)
                     entry["topoid"] = topo_ids[topo]
-                    outfile.write("\t".join([str(entry[k])
-                                             for k in headers]) + "\n")
-                if contig != current_contig:
-                    window_start = 0
-                    current_contig = contig[:]
-                else:
-                    window_start += args.windowsize
-                window = WindowData(labels=labels, hapmode=args.hapmode)
-            if args.hapmode != 'none':
-                allelesets[0] = hapsplit(allelesets[0], args.hapmode)
-            elif any(x in allelesets[0] for x in 'RYWSKM'):
-                continue
-            window.append_alleles(allelesets[0])
-        entry = window.maketree_raxml(
-            outgroups=args.outgroups, minsites=args.minsites,
-            raxmlpath=args.raxmlpath,
-            keep_duplicate_sequences=args.keep_duplicate_sequences)
-        if entry != 'nodata':
-            entry.update([("contig", current_contig),
-                          ("winstart", window_start),
-                          ("winlen", args.windowsize)])
-            topo = entry["topology"]
-            topo_counts[topo] = topo_counts.get(topo, 0) + 1
-            if topo not in topo_ids:
-                topo_ids[topo] = topo_ids and max(topo_ids.values()) + 1 or 0
-            entry["topoid"] = topo_ids[topo]
-            outfile.write("\t".join([str(entry[k])
-                                     for k in headers]) + "\n")
+                    treefile.write_entry(entry)
+                window_start = ((contig == current_contig and
+                                 args.windowsize != -1)
+                                and window_start + args.windowsize or 0)
+            current_contig = contig[:]
+            window = None
+            window = WindowData(window_params={
+                'contigname': (args.outputcontiglabels
+                               and mvf.get_contig_label(current_contig)
+                               or current_contig[:]),
+                "windowstart": (args.windowsize == -1 and '-1'
+                                or window_start + 0),
+                "windowsize": args.windowsize,
+                "labels": main_labels[:]})
+        ## ADD ALLELES
+        if args.hapmode != 'none':
+            allelesets[0] = hapsplit(allelesets[0], args.hapmode)
+        window.append_alleles(allelesets[0], minsitedepth=args.minsitedepth)
+    ## LAST LOOP
+    entry = window.maketree_raxml(params)
+    if entry['status'] != 'ok':
+        if args.outputempty:
+            treefile.write_entry(entry)
+    else:
+        topo = entry["topology"]
+        topo_counts[topo] = topo_counts.get(topo, 0) + 1
+        if topo not in topo_ids:
+            topo_ids[topo] = (topo_ids and max(topo_ids.values()) + 1 or 0)
+        entry["topoid"] = topo_ids[topo]
+        treefile.write_entry(entry)
     window = None
     ## END WINDOW ITERATION
     topo_list = sorted([(v, k) for k, v in topo_counts.iteritems()],
                        reverse=True)
-    with open(args.out + ".counts", 'w') as countfile:
-        for rank, [value, topo] in enumerate(topo_list):
-            countfile.write("#{}\t{}\t{}\n".format(rank, value, topo))
-            topo_ids[topo] = str(rank)
+    for rank, [value, topo] in enumerate(topo_list):
+        topofile.write_entry({'rank':rank, 'count': value, 'topology':topo})
     return ''
-
 
 if __name__ == "__main__":
     main()
