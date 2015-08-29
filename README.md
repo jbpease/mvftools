@@ -30,3 +30,15 @@ This file is part of MVFtools.
 MVFtools is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 MVFtools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with Foobar.  If not, see (http://www.gnu.org/licenses/).
+
+## FAQ
+
+1. What is an example of a simple MVF workflow using VCF?
+1.1. After aligning your reads and sorting them using Using [SAMtools and BCFtools](http://www.htslib.org/) and 1+ *sorted* .bam files, this command is used to generate a multi-sample VCF. 
+
+    samtools mpileup -uD -f $GENOME.fasta $SPECIESA.sorted.bam $SPECIESB.sorted.bam ... $SPECIESN.sorted.bam | bcftools view -cg - > $INTERMED.vcf
+    
+    vcf2mvf.py $INTERMED.vcf --out $OUTPUT.mvf --labelreplace SPECIESA:SPECA SPECIESB:SPECB ... SPECIESN:SPECN --maskqual 0 --lowqual 20 --maskdepth 1 --lowdepth 3 --quiet --chromindex chr01 chr02 chr03 ...
+
+The '--labelpreplace' amd '--chromindex' flags are optional, as VCF files should be converted automatically.
+
