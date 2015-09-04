@@ -4,7 +4,7 @@
 MVFtools: Multisample Variant Format Toolkit
 http://www.github.org/jbpease/mvftools
 
-FASTA2MVF: FASTA to MVF conversion program
+FASTA2MVF: Variant Call Format (FASTA) to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
@@ -39,7 +39,8 @@ def main(arguments=sys.argv[1:]):
     """Main method for fasta2mvf"""
     parser = argparse.ArgumentParser(description="""
     Converts multisample-FASTA to MVF file with filtering """)
-    parser.add_argument("--fasta", help="input FASTA file", required=True)
+    parser.add_argument("--fasta", nargs='*', required=True,
+                        help="input FASTA file(s)")
     parser.add_argument("--out", help="output MVF file", required=True)
     parser.add_argument("--contigids", nargs='*',
                         help=("""manually specify one or more contig ids
@@ -58,15 +59,18 @@ def main(arguments=sys.argv[1:]):
                         help="number of lines to hold in READ buffer")
     parser.add_argument("--writebuffer", type=int, default=100000,
                         help="number of lines to hold in WRITE buffer")
-    parser.add_argument("--fieldsep", default="NONE",
+    parser.add_argument("--fieldsep", nargs='*', default=["NONE"],
                         choices=['TAB', 'SPACE', 'DBLSPACE',
-                                 'COMMA', 'MIXED', 'PIPE'],
+                                 'COMMA', 'MIXED', 'PIPE', 'AT',
+                                 'UNDER', 'DBLUNDER'],
                         help="""FASTA field separator; assumes
                                 '>database/SEP/accession/SEP/locus'
                                 format (default='NONE')""")
     parser.add_argument("--contigfield", type=int,
                         help="""when headers are split by --fieldsep,
                         the 0-based index of the contig id""")
+    parser.add_argument("--contigbyfile", action="store_true",
+                        help="""Contigs are designated by separate files""")
     parser.add_argument("--samplefield", type=int,
                         help="""when headers are split by --fieldsep,
                         the 0-based index of the sample id""")
@@ -76,21 +80,29 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-07-07")
+        print("Version 2015-09-05")
         sys.exit()
-    sepchars = dict([("PIPE", "|"), ("TAB", "\t"),
-                     ("SPACE", " "), ("DBLSPACE", "  "),
-                     ("COMMA", ","), ("NONE", None)])
-    args.fieldsep = sepchars[args.fieldsep]
+    sepchars = dict([("PIPE", "\\|"), ("TAB", "\\t"),
+                     ("SPACE", "\\s"), ("DBLSPACE", "\\s\\s"),
+                     ("COMMA", "\\,"), ("NONE", None),
+                     ("AT", "\\@"), ('UNDER', "\\_"), ("DBLUNDER", "\\_\\_")])
+    args.fieldsep = re.compile("[{}]".format(
+        ''.join([sepchars[x] for x in args.fieldsep])))
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     fasta = {}
     current_contig = 0
     fsamples = []
     fcontigs = []
-    for header, seq in fasta_iter(args.fasta):
-        header = header.split(args.fieldsep)
-        if (len(header) < max(3, args.contigfield or 0, args.samplefield or 0)
-                or args.contigfield is None or args.samplefield is None):
+    for fastapath in args.fasta:
+        print("Processing {}".format(fastapath))
+        for header, seq in fasta_iter(fastapath):
+            header = [str(x) for x in re.split(args.fieldsep, header)]
+        if args.contigbyfile:
+            contig = fastapath[:]
+            sample = header[args.samplefield or 0]
+        elif (len(header) < max(3, args.contigfield or 0,
+                                args.samplefield or 0) or
+              args.contigfield is None or args.samplefield is None):
             contig = "UNK{}".format(current_contig)
             sample = header[0]
         else:
@@ -101,7 +113,7 @@ def main(arguments=sys.argv[1:]):
             fasta[contig] = {}
         if sample not in fsamples:
             fsamples.append(sample)
-        fasta[contig][sample] = (len(seq), seq)
+            fasta[contig][sample] = (len(seq), seq)
     reflabel = None
     if args.reflabel:
         for i, samplename in enumerate(fsamples):
@@ -111,6 +123,7 @@ def main(arguments=sys.argv[1:]):
     if reflabel:
         newref = fsamples.pop(i)
         fsamples = [newref] + fsamples
+
     for i, contig in enumerate(fcontigs):
         mvf.metadata['contigs'][i] = {
             'label': contig,
@@ -127,11 +140,9 @@ def main(arguments=sys.argv[1:]):
     mvf_alleles = {}
     for cind, contig in enumerate(fcontigs):
         for pos in range(mvf.metadata['contigs'][cind]['length']):
-            print(''.join(pos > fasta[contig][samp][0] and '-' or
-                          fasta[contig][samp][1][pos]
-                          for samp in fsamples))
             mvf_alleles = encode_mvfstring(
-                ''.join(pos > fasta[contig][samp][0] and '-' or
+                ''.join(samp not in fasta[contig] and '-' or
+                        pos > fasta[contig][samp][0] and '-' or
                         fasta[contig][samp][1][pos]
                         for samp in fsamples))
             if mvf_alleles:
@@ -140,7 +151,7 @@ def main(arguments=sys.argv[1:]):
                 nentry += 1
                 if nentry == args.writebuffer:
                     mvf.write_entries(mvfentries, encoded=True)
-                    print(mvfentries[:5])
+                    # print(mvfentries[:5])
                     mvfentries = []
                     nentry = 0
     if mvfentries:

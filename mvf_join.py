@@ -8,8 +8,8 @@ mvf_join: Concatenate and merge MVF files
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
-
+@version: 2015-02-01 - First Public Release
+version
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
@@ -27,8 +27,10 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
-import sys, argparse
+import sys
+import argparse
 from mvfbase import MultiVariantFile
+
 
 class MvfTransformer(object):
     """MVF Transformer Object
@@ -56,10 +58,11 @@ class MvfTransformer(object):
         self.contigs[consensusid] = localid
         return ''
 
+
 def main(arguments=sys.argv[1:]):
     """Main method for mvf_join"""
     parser = argparse.ArgumentParser(description="""
-        MVF joining both veritically (separate contigs) and
+        MVF joining both vertically (separate contigs) and
         and horizontally (different samples)""")
     parser.add_argument("mvf", nargs="*", help="one or more mvf files")
     parser.add_argument("--out", help="output mvf file")
@@ -80,10 +83,10 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-09-04")
         sys.exit()
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
-    ## Copy the first file's metadata
+    # Copy the first file's metadata
     if args.main_header_file:
         if args.main_header_file not in args.mvf:
             raise RuntimeError("{} not found in files".format(
@@ -94,10 +97,10 @@ def main(arguments=sys.argv[1:]):
         args.main_header_file = 0
     first_mvf = MultiVariantFile(args.mvf[args.main_header_file], 'read')
     concatmvf.metadata = first_mvf.metadata.copy()
-    ## Open each MVF file, read headers to make unified header
+    # Open each MVF file, read headers to make unified header
     transformers = []
     for mvfname in args.mvf:
-        ## This will create a dictionary of samples{old:new}, contigs{old:new}
+        # This will create a dictionary of samples{old:new}, contigs{old:new}
         transformer = MvfTransformer()
         mvf = MultiVariantFile(mvfname, 'read')
         for i, label in enumerate(mvf.get_sample_labels()):
@@ -113,8 +116,8 @@ def main(arguments=sys.argv[1:]):
             if contigdata['label'] not in [
                     concatmvf.metadata['contigs'][x]['label']
                     for x in concatmvf.metadata['contigs']]:
-                newid = (contigid not in concatmvf.metadata['contigs']
-                         and contigid or concatmvf.get_next_contig_id())
+                newid = (contigid not in concatmvf.metadata['contigs'] and
+                         contigid or concatmvf.get_next_contig_id())
                 concatmvf.metadata['contigs'][newid] = contigdata
             else:
                 for concatid, concatdata in (
@@ -125,9 +128,9 @@ def main(arguments=sys.argv[1:]):
             if newid != contigid:
                 transformer.set_contig(contigid, newid)
         transformers.append(transformer)
-    ## Write output header
+    # Write output header
     concatmvf.write_data(concatmvf.get_header())
-    ## Now loop through each file
+    # Now loop through each file
     entries = []
     nentries = 0
     for ifile, mvfname in enumerate(args.mvf):
@@ -141,13 +144,13 @@ def main(arguments=sys.argv[1:]):
                 allelesets = [mvf.decode(x) for x in allelesets]
                 for j, alleles in enumerate(allelesets):
                     allelesets[j] = concatmvf.encode(''.join([
-                        x in transformer.labels
-                        and alleles[transformer.labels[x]] or alleles[x]
-                        for x in xrange(len(alleles))]))
+                        x in transformer.labels and
+                        alleles[transformer.labels[x]] or alleles[x]
+                        for x in range(len(alleles))]))
             if transformer.contigs:
-                contigid = (contigid in transformer['contigs']
-                            and transformer['contigs'][contigid]
-                            or contigid)
+                contigid = (contigid in transformer['contigs'] and
+                            transformer['contigs'][contigid] or
+                            contigid)
             entries.append((contigid, pos, allelesets))
             nentries += 1
             if nentries == args.linebuffer:

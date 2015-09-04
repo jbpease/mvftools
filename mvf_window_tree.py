@@ -9,13 +9,16 @@ mvf_window_tree: RAxML trees from sequence regions encoded by MVF format
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
-Version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
+ version: 2015-02-01 - First Public Release
+version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
                       enhancements.  Added additional options for RAxML
                       including custom temporary directories, rapid
                       bootstrapping, and custom arguments to pass to RAxML.
                       Fixes to post-processing and duplicate sequence
                       handling.  Addition of whole-contig mode.
+version: 2015-06-09 - Major update to 1.2.1. Fixes polytomy issue, Python 3.x
+                      compatibility.
+@version: 2015-09-04 - Cleanup and fixes
 
 This file is part of MVFtools.
 
@@ -36,14 +39,18 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
-import sys, argparse, os, subprocess
-from mvfbase import  MultiVariantFile
+import os
+import sys
+import argparse
+import subprocess
 from random import randint
-from itertools import combinations
-from mvfbiolib import HAPSPLIT
-from Bio import Phylo
 from datetime import datetime
 from StringIO import StringIO
+from itertools import combinations
+from Bio import Phylo
+from mvfbase import MultiVariantFile
+from mvfbiolib import HAPSPLIT
+
 
 class WindowData(object):
     """Container for window data
@@ -57,8 +64,7 @@ class WindowData(object):
         self.windowstart = window_params.get('windowstart', -1)
         self.windowsize = window_params.get('windowsize', -1)
         self.labels = window_params.get('labels', '')
-        if not seqs:
-            self.seqs = [[] for _ in xrange(len(self.labels))]
+        self.seqs = [[] for _ in range(len(self.labels))]
 
     def append_alleles(self, alleles, minsitedepth=1):
         """Add alleles to the window
@@ -66,12 +72,11 @@ class WindowData(object):
                 alleles: list of allele strings
         """
         site_depth = minsitedepth + 0
-        if site_depth:
-            for i in xrange(len(alleles)):
-                if alleles[i] in 'AaTtGgCcUu':
-                    site_depth -= 1
-                    if not site_depth:
-                        break
+        i = 0
+        while site_depth and i < len(alleles):
+            if alleles[i] in 'AaTtGgCcUu':
+                site_depth -= 1
+            i += 1
         if not site_depth:
             for j, allele in enumerate(alleles):
                 try:
@@ -88,7 +93,7 @@ class WindowData(object):
             Returns list of any duplicates and empty entry when all checks pass
             In the case of errors, returns entry with information
         """
-         ## CHECK OVERALL ALIGNMENT DEPTH
+        # CHECK OVERALL ALIGNMENT DEPTH
         if len(self.seqs) < params.get('mindepth', 4):
             return ('', {'status': 'few',
                          'contig': self.contigname,
@@ -96,7 +101,7 @@ class WindowData(object):
                          'windowsize': self.windowsize,
                          'alignlength': self.seqs and len(self.seqs[0]) or 0,
                          'aligndepth': len(self.seqs) or 0})
-        ## CHECK FOR OVERALL ALIGNMENT LENGTH
+        # CHECK FOR OVERALL ALIGNMENT LENGTH
         if len(self.seqs[0]) < params.get('minsites', 0):
             return ('', {'status': 'short',
                          'contig': self.contigname,
@@ -104,7 +109,7 @@ class WindowData(object):
                          'windowsize': self.windowsize,
                          'alignlength': len(self.seqs[0]),
                          'aligndepth': len(self.seqs)})
-        ## CHECK FOR EMPTY SEQUENCES
+        # CHECK FOR EMPTY SEQUENCES
         self.remove_empty_sequences()
         if not self.seqs:
             return ('', {'status': 'few.proc',
@@ -114,7 +119,7 @@ class WindowData(object):
                          'alignlength': (self.seqs and
                                          len(self.seqs[0]) or 0),
                          'aligndepth': len(self.seqs) or 0})
-        ## CHECK FOR EMPTY SITES
+        # CHECK FOR EMPTY SITES
         self.remove_empty_sites()
         if not self.seqs[0]:
             return ('', {'status': 'short.proc',
@@ -124,7 +129,7 @@ class WindowData(object):
                          'alignlength': (self.seqs and
                                          len(self.seqs[0]) or 0),
                          'aligndepth': len(self.seqs) or 0})
-        ##CHECK FOR MINIMUM SEQUENCE COVERAGE
+        # CHECK FOR MINIMUM SEQUENCE COVERAGE
         if params.get('minseqcoverage', 0):
             self.remove_low_coverage_sequences(
                 mincov=params.get('minseqcoverage', 0))
@@ -136,7 +141,7 @@ class WindowData(object):
                              'alignlength': (self.seqs and
                                              len(self.seqs[0]) or 0),
                              'aligndepth': len(self.seqs) or 0})
-        ## CHECK AGAIN FOR EMPTY SITES
+        # CHECK AGAIN FOR EMPTY SITES
         self.remove_empty_sites()
         if len(self.seqs[0]) < params.get('minsites', 0):
             return ('', {'status': 'short.proc',
@@ -145,12 +150,12 @@ class WindowData(object):
                          'windowsize': self.windowsize,
                          'alignlength': len(self.seqs[0]),
                          'aligndepth': len(self.seqs)})
-        ## CHECK FOR IDENTICAL DUPLICATE SEQUENCES BY BASE COMPOSITION
+        # CHECK FOR IDENTICAL DUPLICATE SEQUENCES BY BASE COMPOSITION
         duplicates = ''
         if params.get('duplicateseq', 'dontuse') in ('dontuse', 'remove'):
             duplicates = self.remove_duplicates(params.get('duplicateseq',
                                                            'dontuse'))
-        ## CHECK AGAIN FOR OVERALL ALIGNMENT DEPTH
+        # CHECK AGAIN FOR OVERALL ALIGNMENT DEPTH
         if len(self.seqs) < params.get('few.dup', 4):
             return ('', {'status': 'mindepth',
                          'contig': self.contigname,
@@ -159,7 +164,7 @@ class WindowData(object):
                          'alignlength': self.seqs and len(self.seqs[0]) or 0,
                          'aligndepth': len(self.seqs) or 0})
 
-        ## IF ALL OTHER CHECKS PASS, RETURN DUPLICATE LIST AND EMPTY ENTRY
+        # IF ALL OTHER CHECKS PASS, RETURN DUPLICATE LIST AND EMPTY ENTRY
         return (duplicates, {})
 
     def maketree_raxml(self, params):
@@ -167,19 +172,20 @@ class WindowData(object):
             Arguments:
                 params: dict job parameters
         """
-        ### Prepare alignment and check for problems
+        # Prepare alignment and check for problems
         (duplicates, entry) = self.prepare_alignment(params)
         if entry:
             return entry
-        ## Alignment Has Passed Preliminary Checks, ready for RAxML run
-        ## Establish Temporary Directory
-        jobname = (params.get("tempprefix", "mvftree") + '.' +
-                   datetime.now().strftime('%Y-%m-%d-%H-%M-%S-')
-                   + str(randint(100000, 999999)))
+        # Alignment Has Passed Preliminary Checks, ready for RAxML run
+        # Establish Temporary Directory
+        jobname = "{}.{}{}".format(
+            params.get("tempprefix", "mvftree"),
+            datetime.now().strftime('%Y-%m-%d-%H-%M-%S-') +
+            randint(100000, 999999))
         temp_filepath = os.path.abspath(
             "{}/{}_temp.phy".format(params['tempdir'], jobname))
-        ## Temporarily Shorten Labels for Use in Phylip
-        temp_labels = {'encode':{}, 'decode':{}}
+        # Temporarily Shorten Labels for Use in Phylip
+        temp_labels = {'encode': {}, 'decode': {}}
         for labellen in (len(x) > 10 for x in self.labels):
             if labellen:
                 for j, oldlabel in enumerate(self.labels):
@@ -211,8 +217,8 @@ class WindowData(object):
             node.name = temp_labels['decode'].get(node.name, node.name)
             if node.name in duplicates:
                 name_list = [node.name] + duplicates[node.name]
-                node.split(
-                    n=len(duplicates[node.name]) + 1, branch_length=0.00000)
+                node.split(n=len(duplicates[node.name]) + 1,
+                           branch_length=0.00000)
                 node.name = None
                 for j, subnode in enumerate(node.get_terminals()):
                     subnode.name = name_list[j]
@@ -239,19 +245,13 @@ class WindowData(object):
                 'topology': topology.strip(),
                 'alignlength': len(self.seqs[0]),
                 'aligndepth': len(self.seqs)}
-####               THIS WAS USED FOR DEBUGGING
-#                'templabels': temp_labels['encode'] and (
-#                    ';'.join(["{}={}".format(k, v) for (k, v) in (
-#                    temp_labels['encode'].items())])) or '.'}
-####               THIS WAS USED FOR DEBUGGING
-
 
     def write_phylip(self, outpath):
         """Write Phylip"""
         with open(outpath, 'w') as alignfile:
             alignfile.write("{} {}\n".format(len(self.seqs),
                                              len(self.seqs[0])))
-            for j in xrange(len(self.seqs)):
+            for j in range(len(self.seqs)):
                 alignfile.write("{} {}\n".format(self.labels[j],
                                                  ''.join(self.seqs[j])))
         return ''
@@ -259,7 +259,7 @@ class WindowData(object):
     def remove_empty_sequences(self):
         """Remove sequences with no data"""
         removal_list = []
-        for j in xrange(len(self.seqs)):
+        for j in range(len(self.seqs)):
             if all([x in 'Xx-' for x in self.seqs[j]]):
                 removal_list.append(j)
         for j in sorted(removal_list, reverse=True):
@@ -272,8 +272,8 @@ class WindowData(object):
         removal_list = []
         if mincov:
             for i, seq in enumerate(self.seqs):
-                cov = (float(sum([int(x in 'AaTtGgCcUu') for x in seq]))
-                       / (float(len(seq))))
+                cov = (float(sum([int(x in 'AaTtGgCcUu') for x in seq])) /
+                       (float(len(seq))))
                 if cov < mincov:
                     removal_list.append(i)
         for j in sorted(removal_list, reverse=True):
@@ -284,7 +284,7 @@ class WindowData(object):
     def remove_empty_sites(self):
         """Remove sites without data"""
         removal_list = []
-        for j in xrange(len(self.seqs[0])):
+        for j in range(len(self.seqs[0])):
             isempty = True
             for base in (seq[j] for seq in self.seqs):
                 if base in 'AaTtGgCcUu':
@@ -305,12 +305,12 @@ class WindowData(object):
         for i, j in combinations(range(len(self.seqs)), 2):
             duplicate = True
             for k, base in enumerate(self.seqs[i]):
-                if base != self.seqs[j][k]:
+                if base is not self.seqs[j][k]:
                     duplicate = False
                     break
             if duplicate:
                 remove_indices.update([j])
-                if mode == 'dontuse':
+                if mode is 'dontuse':
                     if self.labels[i] not in duplicates:
                         duplicates[self.labels[i]] = []
 
@@ -319,6 +319,7 @@ class WindowData(object):
             del self.seqs[j]
             del self.labels[j]
         return duplicates
+
 
 class OutputFile(object):
     """Set up Output File
@@ -347,6 +348,7 @@ class OutputFile(object):
             outfile.write("\t".join([str(entry.get(k, '.'))
                                      for k in self.headers]) + "\n")
         return ''
+
 
 def run_raxml(filename, jobname, params):
     """Runs RAxML
@@ -387,7 +389,8 @@ def run_raxml(filename, jobname, params):
 
 def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
     """Ladderizes and Alphabetizes the Tree to create a unique
-    string for each topology"""
+       string for each topology
+    """
     tree0 = Phylo.read(StringIO(treestring), 'newick')
     for node in tree0.get_terminals():
         if prune:
@@ -412,11 +415,12 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
         ':1.00000', '').rstrip()
     return tree_string
 
+
 def hapsplit(alleles, mode):
     """Process Alleles into Haplotypes"""
     if all([x not in 'RYMKWS' for x in alleles]):
-        return (mode in ['major', 'minor', 'randomone'] and alleles
-                or ''.join([base*2 for base in alleles]))
+        return (mode in ['major', 'minor', 'randomone'] and alleles or
+                ''.join([base*2 for base in alleles]))
     elif mode in ['major', 'minor', 'majorminor']:
         hapleles = ''.join([HAPSPLIT[x] for x in alleles])
         counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
@@ -428,19 +432,20 @@ def hapsplit(alleles, mode):
                 newalleles.extend([x for x in order if x in HAPSPLIT[base]])
             else:
                 newalleles.extend([base, base])
-        if mode == 'major':
-            alleles = ''.join([x[0] for base in newalleles])
-        elif mode == 'minor':
+        if mode is 'major':
+            alleles = ''.join([x[0] for x in newalleles])
+        elif mode is 'minor':
             alleles = ''.join([x[1] for x in newalleles])
-        elif mode == 'majorminor':
+        elif mode is 'majorminor':
             alleles = ''.join([x for x in newalleles])
-    elif mode == 'randomone':
+    elif mode is 'randomone':
         alleles = ''.join([HAPSPLIT[x][randint(0, 1)] for x in alleles])
-    elif mode == 'randomboth':
+    elif mode is 'randomboth':
         randx = randint(0, 1)
         alleles = ''.join([HAPSPLIT[x][randx] + HAPSPLIT[x][1 - randx]
                            for x in alleles])
     return alleles
+
 
 def main(arguments=sys.argv[1:]):
     """Main MVF Treemaker"""
@@ -515,9 +520,9 @@ def main(arguments=sys.argv[1:]):
 
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-26")
+        print("Version 2015-09-04")
         sys.exit()
-    ## ESTABLISH FILE OBJECTS
+    # ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []
     mvf = MultiVariantFile(args.mvf, 'read')
     treefile = OutputFile(args.out,
@@ -527,7 +532,7 @@ def main(arguments=sys.argv[1:]):
                                    'alignlength', 'aligndepth', 'status'])
     topofile = OutputFile(args.out + '.counts',
                           headers=['rank', 'topology', 'count'])
-    sample_cols = args.samples and mvf.get_sample_indices(args.samples) or []
+    sample_cols = args.samples and mvf.get_sample_indices(args.samples) or None
     if args.tempdir:
         tmpdir = os.path.abspath(args.tempdir)
     else:
@@ -535,7 +540,7 @@ def main(arguments=sys.argv[1:]):
     if not os.path.exists(tmpdir):
         os.mkdir(tmpdir)
     os.chdir(tmpdir)
-    ## SETUP PARAMS
+    # SETUP PARAMS
     main_labels = mvf.get_sample_labels(sample_cols)
     if args.hapmode in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
@@ -553,7 +558,7 @@ def main(arguments=sys.argv[1:]):
               'hapmode': args.hapmode,
               'tempdir': tmpdir,
               'tempprefix': args.tempprefix}
-    ## WINDOW START INTERATION
+    # WINDOW START INTERATION
     current_contig = ''
     window_start = 0
     window = None
@@ -562,57 +567,58 @@ def main(arguments=sys.argv[1:]):
     for contig, pos, allelesets in mvf.iterentries(
             contigs=args.contigs, subset=sample_cols, quiet=args.quiet,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
-        if contig != current_contig or (args.windowsize != -1 and (
+        if contig is not current_contig or (args.windowsize is not -1 and (
                 pos > window_start + args.windowsize)):
             if window:
                 entry = window.maketree_raxml(params)
-                if entry['status'] != 'ok':
+                if entry['status'] is not 'ok':
                     if args.outputempty:
                         treefile.write_entry(entry)
                 else:
                     topo = entry["topology"]
                     topo_counts[topo] = topo_counts.get(topo, 0) + 1
                     if topo not in topo_ids:
-                        topo_ids[topo] = (topo_ids
-                                          and max(topo_ids.values()) + 1 or 0)
+                        topo_ids[topo] = (topo_ids and
+                                          max(topo_ids.values()) + 1 or 0)
                     entry["topoid"] = topo_ids[topo]
                     treefile.write_entry(entry)
-                window_start = ((contig == current_contig and
-                                 args.windowsize != -1)
-                                and window_start + args.windowsize or 0)
+                window_start = ((contig is current_contig and
+                                 args.windowsize is not -1) and
+                                window_start + args.windowsize or 0)
             current_contig = contig[:]
             window = None
             window = WindowData(window_params={
-                'contigname': (args.outputcontiglabels
-                               and mvf.get_contig_label(current_contig)
-                               or current_contig[:]),
-                "windowstart": (args.windowsize == -1 and '-1'
-                                or window_start + 0),
+                'contigname': (args.outputcontiglabels and
+                               mvf.get_contig_label(current_contig) or
+                               current_contig[:]),
+                "windowstart": (args.windowsize is -1 and '-1' or
+                                window_start + 0),
                 "windowsize": args.windowsize,
                 "labels": main_labels[:]})
-        ## ADD ALLELES
-        if args.hapmode != 'none':
+        # ADD ALLELES
+        if args.hapmode is not 'none':
             allelesets[0] = hapsplit(allelesets[0], args.hapmode)
         window.append_alleles(allelesets[0], minsitedepth=args.minsitedepth)
-    ## LAST LOOP
-    entry = window.maketree_raxml(params)
-    if entry['status'] != 'ok':
-        if args.outputempty:
+    # LAST LOOP
+    if window:
+        entry = window.maketree_raxml(params)
+        if entry['status'] is not 'ok':
+            if args.outputempty:
+                treefile.write_entry(entry)
+        else:
+            topo = entry["topology"]
+            topo_counts[topo] = topo_counts.get(topo, 0) + 1
+            if topo not in topo_ids:
+                topo_ids[topo] = (topo_ids and max(topo_ids.values()) + 1 or 0)
+            entry["topoid"] = topo_ids[topo]
             treefile.write_entry(entry)
-    else:
-        topo = entry["topology"]
-        topo_counts[topo] = topo_counts.get(topo, 0) + 1
-        if topo not in topo_ids:
-            topo_ids[topo] = (topo_ids and max(topo_ids.values()) + 1 or 0)
-        entry["topoid"] = topo_ids[topo]
-        treefile.write_entry(entry)
-    window = None
-    ## END WINDOW ITERATION
-    topo_list = sorted([(v, k) for k, v in topo_counts.iteritems()],
+        window = None
+    # END WINDOW ITERATION
+    topo_list = sorted([(v, k) for k, v in topo_counts.items()],
                        reverse=True)
     for rank, [value, topo] in enumerate(topo_list):
-        topofile.write_entry({'rank':rank, 'count': value, 'topology':topo})
+        topofile.write_entry({'rank': rank, 'count': value, 'topology': topo})
     return ''
 
-if __name__ == "__main__":
+if __name__ is "__main__":
     main()

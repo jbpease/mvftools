@@ -8,7 +8,8 @@ geno2MVF: GATK Genotype Format to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
+version: 2015-02-01 - First Public Release
+@version: 2015-09-04 - Style cleanup
 
 This file is part of MVFtools.
 
@@ -27,8 +28,12 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
-import sys, argparse, gzip, os
-from mvfbase import progress_meter, encode_mvfstring, MultiVariantFile
+import sys
+import argparse
+import gzip
+import os
+from mvfbase import encode_mvfstring, MultiVariantFile
+
 
 class GenoFile(object):
     """Processor for a GATK Genotype File"""
@@ -37,7 +42,7 @@ class GenoFile(object):
         if not path:
             raise IOError(path, " path not found for .geno file")
         self.path = os.path.abspath(path)
-        self.metadata = {'contigs':{}, 'samples':[]}
+        self.metadata = {'contigs': {}, 'samples': []}
         self.metadata['sourceformat'] = 'GATK.geno'
         self.entrystart = entrystart or 0
         if path.endswith(".gz"):
@@ -82,14 +87,10 @@ class GenoFile(object):
             Argruments:
                 args: passthrough dict of arguments
         """
-        quiet = args['quiet']
         if self.path.endswith('.gz'):
             filehandler = gzip.open(self.path, 'rb')
         else:
             filehandler = open(self.path, 'rb')
-        if not quiet:
-            filesize = os.stat(self.path).st_size
-            progress_meter(0, filesize)
         nline = 0
         filehandler.seek(self.entrystart)
         linebuffer = []
@@ -97,8 +98,6 @@ class GenoFile(object):
             nline += 1
             linebuffer.append(line)
             if nline == args['linebuffer']:
-                if not quiet:
-                    progress_meter(filehandler.tell(), filesize)
                 for line in linebuffer:
                     record = self._parse_entry(line, **args)
                     if record == -1:
@@ -130,6 +129,7 @@ class GenoFile(object):
         record['coord'] = int(arr[1])
         record['genotypes'] = [x == 'N' and 'X' or x for x in arr[2:]]
         return record
+
 
 def main(arguments=sys.argv[1:]):
     """Main method for geno2mvf"""
@@ -163,14 +163,14 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-09-04")
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.fieldsep]
-    ## ESTABLISH GENO
+    # ESTABLISH GENO
     geno = GenoFile(args.geno, indexcontigs=(not args.no_autoindex))
-    ## ESTABLISH MVF
+    # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
     contigs = geno.metadata['contigs'].copy()
@@ -195,7 +195,7 @@ def main(arguments=sys.argv[1:]):
                 continue
     tempids = set(contigs.keys()) - newids
     for tempid, newid in sorted(zip(
-            tempids, xrange(maxcontigid, maxcontigid + len(tempids)))):
+            tempids, range(maxcontigid, maxcontigid + len(tempids)))):
         mvf.metadata['contigs'][newid] = geno.metadata['contigs'][tempid]
     contig_translate = dict([(mvf.metadata['contigs'][x]['label'], x)
                              for x in mvf.metadata['contigs']])
@@ -212,14 +212,14 @@ def main(arguments=sys.argv[1:]):
                     samplelabels[i] = new
                     labelmatched = j
                     break
-            if labelmatched != False:
+            if labelmatched is not False:
                 del unmatched[labelmatched]
     mvf.metadata['labels'] = samplelabels[:]
     for i, label in enumerate(samplelabels):
         mvf.metadata['samples'][i] = {'label': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = geno.metadata['sourceformat']
-    ## WRITE MVF HEADER
+    # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0

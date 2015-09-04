@@ -8,7 +8,8 @@ mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
+version: 2015-02-01 - First Public Release
+@version: 2015-09-04 - Cleanup and style fixes
 
 This file is part of MVFtools.
 
@@ -28,7 +29,8 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
 from PIL import Image
-import sys, argparse
+import sys
+import argparse
 from itertools import combinations
 from mvfbase import progress_meter, MultiVariantFile
 from scipy.stats import chi2
@@ -62,6 +64,7 @@ class Counter(dict):
         if mode == 'centered':
             return [sortitems[2][1], sortitems[0][1], sortitems[1][1]]
         return [x[1] for x in sortitems]
+
 
 class Pallette(object):
     """Class for color management for chromoplots"""
@@ -100,10 +103,11 @@ class Pallette(object):
             colortracks = [
                 ''.join([chr(int(255 - ((255 - x) * (values[j]/total))))
                          for x in self.colornames[self.basecolors[j]]])
-                for j in xrange(len(values))]
+                for j in range(len(values))]
             if infotrack:
                 colortracks.append(self.color_str('dgrey'))
         return colortracks
+
 
 class Chromoplot(object):
     """Chromomplot data container and processor"""
@@ -125,7 +129,7 @@ class Chromoplot(object):
                 self.counts[contigid] = {}
                 self.data[contigid] = dict([
                     (start, dict())
-                    for start in xrange(
+                    for start in range(
                         0, int(length // self.params['windowsize']) + 1)])
         self.params['winlogpath'] = self.params.get(
             'winlogpath', self.params['outpath'] + '.windows.log')
@@ -139,7 +143,6 @@ class Chromoplot(object):
         self.counts[contig][site_code] = self.counts[contig].get(
             site_code, 0) + val
         return ''
-
 
     def interpret_colors(self, valuelist):
         """Create color from list of values"""
@@ -167,7 +170,6 @@ class Chromoplot(object):
             [''.join(x) * self.params['yscale'] for x in zip(*colortracks)])
 
     def parse_count_trio(self, codes):
-                               #sort=True):
         """Parse Site Counts from Trios"""
         majority_count = 0
         if codes == 'nodata':
@@ -180,7 +182,7 @@ class Chromoplot(object):
         else:
             tree0 = codes.get(12, 0)  # 12 = 1100 = BBAA
             tree1 = codes.get(10, 0)  # 10 = 1010 = BABA
-            tree2 = codes.get(6, 0)   #  6 = 0110 = ABBA
+            tree2 = codes.get(6, 0)   # 6  = 0110 = ABBA
             if tree0 > tree1 and tree0 > tree2:
                 values = [1, 0, 0] + [0.5] * self.params['infotrack']
                 majority_count = 1
@@ -201,7 +203,7 @@ class Chromoplot(object):
 
     def plot_chromoplot(self):
         """Make Chromoplot for count-based trio"""
-        ### BEGIN
+        # BEGIN
         maxlen = max([x[2] for x in self.params['contigs']])
         width = int(maxlen // self.params['windowsize']) + 1
 
@@ -276,9 +278,9 @@ class Chromoplot(object):
                 logfile.write('\t'.join(headers) + "\n")
         else:
             with open(self.params['winlogpath'], 'a') as logfile:
-                ## 12 = BBAA = tree0 = 1
-                ## 10 = BABA = tree1 = 2
-                ## 06 - ABBA = tree2 = 3
+                # 12 = BBAA = tree0 = 1
+                # 10 = BABA = tree1 = 2
+                # 06 - ABBA = tree2 = 3
                 leftcount = window_codes.get(
                     [12, 10, 6][track_order[0] - 1], 0)
                 rightcount = window_codes.get(
@@ -289,24 +291,24 @@ class Chromoplot(object):
                     abcodes[track_order[0] - 1],
                     abcodes[track_order[2] - 1]) or 'NA'
                 logfile.write("{}\n".format('\t'.join([
-                    str(x) for x in list(self.params['labels'])
-                    + [contig, pos, abcodes[track_order[1] - 1],
-                       sum(window_codes.values())]
-                    + [window_codes.get(x, 0) for x in [
+                    str(x) for x in list(self.params['labels']) +
+                    [contig, pos, abcodes[track_order[1] - 1],
+                     sum(window_codes.values())] +
+                    [window_codes.get(x, 0) for x in [
                         'ambiguous', 'nonpolar', 'triallelic',
-                        'gap', 12, 6, 10]]
-                    + [leftcount, rightcount, total_ab, dval, pval]
-                    + [total_ab and
-                       round(float(window_codes.get(x, 0))/total_ab, 3)
-                       or 0 for x in [6, 10, 12]]
-                    + [d_order]
+                        'gap', 12, 6, 10]] +
+                    [leftcount, rightcount, total_ab, dval, pval] +
+                    [total_ab and
+                     round(float(window_codes.get(x, 0))/total_ab, 3) or
+                     0 for x in [6, 10, 12]] +
+                    [d_order]
                     ])))
         return ''
 
     def write_total_log(self):
         """Write summary log data
         """
-        nwindows = {'TOTAL':0}
+        nwindows = {'TOTAL': 0}
         contigorder = [x[0] for x in self.params['contigs']]
         self.counts['TOTAL'] = {}
         contigorder.append('TOTAL')
@@ -320,15 +322,14 @@ class Chromoplot(object):
                         self.counts[contig].get(code, 0))
             nwindows['TOTAL'] += len(self.data[contig])
         with open(self.params['totallogpath'], 'w') as logfile:
-            logfile.write("\t".join(['taxon1', 'taxon2', 'taxon3', 'outgroup',
-                                     'contig', 'nwindow', 'totalsites',
-                                     'absites', 'ambiguous',
-                                     'nonpolar', 'triallelic', 'gap',
-                                     'BBAA', 'ABBA', 'BABA',
-                                     'Dleft', 'Dright',
-                                     'Dsites', 'Dstat', 'Pvalue',
-                                     'pBBAA', 'pABBA', 'pBABA', 'Dorder'
-                                    ]) + "\n")
+            logfile.write("{}\n".format("\t".join(
+                ['taxon1', 'taxon2', 'taxon3', 'outgroup',
+                 'contig', 'nwindow', 'totalsites', 'absites',
+                 'ambiguous', 'nonpolar', 'triallelic', 'gap',
+                 'BBAA', 'ABBA', 'BABA', 'Dleft', 'Dright',
+                 'Dsites', 'Dstat', 'Pvalue',
+                 'pBBAA', 'pABBA', 'pBABA', 'Dorder'
+                 ])))
             for contig in contigorder:
                 counts = self.counts[contig]
                 total = float(sum([counts.get(x, 0) for x in [
@@ -342,22 +343,25 @@ class Chromoplot(object):
                 rightcount = counts.get(
                     [12, 10, 6][self.params['track_order'][2] - 1], 0)
                 d_order = "{}-{}".format(
-                    ['BBAA', 'BABA', 'ABBA'][self.params['track_order'][0] - 1],
-                    ['BBAA', 'BABA', 'ABBA'][self.params['track_order'][2] - 1])
+                    ['BBAA', 'BABA', 'ABBA'][
+                        self.params['track_order'][0] - 1],
+                    ['BBAA', 'BABA', 'ABBA'][
+                        self.params['track_order'][2] - 1])
                 dval, pval = dcalc(leftcount, rightcount)
                 logfile.write('{}\n'.format("\t".join([
-                    str(x) for x in list(self.params['labels'])
-                    + [str(contig).zfill(2), nwindows[contig],
-                       sum(counts.values()), total]
-                    + [counts.get(x, 0) for x in [
+                    str(x) for x in list(self.params['labels']) +
+                    [str(contig).zfill(2), nwindows[contig],
+                     sum(counts.values()), total] +
+                    [counts.get(x, 0) for x in [
                         'ambiguous', 'nonpolar', 'triallelic', 'gap',
-                        12, 6, 10]]
-                    + [leftcount, rightcount, total_ab, dval, pval]
-                    + [total_ab and round(float(counts.get(x, 0))/total_ab, 3)
-                       or 0 for x in [6, 10, 12]]
-                    + [d_order]
+                        12, 6, 10]] +
+                    [leftcount, rightcount, total_ab, dval, pval] +
+                    [total_ab and round(float(counts.get(x, 0))/total_ab, 3) or
+                     0 for x in [6, 10, 12]] +
+                    [d_order]
                     ])))
         return ''
+
 
 def dcalc(abba, baba):
     """Calculate the D-statistic and Chi2 P-value
@@ -365,6 +369,7 @@ def dcalc(abba, baba):
     dval = abba + baba and (float(abba - baba)/(abba + baba)) or 0
     pval = abba + baba and chi2_test(abba, baba)[1] or 1
     return dval, pval
+
 
 def chi2_test(val0, val1):
     """Calculate Pearson Chi-Squared for two values that should be equal
@@ -377,6 +382,7 @@ def chi2_test(val0, val1):
         return (chisq, pval)
     except ZeroDivisionError:
         return (0, 1)
+
 
 def counter_print(dict_counter, reverse=True, percentage=True, n_values=None):
     """Prints a Dictionary with Integer Values, with sorting and percentages
@@ -393,6 +399,7 @@ def counter_print(dict_counter, reverse=True, percentage=True, n_values=None):
         else:
             return "{} {}".format(k, val)
     return ''
+
 
 def main(arguments=sys.argv[1:]):
     """Main MVF Chromoplot method"""
@@ -430,11 +437,11 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-02-01: Initial Public Release")
+        print("Version 2015-09-04")
         sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
-    ## Establish MVF and parse chromosome information
+    # Establish MVF and parse chromosome information
     mvf = MultiVariantFile(args.mvf, 'read')
     contignames = args.contigs or []
     master_contigs = []
@@ -452,7 +459,7 @@ def main(arguments=sys.argv[1:]):
         raise RuntimeError(contigname, "not found in MVF contig ids or labels")
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
-    ## Begin iterations
+    # Begin iterations
     for quartet in quartets:
         params = {'contigs': master_contigs[:],
                   'outpath': args.outprefix or '_'.join(quartet) + ".png",
@@ -479,7 +486,7 @@ def main(arguments=sys.argv[1:]):
                 site_code = 'triallelic'
             else:
                 site_code = sum([2**(3-j) * (alleles[j] != alleles[3])
-                                 for j in xrange(3)])
+                                 for j in range(3)])
             chromoplot.add_data(contig, int(pos // args.windowsize), site_code)
         chromoplot.plot_chromoplot()
         chromoplot.write_total_log()

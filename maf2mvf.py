@@ -8,6 +8,8 @@ MAF2MVF: MAF to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
+@version: 2015-09-04
+
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
@@ -56,19 +58,14 @@ class MultiAlignFile(object):
         self.ref = args.reftag
         self.metadata = {'sourceformat': 'MAF'}
         self.metadata['labels'] = set()
-        # if 'meta' in kwargs:
-        #     self.metadata.update(kwargs['meta'])
         self.entrystart = 0
         # Check for Gzip and establish file object
         self.metadata['isgzip'] = (self.path.endswith(".gz") or
                                    args.get('isgzip', False))
         # READ MODE
-        # try:
-        print self.path
-        filehandler = (self.metadata['isgzip']
-                       and gzip.open(self.path, 'r')
-                       or open(self.path, 'r'))
-                # Process header lines
+        filehandler = (self.metadata['isgzip'] and
+                       gzip.open(self.path, 'r') or open(self.path, 'r'))
+        # Process header lines
         line = filehandler.readline()
         if line.startswith("##maf"):
             line = filehandler.readline()
@@ -81,8 +78,6 @@ class MultiAlignFile(object):
                     self.metadata['labels'].add(label)
                 line = filehandler.readline()
         filehandler.close()
-        # except:
-        #     raise RuntimeError("file {} cannot be opened".format(self.path))
 
     def __iter__(self):
         """Simple entry iterator
@@ -102,7 +97,8 @@ class MultiAlignFile(object):
                 line = filehandler.readline()
                 while line.strip != '' and line[0] != 'a':
                     if line[0] == 's':
-                        label, start, length, orientation, total_length, seq = (
+                        (label, start, length,
+                         orientation, total_length, seq) = (
                             line[1:].strip().split())
                         label = label.split('.')[0]
                         block[label] = seq
@@ -147,54 +143,21 @@ def main(arguments=sys.argv[1:]):
                         help="number of lines to hold in read/write buffer")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args(args=arguments)
-    ## ESTABLISH MAF
+    # ESTABLISH MAF
     maf = MultiAlignFile(args)
-    ## ESTABLISH MVF
+    # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
-    # PROCESS CONTIG INFO
-    # contigs = dict.fromkeys((sorted([x for x in maf.meta['name_index']
-    #                             if x.find(args.reftag) > -1])), {})
-    # print(contigs)
-    # maxcontigid = 0
-    # newids = set([])
-    # if args.contigids:
-    #     for cid, cname in (x.split(':') for x in args.contigids):
-    #         for tempid in contigs:
-    #             if cname in contigs[tempid]['label']:
-    #                 try:
-    #                     cid = int(cid)
-    #                 except ValueError:
-    #                     pass
-    #                 mvf.metadata['contigs'][cid] = contigs[tempid].copy()
-    #                 del contigs[tempid]
-    #                 newids.update([cid])
-    #                 break
-    #     for cid in newids:
-    #         try:
-    #             maxcontigid = max([maxcontigid, int(cid) + 1])
-    #         except ValueError:
-    #             continue
-    # tempids = set(contigs.keys()) - newids
-    # for tempid, newid in zip(
-    #         tempids, xrange(maxcontigid, maxcontigid + len(tempids))):
-    #    # mvf.metadata['contigs'][newid] = maf.meta['contigs'][tempid]
-    #         pass
-    # contig_translate = dict([(mvf.metadata['contigs'][x]['label'], x)
-    #                          for x in mvf.metadata['contigs']])
     # PROCESS SAMPLE INFO
     contig_translate = {1: 1}
     samplelabels = [s.split(':')[0] for s in args.sampletags]
     samplelabels.remove(args.reftag)
     samplelabels.insert(0, args.reftag)
-    # if args.samplereplace:
-    #     newsample = [':' in tuple(x) and x.split(':') or tuple([x,x])
-    #                  for x in args.samplereplace]
     mvf.metadata['labels'] = samplelabels[:]
     for i, label in enumerate(samplelabels):
         mvf.metadata['samples'][i] = {'label': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = maf.metadata['sourceformat']
-    ## WRITE MVF HEADER
+    # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0

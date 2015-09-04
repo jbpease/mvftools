@@ -8,7 +8,8 @@ MVF2FASTA: Convert MVF file to a FASTA file
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
+version: 2015-02-01 - First Public Release
+@version: 2015-09-04 - Cleanup
 
 This file is part of MVFtools.
 
@@ -27,8 +28,11 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
-import sys, argparse, os
-from mvfbase import  MultiVariantFile
+import sys
+import argparse
+import os
+from mvfbase import MultiVariantFile
+
 
 def main(arguments=sys.argv[1:]):
     """Main method for mvf2fasta"""
@@ -93,7 +97,7 @@ def main(arguments=sys.argv[1:]):
         for filehandler in tmp_files.values():
             filehandler.seek(0, 0)
             buff = filehandler.read(args.buffer)
-            while  len(buff):
+            while len(buff):
                 outfile.write(buff)
                 buff = filehandler.read(args.buffer)
             filehandler.close()

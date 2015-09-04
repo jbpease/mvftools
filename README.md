@@ -22,7 +22,7 @@ Simply clone MVFtools to use the scripts, unless other dependencies are required
 
 2015-02-01: First Public Release
 2015-02-26: Patch upgrade for multiple modules.  Featured upgrades are efficiency increases to mvfbase and major overhaul of mvf_window_tree.
-
+2015-09-04: Major upgrade and fixes for all scripts, added DNA analysis modules and significant upgrades to the back-end. 
 
 ## License
 This file is part of MVFtools.
