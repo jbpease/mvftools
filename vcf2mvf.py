@@ -12,7 +12,8 @@ version: 2015-02-01 - First Public Release
 version: 2015-02-26 - Fixes for 'N' characters still appearing in nucleotide
 version: 2015-05-25 - Fixes for Python 3.x compatibility
 version: 2015-06-11 - 1.2.1 upgrade, added indels and quality score parsing
-@version: 2015-09-04 - minor fixes and cleanup
+version: 2015-09-04 - minor fixes and cleanup
+@version 2015-09-05 - disabled indel feature for retuning
 
 This file is part of MVFtools.
 
@@ -169,26 +170,27 @@ class VariantCallFile(object):
                 **kwargs: passthrough dict of arguments
         """
         record = {}
-        indel = False
+        # indel = False
         # Skip indels and zero-depth
         if 'DP=0' in vcfline:
             return -1
         if "INDEL" in vcfline:
-            if kwargs.get("outflavor", 'dna') in ('dna-indel',
-                                                  'dnaqual-indel'):
-                return -1
-            indel = True
+            continue
+            # if kwargs.get("outflavor", 'dna') in ('dna-indel',
+            #                                      'dnaqual-indel'):
+            #    return -1
+            # indel = True
         arr = vcfline.rstrip().split(kwargs.get('fieldsep', '\t'))
         if len(arr) < 9:
             return -1
-        if len(arr[3]) > 1 and not indel:
+        if len(arr[3]) > 1:  # and not indel:
             return -1
         record['contig'] = arr[0]
         record['coord'] = int(arr[1])
         record['alleles'] = [arr[3]]
         if arr[4] != '.':
             for altbase in arr[4].split(','):
-                if len(altbase) > 1 and not indel:
+                if len(altbase) > 1:  # and not indel:
                     return -1
                 record['alleles'].append(altbase)
         record['tagindex'] = {}
@@ -199,7 +201,7 @@ class VariantCallFile(object):
             else:
                 record['tagindex'][tag] = -1
         record['samples'] = arr[9:]
-        if "INDEL" in vcfline and indel:
+        if "INDEL" in vcfline:  # and indel:
             record
         if record['alleles'][0] in 'NnXxBbDdHhVv':
             record['genotypes'] = ['X']
@@ -341,8 +343,8 @@ def main(arguments=sys.argv[1:]):
     parser.add_argument("--fieldsep", default="TAB",
                         choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED'],
                         help="""VCF field separator (default='TAB')""")
-    parser.add_argument("--indel", action="store_true",
-                        help="""Include INDEL from VCF""")
+    # parser.add_argument("--indel", action="store_true",
+    #                    help="""Include INDEL from VCF""")
     parser.add_argument("--qual", action="store_true",
                         help="""Include Phred genotype quality (GQ) scores""")
     parser.add_argument("--overwrite", action="store_true",
