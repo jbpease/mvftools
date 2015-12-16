@@ -50,10 +50,10 @@ class Counter(dict):
                          reverse=(sort != 'asc'))
         for (val, k) in entries[:n_values]:
             if percentage:
-                yield "{!s} {!s} {!s}%\n".format(
+                yield "{} {} {}%\n".format(
                     k, val, round(float(val) * 100/total, 2))
             else:
-                yield "{!s} {!s}\n".format(k, val)
+                yield "{} {}\n".format(k, val)
 
 
 class OutputFile(object):
@@ -98,3 +98,7 @@ class AnalysisModule(object):
         self.params = params or {}
         self.params.update([(k, v) for k, v in kwargs.items()
                             if k not in ['data', 'params']])
+
+
+def abpattern(num, digits=0):
+    return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')

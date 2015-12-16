@@ -8,6 +8,8 @@ FASTA2MVF: Variant Call Format (FASTA) to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
+version 2015-09-05 - First release
+@version: 2015-12-16 - Updates to cmd line args additional fixes
 
 This file is part of MVFtools.
 
@@ -28,6 +30,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import print_function
 import sys
 import re
+import os
 import argparse
 from mvfbase import encode_mvfstring, MultiVariantFile, fasta_iter
 
@@ -59,7 +62,7 @@ def main(arguments=sys.argv[1:]):
                         help="number of lines to hold in READ buffer")
     parser.add_argument("--writebuffer", type=int, default=100000,
                         help="number of lines to hold in WRITE buffer")
-    parser.add_argument("--fieldsep", nargs='*', default=["NONE"],
+    parser.add_argument("--fieldsep", nargs='*', default=None,
                         choices=['TAB', 'SPACE', 'DBLSPACE',
                                  'COMMA', 'MIXED', 'PIPE', 'AT',
                                  'UNDER', 'DBLUNDER'],
@@ -74,6 +77,9 @@ def main(arguments=sys.argv[1:]):
     parser.add_argument("--samplefield", type=int,
                         help="""when headers are split by --fieldsep,
                         the 0-based index of the sample id""")
+    parser.add_argument("--manualcoord", nargs='*',
+                        help="""manually specify reference coordinates for each file
+                                in the format CONTIGID:START..STOP, ...""")
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
     parser.add_argument("-v", "--version", action="store_true",
@@ -86,33 +92,44 @@ def main(arguments=sys.argv[1:]):
                      ("SPACE", "\\s"), ("DBLSPACE", "\\s\\s"),
                      ("COMMA", "\\,"), ("NONE", None),
                      ("AT", "\\@"), ('UNDER', "\\_"), ("DBLUNDER", "\\_\\_")])
-    args.fieldsep = re.compile("[{}]".format(
-        ''.join([sepchars[x] for x in args.fieldsep])))
+    if args.fieldsep is None:
+        args.fieldsep = ''
+    else:
+        args.fieldsep = re.compile("[{}]".format(
+            ''.join([sepchars[x] for x in args.fieldsep])))
+    if args.manualcoord:
+        assert len(args.manualcoord) == len(args.fasta)
+        args.manualcoord = [
+            (x.split(':')[0], int(x.split(":")[1].split('..')[0]),
+                int(x.split(':')[1].split('..')[1]))
+            for x in args.manualcoord]
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     fasta = {}
     current_contig = 0
     fsamples = []
     fcontigs = []
-    for fastapath in args.fasta:
+    for ifasta, fastapath in enumerate(args.fasta):
         print("Processing {}".format(fastapath))
         for header, seq in fasta_iter(fastapath):
             header = [str(x) for x in re.split(args.fieldsep, header)]
-        if args.contigbyfile:
-            contig = fastapath[:]
-            sample = header[args.samplefield or 0]
-        elif (len(header) < max(3, args.contigfield or 0,
-                                args.samplefield or 0) or
-              args.contigfield is None or args.samplefield is None):
-            contig = "UNK{}".format(current_contig)
-            sample = header[0]
-        else:
-            contig = header[args.contigfield]
-            sample = header[args.samplefield]
-        if contig not in fcontigs:
-            fcontigs.append(contig)
-            fasta[contig] = {}
-        if sample not in fsamples:
-            fsamples.append(sample)
+            if args.contigbyfile:
+                contig = os.path.basename(fastapath[:])
+                sample = header[args.samplefield or 0]
+            elif (len(header) < max(3, args.contigfield or 0,
+                                    args.samplefield or 0) or
+                  args.contigfield is None or args.samplefield is None):
+                contig = "UNK{}".format(current_contig)
+                sample = header[0]
+            elif args.manualcoord:
+                contig = args.manualcoord[ifasta][0]
+            else:
+                contig = header[args.contigfield]
+                sample = header[args.samplefield]
+            if contig not in fcontigs:
+                fcontigs.append(contig)
+                fasta[contig] = {}
+            if sample not in fsamples:
+                fsamples.append(sample)
             fasta[contig][sample] = (len(seq), seq)
     reflabel = None
     if args.reflabel:
@@ -123,7 +140,6 @@ def main(arguments=sys.argv[1:]):
     if reflabel:
         newref = fsamples.pop(i)
         fsamples = [newref] + fsamples
-
     for i, contig in enumerate(fcontigs):
         mvf.metadata['contigs'][i] = {
             'label': contig,

@@ -8,10 +8,11 @@ MVFbase: Base class MVF handler and functions
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-Version: 2015-02-01 - First Public Release
-Version: 2015-02-26 - Efficiency upgrades for iterators
-Version: 2015-06-09 - MVF1.2.1 upgrade
-Verison: 2015-09-04 - Small style fixes
+version: 2015-02-01 - First Public Release
+version: 2015-02-26 - Efficiency upgrades for iterators
+version: 2015-06-09 - MVF1.2.1 upgrade
+verison: 2015-09-04 - Small style fixes
+@version: 2015-12-15 - Python3 compatibilty fix
 
 This file is part of MVFtools.
 
@@ -78,8 +79,8 @@ def fasta_iter(fasta_name):
     filehandler = open(fasta_name, 'r')
     faiter = (x[1] for x in groupby(filehandler, lambda line: line[0] == ">"))
     for header in faiter:
-        header = header.next()[1:].strip()
-        seq = "".join(s.strip() for s in faiter.next())
+        header = next(header)[1:].strip()
+        seq = "".join(s.strip() for s in next(faiter))
         yield header, seq
 
 

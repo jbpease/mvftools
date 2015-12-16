@@ -10,6 +10,7 @@ MVF_analyze_dna: Base analysis class handler and functions
 
 version: 2015-06-11 - v.1.2.1 release
 @version: 2015-09-04 - upgrades and fixes
+@version: 2015-12-16 - change QuintetCount to general PatternCount
 
 This file is part of MVFtools.
 
@@ -32,14 +33,14 @@ import sys
 import argparse
 from random import randint
 from itertools import combinations
-from mvfanalysisbase import AnalysisModule, OutputFile
+from mvfanalysisbase import AnalysisModule, OutputFile, abpattern
 from mvfbase import MultiVariantFile
 from mvfbiolib import HAPSPLIT
 from time import time
 
 
 MODULENAMES = ("BaseCountWindow", "Coverage", "DstatComb",
-               "PairwiseDistance", "QuintetCount")
+               "PairwiseDistance", "PatternCount")
 
 
 class Coverage(AnalysisModule):
@@ -105,13 +106,15 @@ class DstatComb(AnalysisModule):
        all possible trio combinations of samples
     """
 
-    def analzye(self, mvf):
+    def analyze(self, mvf):
         self.params['nsamples'] = len(self.params['samples']) - 1
-        self.params['samplenames'] = mvf.metadata['samples'][:]
+        self.params['samplenames'] = [
+            mvf.metadata['samples'][x]['label']
+            for x in mvf.metadata['samples']]
         self.params['contigs'] = set([])
         for contig, _, allelesets in mvf:
             self.params['contigs'].update([contig])
-            alleles = allelesets[0]
+            alleles = mvf.decode(allelesets[0])
             if alleles[-1] in 'XN-':
                 continue
             for i in range(self.params['nsamples'] - 2):
@@ -135,6 +138,7 @@ class DstatComb(AnalysisModule):
                             self.data[trio] = {}
                         if contig not in self.data[trio]:
                             self.data[trio][contig] = [0, 0, 0]
+                        print(val)
                         self.data[trio][contig][val] += 1
         self.write(self)
 
@@ -177,14 +181,14 @@ class DstatComb(AnalysisModule):
         return ''
 
 
-class QuintetCount(AnalysisModule):
+class PatternCount(AnalysisModule):
     """Count biallelic patterns spatially along
-       chromosomes for use in DFOIL analyses
-       http://www.github.com/jbpease/dfoil
+       chromosomes (e.g,, for use in DFOIL or Dstats
+       http://www.github.com/jbpease/dfoil)
     """
 
     def analyze(self, mvf):
-        """Analyze Entries for QuintetCount Module
+        """Analyze Entries for PatternCount Module
         """
         labels = mvf.get_sample_labels()
         self.params['labels'] = labels[:]
@@ -192,6 +196,7 @@ class QuintetCount(AnalysisModule):
         current_position = 0
         sitepatterns = {}
         samples = [labels.index(x) for x in self.params['samples']]
+        self.params['nsamples'] = len(samples)
         for contig, pos, allelesets in mvf:
             if not current_contig:
                 current_contig = contig[:]
@@ -209,7 +214,7 @@ class QuintetCount(AnalysisModule):
                     current_position += self.params['windowsize']
             if len(allelesets[0]) == 1:
                 if allelesets[0] in 'ATGC':
-                    pattern = 'AAAAA'
+                    pattern = 'A' * self.params['nsamples']
                 else:
                     continue
             elif allelesets[0][1] == '+':
@@ -221,8 +226,8 @@ class QuintetCount(AnalysisModule):
                     continue
                 if len(set(alleles)) > 2:
                     continue
-                pattern = ''.join([x == alleles[4] and 'A' or 'B'
-                                   for x in alleles[:4]]) + 'A'
+                pattern = ''.join([x == alleles[-1] and 'A' or 'B'
+                                   for x in alleles[:-1]]) + 'A'
             sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
         if sitepatterns:
             self.data[(current_contig, current_position)] = dict([
@@ -236,11 +241,10 @@ class QuintetCount(AnalysisModule):
     def write(self):
         """Write Output
         """
-        headers = ['contig', 'position',
-                   'AAAAA', 'AAABA', 'AABAA', 'AABBA',
-                   'ABAAA', 'ABABA', 'ABBAA', 'ABBBA',
-                   'BAAAA', 'BAABA', 'BABAA', 'BABBA',
-                   'BBAAA', 'BBABA', 'BBBAA', 'BBBBA']
+        headers = ['contig', 'position']
+        headers.extend(
+            [abpattern(x, self.params['nsamples'])
+             for x in range(0, 2 ** self.params['nsamples'], 2)])
         outfile = OutputFile(path=self.params['out'],
                              headers=headers)
         sorted_entries = sorted([(self.data[k]['contig'],
@@ -412,24 +416,33 @@ def modulehelp(modulenames=MODULENAMES):
 
 def main(arguments=sys.argv[1:]):
     """Main MVF Analysis"""
-    parser = argparse.ArgumentParser(description="")
+    parser = argparse.ArgumentParser(description="""
+        A set of analysis modules to analyze MVFs of dna flavor
+        options whose help text includes a [modulename]
+        are module-specific and have no function in other modules.""")
     parser.add_argument("module", choices=MODULENAMES)
     parser.add_argument("--mvf", help="input MVF file")
     parser.add_argument("--out", help="output file")
     parser.add_argument("--contigs", nargs='*',
-                        help="list of contig ids")
-    parser.add_argument("--samples", nargs='*', help="list of sample names")
+                        help="limit analyses to these contigs")
+    parser.add_argument("--samples", nargs='*',
+                        help="limit analyses to these samples")
     parser.add_argument("--mincoverage", type=int,
-                        help="mininum coverage for sample site")
+                        help="mininum sample coverage for site")
     parser.add_argument("--windowsize", type=int, default=100000,
                         help="""window size""")
-    parser.add_argument("--basematch",
-                        help="string of bases to match BaseCountWindow numer.")
-    parser.add_argument("--basetotal",
-                        help="string of bases for BaseCountWindow denominator")
+    parser.add_argument("--basematch", help=(
+        "[BaseCountWindow] string of bases to match (i.e. numerator)."))
+    parser.add_argument("--basetotal", help=(
+        "[BaseCountWindow] string of bases for total (i.e. denominator)"))
     parser.add_argument("--morehelp", action="store_true",
                         help="get additional information on modules")
+    parser.add_argument("--version", action="store_true",
+                        help="display version")
     args = parser.parse_args(args=arguments)
+    if args.version:
+        print("Version: 2015-12-16")
+        sys.exit()
     time0 = time()
     # HELP MENU
     if args.morehelp:
@@ -446,8 +459,8 @@ def main(arguments=sys.argv[1:]):
         module = DstatComb(params=vars(args))
     elif args.module == 'PairwiseDistance':
         module = PairwiseDistance(params=vars(args))
-    elif args.module == "QuintetCount":
-        module = QuintetCount(params=vars(args))
+    elif args.module == "PatternCount":
+        module = PatternCount(params=vars(args))
     # RUN MODULE
     module.analyze(mvf)
     print("Finished in {} seconds.".format(time() - time0))
