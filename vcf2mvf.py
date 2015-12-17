@@ -13,7 +13,8 @@ version: 2015-02-26 - Fixes for 'N' characters still appearing in nucleotide
 version: 2015-05-25 - Fixes for Python 3.x compatibility
 version: 2015-06-11 - 1.2.1 upgrade, added indels and quality score parsing
 version: 2015-09-04 - minor fixes and cleanup
-@version 2015-09-05 - disabled indel feature for retuning
+version 2015-09-05 - disabled indel feature for retuning
+@version 2015-12-17 - bug fix
 
 This file is part of MVFtools.
 
@@ -175,7 +176,7 @@ class VariantCallFile(object):
         if 'DP=0' in vcfline:
             return -1
         if "INDEL" in vcfline:
-            continue
+            return -1
             # if kwargs.get("outflavor", 'dna') in ('dna-indel',
             #                                      'dnaqual-indel'):
             #    return -1
@@ -353,7 +354,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2015-12-17")
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
