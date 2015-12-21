@@ -32,7 +32,7 @@ from PIL import Image
 import sys
 import argparse
 from itertools import combinations
-from mvfbase import progress_meter, MultiVariantFile
+from mvfbase import MultiVariantFile
 from scipy.stats import chi2
 
 
@@ -138,8 +138,14 @@ class Chromoplot(object):
 
     def add_data(self, contig, window, site_code, val=1):
         """Adds site code data to chromoplot object"""
+        if contig not in self.data:
+            self.data[contig] = {}
+        if window not in self.data[contig]:
+            self.data[contig][window] = {}
         self.data[contig][window][site_code] = self.data[contig][window].get(
             site_code, 0) + val
+        if contig not in self.counts:
+            self.counts[contig] = {}
         self.counts[contig][site_code] = self.counts[contig].get(
             site_code, 0) + val
         return ''
@@ -204,14 +210,13 @@ class Chromoplot(object):
     def plot_chromoplot(self):
         """Make Chromoplot for count-based trio"""
         # BEGIN
+        print(self.params['contigs'])
         maxlen = max([x[2] for x in self.params['contigs']])
         width = int(maxlen // self.params['windowsize']) + 1
 
         self.params['ntracks'] = [0, 0, 0, 0, 3, 15][4]
-        total_windows = (maxlen // self.params['windowsize'] + 1) * len(
-            self.data)
-        if not self.params.get('quiet', False):
-            progress_meter(0, total_windows)
+        # total_windows = (maxlen // self.params['windowsize'] + 1) * len(
+        #    self.data)
         nwindow = 0
         majority_counts = Counter([(1, 0), (2, 0), (3, 0)])
         contig_ab_values = {}
@@ -220,9 +225,6 @@ class Chromoplot(object):
             i = 0
             contig_ab_values[contig] = []
             while i < width:
-                if not self.params.get('quiet', False):
-                    if not nwindow % 1000:
-                        progress_meter(nwindow, total_windows)
                 window_codes = self.data[contig].get(i, 'nodata')
                 if self.params['ntracks'] == 3:
                     majority_call, trio = self.parse_count_trio(window_codes)
@@ -234,8 +236,6 @@ class Chromoplot(object):
                                              i * self.params['windowsize']))
                 nwindow += 1
                 i += 1
-        if not self.params.get('quiet', False):
-            progress_meter(total_windows, total_windows)
         self.params['track_order'] = majority_counts.get_ranked_keys(
             mode='centered')
         for entry in self.datalog:
@@ -431,8 +431,8 @@ def main(arguments=sys.argv[1:]):
                         help="number of pixels wide for each window")
     parser.add_argument("--colors", nargs=3, choices=pallette.colornames,
                         help="three colors to use for chromoplot")
-    parser.add_argument("--quiet", action="store_true",
-                        help="suppress progress meter")
+    parser.add_argument("--quiet", "-q", action="store_true",
+                        help="suppress all output messages")
     parser.add_argument("-v", "--version", action="store_true",
                         help="display version information")
     args = parser.parse_args(args=arguments)
@@ -442,8 +442,25 @@ def main(arguments=sys.argv[1:]):
     if args.colors:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
+    if not args.quiet:
+        print("Reading MVF...")
     mvf = MultiVariantFile(args.mvf, 'read')
-    contignames = args.contigs or []
+    if not args.quiet:
+        print("Parsing headers...")
+    if args.contigs:
+        contignames = args.contigs
+    else:
+        contignames = [mvf.metadata['contigs'][contigid]['label']
+                       for contigid in mvf.metadata['contigs']]
+        for i in range(len(contignames)):
+            try:
+                contignames[i] = int(contignames[i])
+            except:
+                pass
+        contignames = [str(x) for x in sorted(contignames)]
+    if not args.quiet:
+        print("Plotting chromoplot for contigs: {}".format(
+            ",".join(contignames)))
     master_contigs = []
     for contigname in contignames:
         contig_found = False
@@ -451,30 +468,39 @@ def main(arguments=sys.argv[1:]):
             if (contigname == contigid or
                     contigname == mvf.metadata['contigs'][contigid]['label']):
                 master_contigs.append((
-                    contigid, mvf.metadata['contigs'][contigid]['label'],
+                    mvf.metadata['contigs'][contigid]['label'],
+                    mvf.metadata['contigs'][contigid]['label'],
                     mvf.metadata['contigs'][contigid]['length']))
                 contig_found = True
         if contig_found:
             continue
         raise RuntimeError(contigname, "not found in MVF contig ids or labels")
+
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
     for quartet in quartets:
+        if not args.quiet:
+            print("Beginning quartet {}".format(",".join(quartet)))
         params = {'contigs': master_contigs[:],
-                  'outpath': args.outprefix or '_'.join(quartet) + ".png",
+                  'outpath': (args.outprefix or '_'.join(quartet)) + ".png",
                   'labels': quartet,
                   'windowsize': args.windowsize,
                   'majority': args.majority,
                   'infotrack': args.infotrack,
-                  'quiet': args.quiet,
                   'yscale': args.yscale,
-                  'xscale': args.xscale}
+                  'xscale': args.xscale,
+                  'quiet': args.quiet}
         chromoplot = Chromoplot(params=params, pallette=pallette)
         quartet_indices = mvf.get_sample_indices(labels=quartet)
+        current_contig = ''
         for contig, pos, allelesets in mvf.iterentries(
                 subset=quartet_indices, decode=True,
-                quiet=args.quiet, contigs=[x[0] for x in master_contigs]):
+                contigs=[x[0] for x in master_contigs]):
+            if contig != current_contig:
+                if not args.quiet:
+                    print("Starting contig {}".format(contig))
+                    current_contig = contig[:]
             alleles = allelesets[0]
             if '-' in alleles:
                 site_code = 'gap'
@@ -488,7 +514,11 @@ def main(arguments=sys.argv[1:]):
                 site_code = sum([2**(3-j) * (alleles[j] != alleles[3])
                                  for j in range(3)])
             chromoplot.add_data(contig, int(pos // args.windowsize), site_code)
+        if not args.quiet:
+            print("Writing image...")
         chromoplot.plot_chromoplot()
+        if not args.quiet:
+            print("Writing log...")
         chromoplot.write_total_log()
     return ''
 

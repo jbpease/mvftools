@@ -39,7 +39,7 @@ import argparse
 import gzip
 import re
 from time import time
-from mvfbase import encode_mvfstring, MultiVariantFile
+from mvfbase import encode_mvfstring, MultiVariantFile, is_int
 from mvfbiolib import GTCODES, HAPJOIN
 
 RE_CONTIG_NAME = re.compile("ID=(.*?),")
@@ -234,7 +234,7 @@ class VariantCallFile(object):
                 **kwargs: passthrough arguments
             Returns (allele, quality, depth)
         """
-        if sample[0] == './.':
+        if sample[0] in ('./.', '.'):
             return ('-', 0, 0)
         try:
             sample_depth = int(sample[indices['DP']])
@@ -274,23 +274,22 @@ class VariantCallFile(object):
             allele = (sample[indices['GT']] == '0/0' and
                       alleles[0] or alleles[1])
             quality = (indices.get("GQ", -1) == -1 and -1 or
-                       int(sample[indices['GQ']]))
+                       sample[indices['GQ']])
         elif len(alleles) <= 4:
             if indices['PL'] == -1 and indices['GL'] != -1:
-                plvalues = [int(x)
-                            for x in sample[indices['GL']].split(',')]
+                plvalues = [x for x in sample[indices['GL']].split(',')]
             else:
-                plvalues = [int(x)
-                            for x in sample[indices['PL']].split(',')]
+                plvalues = [x for x in sample[indices['PL']].split(',')]
             maxpl = 0 not in plvalues and max(plvalues) or 0
             imaxpl = (plvalues.count(maxpl) != 1 and -1 or
                       plvalues.index(maxpl))
             allele = (imaxpl == -1 and 'X' or
                       HAPJOIN[''.join([alleles[x] for x in GTCODES[imaxpl]])])
-            quality = indices['GQ'] != -1 and int(sample[indices['GQ']]) or -1
+            quality = indices['GQ'] != -1 and sample[indices['GQ']] or -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
             return ('!', -1, -1)
+        quality = quality != '.' and int(quality) or 60
         if -1 < quality < kwargs.get("maskqual", 10):
             return ('X', quality, sample_depth)
         elif (-1 < quality < kwargs.get("lowqual", 20) or
@@ -326,7 +325,9 @@ def main(arguments=sys.argv[1:]):
                                 set to 0 to disable""")
     parser.add_argument("--contigids", nargs='*',
                         help=("""manually specify one or more contig ids
-                                 as ID:NAME"""))
+                                 as ID;VCFLABE;MVFLABEL, note that
+                                 VCFLABEL must match EXACTLY the contig string
+                                 labels in the VCF file"""))
     parser.add_argument("--samplereplace", nargs="*",
                         help="""one or more TAG:NEWLABEL or TAG, items,
                                 if TAG found in sample label, replace with
@@ -365,32 +366,52 @@ def main(arguments=sys.argv[1:]):
     # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
-    contigs = vcf.metadata['contigs'].copy()
-    maxcontigid = 0
-    newids = set([])
+    vcfcontigs = vcf.metadata['contigs'].copy()
+    contig_translate = {}
     if args.contigids:
-        for cid, cname in (x.split(':') for x in args.contigids):
-            for tempid in contigs:
-                if cname in contigs[tempid]['label']:
-                    try:
-                        cid = int(cid)
-                    except ValueError:
-                        pass
-                    mvf.metadata['contigs'][cid] = contigs[tempid].copy()
-                    del contigs[tempid]
-                    newids.update([cid])
-                    break
-        for cid in newids:
+        for cid, cvcf, cmvf in (x.split(';') for x in args.contigids):
             try:
-                maxcontigid = max([maxcontigid, int(cid) + 1])
+                cid = int(cid)
             except ValueError:
+                pass
+            assert cvcf in [vcfcontigs[x]['label'] for x in vcfcontigs]
+            for vid in vcfcontigs:
+                if vcfcontigs[vid]['label'] == cvcf:
+                    contig_translate[cvcf] = [cid, cmvf]
+                    if cid in mvf.metadata['contigs']:
+                        raise RuntimeError(
+                            'Contig id {} is not unique'.format(cid))
+                    mvf.metadata['contigs'][cid] = vcfcontigs[vid].copy()
+                    if cmvf in mvf.get_contig_labels():
+                        raise RuntimeError(
+                            'Contig label {} is not unique'.format(cmvf))
+                    mvf.metadata['contigs'][cid]['label'] = cmvf[:]
+    for vcid in vcfcontigs:
+        vlabel = vcfcontigs[vcid]['label']
+        if vlabel not in mvf.get_contig_labels():
+            if ((is_int(vlabel) or len(vlabel) < 3) and
+                    vlabel not in mvf.get_contig_ids()):
+                newid = vlabel[:]
+            else:
+                newid = mvf.get_next_contig_id()
+            mvf.metadata['contigs'][newid] = vcfcontigs[vcid].copy()
+            contig_translate[vlabel] = [newid, vlabel]
+    new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
+                   for x in mvf.metadata['contigs']]
+    for i, (newid, newlabel) in enumerate(new_contigs):
+        for j, (xid, xlabel) in enumerate(new_contigs):
+            if i == j:
                 continue
-    tempids = set(contigs.keys()) - newids
-    for tempid, newid in sorted(zip(
-            tempids, range(maxcontigid, maxcontigid + len(tempids)))):
-        mvf.metadata['contigs'][newid] = vcf.metadata['contigs'][tempid]
-    contig_translate = dict([(mvf.metadata['contigs'][x]['label'], x)
-                             for x in mvf.metadata['contigs']])
+            if newid == xlabel:
+                raise RuntimeError("Error contig id {} is the same as"
+                                   " the label for another contig"
+                                   " ({} {})".format(
+                                      newid, xid, xlabel))
+            if newlabel == xid:
+                raise RuntimeError("Error contig label {} is the same"
+                                   "as the id for another contig"
+                                   "({} {})".format(
+                                       newlabel, xid, xlabel))
     # PROCESS SAMPLE INFO
     samplelabels = [args.reflabel] + vcf.metadata['samples'][:]
     if args.allelesfrom:
@@ -424,8 +445,7 @@ def main(arguments=sys.argv[1:]):
             qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
         if mvf_alleles:
             mvfentries.append(
-                (contig_translate.get(vcfrecord['contig'],
-                                      vcfrecord['contig']),
+                (contig_translate.get(vcfrecord['contig'])[0],
                  vcfrecord['coord'],
                  (args.outflavor in ('dnaqual',) and
                   (mvf_alleles, qual_alleles) or (mvf_alleles,))))

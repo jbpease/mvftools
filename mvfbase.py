@@ -233,6 +233,11 @@ class MultiVariantFile(object):
                 return contigid
         raise IndexError("contig '{}' not found".format(label))
 
+    def get_contig_ids(self):
+        """Returns all contig ids
+        """
+        return self.metadata['contigs'].keys()
+
     def get_contig_label(self, contigid):
         """Returns contig label given contig id
         """
@@ -240,13 +245,19 @@ class MultiVariantFile(object):
             return self.metadata['contigs'][contigid]['label']
         raise IndexError("contig '{}' not found".format(contigid))
 
+    def get_contig_labels(self):
+        """Returns contig labels as a list
+        """
+        return [self.metadata['contigs'][x]['label']
+                for x in self.metadata['contigs']]
+
     def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
         maxid = 0
         for contigid in self.metadata['contigs']:
             if is_int(contigid):
                 maxid = max(maxid, int(contigid))
-        return maxid
+        return str(maxid + 1)
 
     def __iter__(self, quiet=False):
         """Simple entry iterator
