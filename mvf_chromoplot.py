@@ -9,7 +9,8 @@ mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
 @author: Ben K. Rosenzweig
 
 version: 2015-02-01 - First Public Release
-@version: 2015-09-04 - Cleanup and style fixes
+version: 2015-09-04 - Cleanup and style fixes
+@version: 2015-12-22 - Bug fixes to contig labels
 
 This file is part of MVFtools.
 
@@ -437,7 +438,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2015-12-22")
         sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
@@ -479,10 +480,11 @@ def main(arguments=sys.argv[1:]):
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
+    print(master_contigs)
     for quartet in quartets:
         if not args.quiet:
             print("Beginning quartet {}".format(",".join(quartet)))
-        params = {'contigs': master_contigs[:],
+        params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
                   'outpath': (args.outprefix or '_'.join(quartet)) + ".png",
                   'labels': quartet,
                   'windowsize': args.windowsize,
@@ -496,7 +498,7 @@ def main(arguments=sys.argv[1:]):
         current_contig = ''
         for contig, pos, allelesets in mvf.iterentries(
                 subset=quartet_indices, decode=True,
-                contigs=[x[0] for x in master_contigs]):
+                contigs=[str(x[0]) for x in master_contigs]):
             if contig != current_contig:
                 if not args.quiet:
                     print("Starting contig {}".format(contig))
@@ -513,7 +515,8 @@ def main(arguments=sys.argv[1:]):
             else:
                 site_code = sum([2**(3-j) * (alleles[j] != alleles[3])
                                  for j in range(3)])
-            chromoplot.add_data(contig, int(pos // args.windowsize), site_code)
+            chromoplot.add_data(str(contig),
+                                int(pos // args.windowsize), site_code)
         if not args.quiet:
             print("Writing image...")
         chromoplot.plot_chromoplot()
