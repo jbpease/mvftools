@@ -10,7 +10,8 @@ mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
 
 version: 2015-02-01 - First Public Release
 version: 2015-09-04 - Cleanup and style fixes
-@version: 2015-12-22 - Bug fixes to contig labels
+version: 2015-12-22 - Bug fixes to contig labels
+version: 2016-01-29 - Bug fix
 
 This file is part of MVFtools.
 
@@ -438,7 +439,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-12-22")
+        print("Version 2016-01-29")
         sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
@@ -469,7 +470,7 @@ def main(arguments=sys.argv[1:]):
             if (contigname == contigid or
                     contigname == mvf.metadata['contigs'][contigid]['label']):
                 master_contigs.append((
-                    mvf.metadata['contigs'][contigid]['label'],
+                    contigid,
                     mvf.metadata['contigs'][contigid]['label'],
                     mvf.metadata['contigs'][contigid]['length']))
                 contig_found = True
