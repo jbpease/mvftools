@@ -2,6 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 http://www.github.org/jbpease/mvftools
 
 mvf_filter_dev: Testing for new Modules for Filtering/Transformation
@@ -11,7 +20,9 @@ mvf_filter_dev: Testing for new Modules for Filtering/Transformation
 
 version: 2015-02-16 Release
 version: 2015-06-09 Fixes and updates for 1.2.1
-@version: 2015-09-04 Style fixes and upgrades
+version: 2015-09-04 Style fixes and upgrades
+version: 2015-12-31 Cleanup and header updates
+version: 2016-03-02 Added collapsemerge module and fixes for mincoverage and removelower
 
 This file is part of MVFtools.
 
@@ -49,7 +60,7 @@ from copy import deepcopy
 from itertools import combinations
 from time import time
 from mvfbase import MultiVariantFile, encode_mvfstring
-
+from mvfbiolib import merge_bases
 
 def get_linetype(alleles):
     """Determines the line type from allele string
@@ -101,6 +112,7 @@ def make_module(modulename, ncol, optargs=None):
                 return True
             else:
                 return False
+
     # COLLAPSEPRIORITY
     elif modulename == "collapsepriority":
         moduletype = "transform"
@@ -139,6 +151,49 @@ def make_module(modulename, ncol, optargs=None):
                 elif optargs[0][0] == 0 and len(optargs[0]) == ncol:
                     return entry[0]
                 return entry
+
+    # COLLAPSEMERGE
+    elif modulename == "collapsemerge":
+        moduletype = "transform"
+
+        def collapsemerge(entry, mvfenc):
+            """Samples merged completely, uses ambiguity codes
+               for heterozygous alleles"""
+            if mvfenc == 'full':
+                newbase = merge_bases([entry[x] for x in optargs[0]])
+                return ''.join([(j == optargs[0][0] and newbase) or
+                               (j not in optargs[0] and entry[j]) or
+                                '' for j in range(len(entry))])
+            elif mvfenc == 'invar':
+                return entry
+            elif mvfenc == 'onecov':
+                num = int(entry[3:])
+                if optargs[0][0] == 0 and num in optargs[0]:
+                    return ''
+                return "{}{}".format(entry[0:3], num - len([
+                    x for x in optargs if x < num]))
+            elif mvfenc == 'onevar':
+                num = int(entry[4:])
+                if optargs[0][0] == 0:
+                    if num in optargs[0]:
+                        if len(optargs[0]) > 2:
+                            entry = "{}{}".format(merge_bases([
+                                entry[0], entry[1], entry[3]]), entry[1])
+                        else:
+                            entry = "{}{}".format(merge_bases([
+                                entry[0], entry[1]]), entry[2:])
+                elif optargs[0][0] == num:
+                    entry = "{}{}{}".format(
+                        entry[0:3], merge_bases([entry[1], entry[3]]), num)
+                elif num in optargs:
+                    entry = "{}{}{}".format(
+                        entry[0:3], marge_bases([entry[1], entry[3]]), optargs[0][0])
+                return entry
+            elif mvfenc == 'refvar':
+                if optargs[0][0] == 0:
+                    return "{}{}".format(merge_bases(entry[0:2]), entry[1])
+                return entry
+
     # COLUMNS
     elif modulename == 'columns':
         moduletype = 'transform'
@@ -231,8 +286,8 @@ def make_module(modulename, ncol, optargs=None):
             if mvfenc == 'full':
                 return sum(
                     [int(x not in 'NX-') for x in entry]) >= optargs[0][0]
-            if mvfenc in ('invar', 'refvar'):
-                return True
+            if mvfenc == 'invar':
+                return entry in 'X-'
             elif mvfenc == 'onecov':
                 return optargs[0][0] <= 2
             elif mvfenc == 'onevar':
@@ -241,6 +296,16 @@ def make_module(modulename, ncol, optargs=None):
                 elif entry[3] == '-' and optargs[0][0] > ncol - 1:
                     return False
                 return True
+            elif mvfenc == 'refvar':
+                if entry[0] in 'X-':
+                    if entry[1] in 'X-':
+                        return False
+                    if optargs >= ncol - 1:
+                        return False
+                if entry[1] in 'X-' and optargs[0][0] > 1:
+                    return False
+                return True
+
 
     # NOTCHAR
     elif modulename == "notchar":
@@ -304,7 +369,7 @@ def make_module(modulename, ncol, optargs=None):
                 return '{}{}+{}{}'.format(
                     ((entry[0].islower() or entry[0] == '-') and
                      '-' or entry[0]),
-                    ((entry[1].isupper() or entry[1] != '-') and
+                    ((entry[1].isupper() or entry[1] == '-') and
                      entry[1] or ''),
                     ((entry[3].islower() or entry[3] == '-') and
                      '-' or entry[3]),
@@ -483,7 +548,7 @@ def make_module(modulename, ncol, optargs=None):
 
 # END OF MODULE DEFINITION
 
-MODULENAMES = ['allelegroup', 'collapsepriority',
+MODULENAMES = ['allelegroup', 'collapsemerge', 'collapsepriority',
                'columns', 'maskchar', 'masklower', 'mincoverage',
                'notchar', 'promotelower', 'removechar', 'removelower',
                'reqallchar', 'reqcontig', 'reqinformative',
@@ -524,7 +589,7 @@ def build_actionset(moduleargs, ncol):
                 modargs[0][1] = int(modargs[0][1])
                 modargs[0][2] = int(modargs[0][2])
             elif modargs[0] == 'mincoverage':
-                if int(modargs[0][0]) > ncol:
+                if int(modargs[1][0]) > ncol:
                     raise RuntimeError()
             for i in range(1, len(modargs)):
                 try:
@@ -568,7 +633,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2016-03-02")
         sys.exit()
     args = parser.parse_args(args=arguments)
     time0 = time()
@@ -592,7 +657,7 @@ def main(arguments=sys.argv[1:]):
         for i in range(len(args.actions)):
             action = args.actions[i]
             arr = action.split(':')
-            if arr[0] in ('columns', 'collapsepriority',
+            if arr[0] in ('columns', 'collapsepriority', 'collapsemerge',
                           'allelegroup', 'notmultigroup'):
                 for j in range(1, len(arr)):
                     arr[j] = ','.join([
@@ -659,19 +724,25 @@ def main(arguments=sys.argv[1:]):
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.metadata = deepcopy(mvf.metadata)
     # reprocess header if actions are used that filter columns
-    if any(x == y[0] for x in ('columns', 'collapsepriority')
+    if any(x == y[0] for x in ('columns', 'collapsepriority', 'collapsemerge')
            for y in actionset):
-        labels = outmvf.metadata['labels'][:]
+        if args.labels:
+            labels = outmvf.metadata['labels'][:]
+        else:
+            labels = outmvf.metadata['samples'].keys()[:]
         for actionname, actiontype, actionfunc, actionarg in actionset:
             if actionname == 'columns':
                 labels = [labels[x] for x in actionarg]
-            elif actionname == 'collapsepriority':
+            elif actionname in ('collapsepriority', 'collapsemerge'):
                 labels = [labels[x] for x in range(len(labels))
-                          if x not in actionarg[1:]]
-        oldindicies = mvf.get_sample_indices(labels)
+                          if x not in actionarg[0][1:]]
+        if args.labels:
+            oldindices = mvf.get_sample_indices(labels)
+        else:
+            oldindices = labels[:]
         newsamples = {}
         for i, _ in enumerate(labels):
-            newsamples[i] = mvf.metadata['samples'][oldindicies[i]]
+            newsamples[i] = mvf.metadata['samples'][oldindices[i]]
         outmvf.metadata['samples'] = newsamples.copy()
         outmvf.metadata['labels'] = labels[:]
     outmvf.write_data(outmvf.get_header())
