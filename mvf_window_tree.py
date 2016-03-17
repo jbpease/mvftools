@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 mvf_window_tree: RAxML trees from sequence regions encoded by MVF format
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
- version: 2015-02-01 - First Public Release
+version: 2015-02-01 - First Public Release
 version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
                       enhancements.  Added additional options for RAxML
                       including custom temporary directories, rapid
@@ -18,7 +25,8 @@ version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
                       handling.  Addition of whole-contig mode.
 version: 2015-06-09 - Major update to 1.2.1. Fixes polytomy issue, Python 3.x
                       compatibility.
-@version: 2015-09-04 - Cleanup and fixes
+version: 2015-09-04 - Cleanup and fixes
+@version: 2015-12-31 - Updates to header information and minor fixes
 
 This file is part of MVFtools.
 
@@ -45,7 +53,7 @@ import argparse
 import subprocess
 from random import randint
 from datetime import datetime
-from StringIO import StringIO
+from io import StringIO
 from itertools import combinations
 from Bio import Phylo
 from mvfbase import MultiVariantFile
@@ -451,8 +459,8 @@ def main(arguments=sys.argv[1:]):
     """Main MVF Treemaker"""
     parser = argparse.ArgumentParser(description="""
     Process MVF into alignment""")
-    parser.add_argument("--mvf", help="inputmvf")
-    parser.add_argument("--out", help="tree list output file")
+    parser.add_argument("--mvf", help="inputmvf", required=True)
+    parser.add_argument("--out", help="tree list output file", required=True)
     parser.add_argument("--samples", nargs='*',
                         help="one or more taxon labels, default=all")
     parser.add_argument("--raxml_outgroups", nargs="*",
@@ -520,7 +528,7 @@ def main(arguments=sys.argv[1:]):
 
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2015-12-31")
         sys.exit()
     # ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []
@@ -620,5 +628,5 @@ def main(arguments=sys.argv[1:]):
         topofile.write_entry({'rank': rank, 'count': value, 'topology': topo})
     return ''
 
-if __name__ is "__main__":
+if __name__ == "__main__":
     main()
