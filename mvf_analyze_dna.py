@@ -9,8 +9,9 @@ MVF_analyze_dna: Base analysis class handler and functions
 @author: Ben K. Rosenzweig
 
 version: 2015-06-11 - v.1.2.1 release
-@version: 2015-09-04 - upgrades and fixes
-@version: 2015-12-16 - change QuintetCount to general PatternCount
+version: 2015-09-04 - upgrades and fixes
+version: 2015-12-16 - change QuintetCount to general PatternCount
+@version: 2016-03-18 - bug fixes
 
 This file is part of MVFtools.
 
@@ -139,14 +140,14 @@ class DstatComb(AnalysisModule):
                         if contig not in self.data[trio]:
                             self.data[trio][contig] = [0, 0, 0]
                         print(val)
-                        self.data[trio][contig][val] += 1
-        self.write(self)
+                        self.data[trio][contig][val - 1] += 1
+        self.write()
 
     def write(self):
         """Writes output
         """
         headers = ['sample0', 'sample1', 'sample2']
-        for contig in self.contigs:
+        for contig in self.params['contigs']:
             headers.extend(['{}:abba'.format(contig), '{}:baba'.format(contig),
                             '{}:bbaa'.format(contig), '{}:D'.format(contig)
                             ])
@@ -159,7 +160,7 @@ class DstatComb(AnalysisModule):
                           self.params['samplenames'][x][0])
                           for i, x in enumerate(trio)])
             for contig in self.params['contigs']:
-                if contig not in self.data[trio][contig]:
+                if contig not in self.data[trio]:
                     entry.update(dict().fromkeys([
                         '{}:abba'.format(contig), '{}:baba'.format(contig),
                         '{}:bbaa'.format(contig), '{}:D'.format(contig)],
@@ -167,11 +168,12 @@ class DstatComb(AnalysisModule):
                 else:
                     [abba, baba, bbaa] = self.data[trio][contig]
                     if abba > baba and abba > bbaa:
-                        dstat = float(baba - bbaa) / float(baba + bbaa)
+
+                        dstat = zerodiv(baba - bbaa, baba + bbaa)
                     elif baba > bbaa and baba > abba:
-                        dstat = float(abba - bbaa) / float(abba + bbaa)
+                        dstat = zerodiv(abba - bbaa, abba + bbaa)
                     else:
-                        dstat = float(abba - baba) / float(abba + baba)
+                        dstat = zerodiv(abba - baba, abba + baba)
                     entry.update([('{}:abba'.format(contig), abba),
                                   ('{}:baba'.format(contig), baba),
                                   ('{}:bbaa'.format(contig), bbaa),
@@ -390,9 +392,7 @@ class PairwiseDistance(AnalysisModule):
                                        self.params['labels'][samplepair[1]]),
                 'ndiff': ndiff + all_diff,
                 'ntotal': ntotal + all_total,
-                'dist': (ntotal + all_total and
-                         float(ndiff + all_diff) / float(ntotal + all_total) or
-                         0.)}
+                'dist': zerodiv(ndiff + all_diff, ntotal + all_total)}
 
         self.write()
         return ''
@@ -405,6 +405,12 @@ class PairwiseDistance(AnalysisModule):
         for _, entry in iter(self.data.items()):
             outfile.write_entry(entry)
         return ''
+
+
+def zerodiv(a, b):
+    if b == 0:
+        return 0
+    return float(a) / float(b)
 
 
 def modulehelp(modulenames=MODULENAMES):
@@ -441,7 +447,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version: 2015-12-16")
+        print("Version: 2016-03-18")
         sys.exit()
     time0 = time()
     # HELP MENU
