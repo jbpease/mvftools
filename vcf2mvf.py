@@ -2,7 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 VCF2MVF: Variant Call Format (VCF) to MVF conversion program
 @author: James B. Pease
@@ -14,7 +22,9 @@ version: 2015-05-25 - Fixes for Python 3.x compatibility
 version: 2015-06-11 - 1.2.1 upgrade, added indels and quality score parsing
 version: 2015-09-04 - minor fixes and cleanup
 version 2015-09-05 - disabled indel feature for retuning
-@version 2015-12-17 - bug fix
+version 2015-12-17 - bug fix
+version 2015-12-31 - updates to header and minor fixes
+@version 2016-04-05 - fixes to allow phased VCF and fix PL score interpretation
 
 This file is part of MVFtools.
 
@@ -32,7 +42,7 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import os
 import sys
 import argparse
@@ -61,9 +71,9 @@ class VariantCallFile(object):
         self.path = os.path.abspath(path)
         self.metadata = {'contigs': {}, 'samples': []}
         if path.endswith(".gz"):
-            filehandler = gzip.open(self.path, 'rb')
+            filehandler = gzip.open(self.path, 'rt')
         else:
-            filehandler = open(self.path, 'rb')
+            filehandler = open(self.path, 'rt')
         header_lines = []
         self.entrystart = filehandler.tell()
         line = filehandler.readline()
@@ -110,9 +120,9 @@ class VariantCallFile(object):
         tempid = 0
         contigndx = {}
         if self.path.endswith('.gz'):
-            filehandler = gzip.open(self.path, 'rb')
+            filehandler = gzip.open(self.path, 'rt')
         else:
-            filehandler = open(self.path, 'rb')
+            filehandler = open(self.path, 'rt')
         filehandler.seek(self.entrystart)
         for vcfline in filehandler:
             try:
@@ -139,9 +149,9 @@ class VariantCallFile(object):
                 args: dict passthrough object from toplevel argparse options
         """
         if self.path.endswith('.gz'):
-            filehandler = gzip.open(self.path, 'rb')
+            filehandler = gzip.open(self.path, 'rt')
         else:
-            filehandler = open(self.path, 'rb')
+            filehandler = open(self.path, 'rt')
         nline = 0
         linebuffer = []
         for line in filehandler:
@@ -196,7 +206,7 @@ class VariantCallFile(object):
                 record['alleles'].append(altbase)
         record['tagindex'] = {}
         tags = arr[8].split(':')
-        for tag in ["DP", "PL", "GT", "GL", "GQ"]:
+        for tag in ["DP", "PL", "GT", "GL", "GQ", "GP"]:
             if tag in tags:
                 record['tagindex'][tag] = tags.index(tag)
             else:
@@ -248,13 +258,13 @@ class VariantCallFile(object):
             return ('-', 0, 0)
         # Fixed sites
         elif all(((indices[x] == -1 or sample[indices[x]] == '.')
-                  for x in ('PL', 'GL', 'GQ'))):
+                  for x in ('PL', 'GL', 'GQ', 'GP'))):
             quality = -1
-            if sample[indices['GT']] == '0/0':
+            if sample[indices['GT']] in ('0/0', '0|0'):
                 allele = alleles[0]
-            elif sample[indices['GT']] == '1/1':
+            elif sample[indices['GT']] in ('1/1', '1|1'):
                 allele = alleles[1]
-            elif sample[indices['GT']] == '0/1':
+            elif sample[indices['GT']] in ('0/1', '0|1', '0|1', '1/0'):
                 allele = HAPJOIN[''.join(alleles[0:2])]
             else:
                 return ('X', -1, sample_depth)
@@ -277,9 +287,9 @@ class VariantCallFile(object):
                        sample[indices['GQ']])
         elif len(alleles) <= 4:
             if indices['PL'] == -1 and indices['GL'] != -1:
-                plvalues = [x for x in sample[indices['GL']].split(',')]
+                plvalues = [int(x) for x in sample[indices['GL']].split(',')]
             else:
-                plvalues = [x for x in sample[indices['PL']].split(',')]
+                plvalues = [int(x) for x in sample[indices['PL']].split(',')]
             maxpl = 0 not in plvalues and max(plvalues) or 0
             imaxpl = (plvalues.count(maxpl) != 1 and -1 or
                       plvalues.index(maxpl))
@@ -355,7 +365,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-12-17")
+        print("Version 2016-04-05")
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
