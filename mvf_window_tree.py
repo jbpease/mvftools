@@ -26,7 +26,8 @@ version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
 version: 2015-06-09 - Major update to 1.2.1. Fixes polytomy issue, Python 3.x
                       compatibility.
 version: 2015-09-04 - Cleanup and fixes
-@version: 2015-12-31 - Updates to header information and minor fixes
+version: 2015-12-31 - Updates to header information and minor fixes
+@version: 2016-04-11 - Bug fix for RAxML interface
 
 This file is part of MVFtools.
 
@@ -46,7 +47,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import os
 import sys
 import argparse
@@ -186,9 +187,9 @@ class WindowData(object):
             return entry
         # Alignment Has Passed Preliminary Checks, ready for RAxML run
         # Establish Temporary Directory
-        jobname = "{}.{}{}".format(
+        jobname = "{}.{}-{}".format(
             params.get("tempprefix", "mvftree"),
-            datetime.now().strftime('%Y-%m-%d-%H-%M-%S-') +
+            datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
             randint(100000, 999999))
         temp_filepath = os.path.abspath(
             "{}/{}_temp.phy".format(params['tempdir'], jobname))
@@ -506,7 +507,7 @@ def main(arguments=sys.argv[1:]):
                              perform specified number of replicates""")
     parser.add_argument("--raxml_model", default="GTRGAMMA",
                         help="""choose custom RAxML model [GTRGAMMA]""")
-    parser.add_argument("--raxmlpath",
+    parser.add_argument("--raxmlpath", default="raxml",
                         help="manually specify RAxML path")
     parser.add_argument("--raxmlopts", default="",
                         help="specify additional RAxML arguments")
@@ -528,7 +529,7 @@ def main(arguments=sys.argv[1:]):
 
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-12-31")
+        print("Version 2015-04-11")
         sys.exit()
     # ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []

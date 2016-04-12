@@ -49,6 +49,7 @@ import argparse
 import gzip
 import re
 from time import time
+from math import log10
 from mvfbase import encode_mvfstring, MultiVariantFile, is_int
 from mvfbiolib import GTCODES, HAPJOIN
 
@@ -287,9 +288,12 @@ class VariantCallFile(object):
                        sample[indices['GQ']])
         elif len(alleles) <= 4:
             if indices['PL'] == -1 and indices['GL'] != -1:
-                plvalues = [int(x) for x in sample[indices['GL']].split(',')]
+                plvalues = [x for x in sample[indices['GL']].split(',')]
             else:
-                plvalues = [int(x) for x in sample[indices['PL']].split(',')]
+                plvalues = [x for x in sample[indices['PL']].split(',')]
+            if all(0 <= float(x) <= 1 for x in plvalues) and sum([
+                    float(x) for x in plvalues]) == 1:
+                plvalues = [float(x) == 0 and 1 or float(x) != 1 and int(-10 * log10(float(x))) or 0 for x in plvalues]
             maxpl = 0 not in plvalues and max(plvalues) or 0
             imaxpl = (plvalues.count(maxpl) != 1 and -1 or
                       plvalues.index(maxpl))
