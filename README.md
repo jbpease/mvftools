@@ -19,14 +19,17 @@ Programs within MVFtools have specific dependencies as follows (\* denotes non-P
 Simply clone MVFtools to use the scripts, unless other dependencies are required (see above). All external depencies should be installed as recommended by their individual documentation.
 
 ##Contributors:
-* James B. Pease ([website](http://pages.iu.edu/~jbpease/))([@jamesbpease](https://twitter.com/jamesbpease/))
+* James B. Pease ([website](http://peaselab.github.io)([@jamesbpease](https://twitter.com/jamesbpease/))
 * Ben K. Rosenzweig
 
-## Version History:
+##FAQ and Questions/Comments:
+Visit the Google Groups site for FAQs and to ask question:
+https://groups.google.com/forum/#!forum/mvftools
 
-2015-02-01: First Public Release
-2015-02-26: Patch upgrade for multiple modules.  Featured upgrades are efficiency increases to mvfbase and major overhaul of mvf_window_tree.
-2015-09-04: Major upgrade and fixes for all scripts, added DNA analysis modules and significant upgrades to the back-end. 
+##Other Studies using MVFtools:
+* http://dx.doi.org/10.1111/mec.13679
+* http://dx.doi.org/10.1111/mec.13610
+* http://dx.doi.org/10.1371/journal.pbio.1002379
 
 ## License
 This file is part of MVFtools.
@@ -35,14 +38,4 @@ MVFtools is free software: you can redistribute it and/or modify it under the te
 
 MVFtools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with Foobar.  If not, see (http://www.gnu.org/licenses/).
 
-## FAQ
-
-1. What is an example of a simple MVF workflow using VCF?
-1.1. After aligning your reads and sorting them using Using [SAMtools and BCFtools](http://www.htslib.org/) and 1+ *sorted* .bam files, this command is used to generate a multi-sample VCF. 
-
-    samtools mpileup -uD -f $GENOME.fasta $SPECIESA.sorted.bam $SPECIESB.sorted.bam ... $SPECIESN.sorted.bam | bcftools view -cg - > $INTERMED.vcf
-    
-    vcf2mvf.py $INTERMED.vcf --out $OUTPUT.mvf --labelreplace SPECIESA:SPECA SPECIESB:SPECB ... SPECIESN:SPECN --maskqual 0 --lowqual 20 --maskdepth 1 --lowdepth 3 --quiet --chromindex chr01 chr02 chr03 ...
-
-The '--labelpreplace' amd '--chromindex' flags are optional, as VCF files should be converted automatically.
 
