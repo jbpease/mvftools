@@ -1,6 +1,6 @@
 # mvftools
 ###Multisample Variant Format ToolKit
-***See also the MVFtools-dev for the latest testing releases at http://www.github.com/jbpease/mvftools-dev***
+***NOTE: the mvftools-dev repository has merged with mvftools under the branch *develop*, see this branch for the latest features***
 
 ## Description:
 This repository contains the specification for the Multisample Variant Format (MVF), which is designed for compact storage and efficient analysis of multi-genome and multi-transcriptome datasets.  The programs provided in MVFtools support this format, both with conversion utilities, filtering and transformation programs, and data analysis and visualization modules.  MVF format is designed specifically for biological data analysis, since sequence data is encoded based on the information content at a particular aligned sequence site.  This contextual encoding allows for rapid computation of phylogenetic and population genetic analyses, and small file sizes that enable data sharing and distribution.
