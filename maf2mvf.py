@@ -2,13 +2,22 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 MAF2MVF: MAF to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-@version: 2015-09-04
+version: 2015-09-04
+@version: 2015-12-31 - Updates to header and cleanup
 
 This file is part of MVFtools.
 
@@ -126,8 +135,8 @@ def main(arguments=sys.argv[1:]):
     """Main method for maf2mvf"""
     parser = argparse.ArgumentParser(description="""
     Converts Multiple Alignment Files to MVF file with some filters """)
-    parser.add_argument("--maf", help="input MAF file")
-    parser.add_argument("--out", help="output MVF file")
+    parser.add_argument("--maf", help="input MAF file", required=True)
+    parser.add_argument("--out", help="output MVF file", required=True)
     parser.add_argument("--reftag", help="old reference tag")
     parser.add_argument("--mvfreflabel", default="REF",
                         help="new label for reference sample (default='REF')")
@@ -142,7 +151,11 @@ def main(arguments=sys.argv[1:]):
     parser.add_argument("--linebuffer", type=int, default=100000,
                         help="number of lines to hold in read/write buffer")
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("-v", "--version", help="display version information")
     args = parser.parse_args(args=arguments)
+    if args.version:
+        print("Version 2015-12-31")
+        sys.exit()
     # ESTABLISH MAF
     maf = MultiAlignFile(args)
     # ESTABLISH MVF

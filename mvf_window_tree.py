@@ -359,6 +359,14 @@ class OutputFile(object):
         return ''
 
 
+def verify_raxml(params):
+    """verify raxml path"""
+    out = str(subprocess.check_output([params['raxmlpath'], "-v"]))
+    if out.find("RAxML version") == -1:
+        raise RuntimeError("RAxML failed!\n{}".format(out))
+    return ''
+
+
 def run_raxml(filename, jobname, params):
     """Runs RAxML
         Parameters:
@@ -568,6 +576,7 @@ def main(arguments=sys.argv[1:]):
               'tempdir': tmpdir,
               'tempprefix': args.tempprefix}
     # WINDOW START INTERATION
+    verify_raxml(params)
     current_contig = ''
     window_start = 0
     window = None

@@ -2,13 +2,22 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 MVF Analysis Base
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-@version: 2015-09-04
+version: 2015-09-04
+@version: 2015-12-31 - Updates to header information
 
 This file is part of MVFtools.
 
@@ -102,3 +111,7 @@ class AnalysisModule(object):
 
 def abpattern(num, digits=0):
     return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
+
+if __name__ == ("__main__"):
+    print("""MVF Analysis Library v. 2015-12-31, please run one of the
+          other MVFtools scripts to access these functions""")

@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 MVFbase: Base class MVF handler and functions
 @author: James B. Pease
@@ -12,7 +19,10 @@ version: 2015-02-01 - First Public Release
 version: 2015-02-26 - Efficiency upgrades for iterators
 version: 2015-06-09 - MVF1.2.1 upgrade
 verison: 2015-09-04 - Small style fixes
-@version: 2015-12-15 - Python3 compatibilty fix
+version: 2015-12-15 - Python3 compatibilty fix
+version: 2015-12-31 - Header and cleanup
+version:  2016-01-01 - Python3 compatiblity fix
+@version:  2016-01-11 - fix for dna ambiguity characters
 
 This file is part of MVFtools.
 
@@ -20,7 +30,6 @@ MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -431,7 +440,11 @@ class MultiVariantFile(object):
             Arguments:
                 alleles: unencoded allele string
         """
-        return encode_mvfstring(alleles)
+        if self.meta['flavor'] == 'dna':
+            return encode_mvfstring(alleles).replace(
+                'N', 'X').replace('n', 'X')
+        else:
+            return encode_mvfstring(alleles)
 
     def write_data(self, data):
         """Writes datastring to the MVF file
@@ -439,10 +452,10 @@ class MultiVariantFile(object):
                 data: string datastream
         """
         if self.metadata['isgzip'] or self.path.endswith('.gz'):
-            with gzip.open(self.path, 'ab') as outfile:
+            with gzip.open(self.path, 'a') as outfile:
                 outfile.write(data)
         else:
-            with open(self.path, 'ab') as outfile:
+            with open(self.path, 'a') as outfile:
                 outfile.write(data)
 
     def write_entries(self, entries, encoded=True):
@@ -484,5 +497,5 @@ def encode_mvfstring(alleles):
     return alleles
 
 if __name__ == ("__main__"):
-    print("""MVF base handler library v. 2015-06-09, please run one of the
+    print("""MVF base handler library v. 2015-12-31, please run one of the
           other MVFtools scripts to access these functions""")

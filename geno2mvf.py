@@ -2,14 +2,23 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+http://www.github.org/jbpease/mvftools (Stable Releases)
+http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
 
-geno2MVF: GATK Genotype Format to MVF conversion program
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+
+geno2MVF: Simple Genotype Format to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
 version: 2015-02-01 - First Public Release
-@version: 2015-09-04 - Style cleanup
+version: 2015-09-04 - Style cleanup
+@version: 2015-12-31 - Headers and cleanup, changed to clarify this is not a GATK format
 
 This file is part of MVFtools.
 
@@ -36,14 +45,14 @@ from mvfbase import encode_mvfstring, MultiVariantFile
 
 
 class GenoFile(object):
-    """Processor for a GATK Genotype File"""
+    """Processor for a Simple Genotype File"""
 
     def __init__(self, path, entrystart=None, indexcontigs=True):
         if not path:
             raise IOError(path, " path not found for .geno file")
         self.path = os.path.abspath(path)
         self.metadata = {'contigs': {}, 'samples': []}
-        self.metadata['sourceformat'] = 'GATK.geno'
+        self.metadata['sourceformat'] = '.geno'
         self.entrystart = entrystart or 0
         if path.endswith(".gz"):
             filehandler = gzip.open(self.path, 'rb')
@@ -134,7 +143,7 @@ class GenoFile(object):
 def main(arguments=sys.argv[1:]):
     """Main method for geno2mvf"""
     parser = argparse.ArgumentParser(description="""
-    Converts GATK Genotype Format to MVF file with some filters """)
+    Converts Simple Genotype Format to MVF file with some filters """)
     parser.add_argument("--geno", help="input .geno file", required=True)
     parser.add_argument("--out", help="output MVF file", required=True)
     parser.add_argument("--contigids", nargs='*',
@@ -163,7 +172,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2015-12-31")
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
