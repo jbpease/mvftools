@@ -34,8 +34,7 @@ import sys
 import argparse
 from random import randint
 from itertools import combinations
-from mvfanalysisbase import AnalysisModule, OutputFile, abpattern
-from mvfbase import MultiVariantFile
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, abpattern
 from mvfbiolib import HAPSPLIT
 from time import time
 

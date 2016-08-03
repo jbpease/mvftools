@@ -42,8 +42,7 @@ import argparse
 import re
 from random import randint
 from itertools import combinations
-from mvfbase import MultiVariantFile
-from mvfanalysisbase import AnalysisModule, OutputFile, Counter
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, Counter
 from mvfbiolib import HAPSPLIT, FULL_CODON_TABLE, AMBIGSTOPS
 from mvfpaml import paml_branchsite, paml_pwcalc_dnds
 
