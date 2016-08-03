@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -17,7 +16,8 @@ MAF2MVF: MAF to MVF conversion program
 @author: Ben K. Rosenzweig
 
 version: 2015-09-04
-@version: 2015-12-31 - Updates to header and cleanup
+version: 2015-12-31 - Updates to header and cleanup
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 

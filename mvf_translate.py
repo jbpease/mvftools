@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -18,7 +17,8 @@ MVF_translate: Translate MVF dna to protein or codon format
 version: 2015-02-05 - MVF1.2 update
 version: 2015-09-04 - minor fixes and style cleanup
 version: 2015-12-31 - updates to header and minor fixes
-@version: 2016-01-01 - added GFF-less mode for de novo alignments
+version: 2016-01-01 - added GFF-less mode for de novo alignments
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -36,7 +36,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 import re

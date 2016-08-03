@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -11,9 +10,8 @@ Pease JB and BK Rosenzweig. 2016.
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
 
-mvf_filter_dev: Testing for new Modules for Filtering/Transformation
+mvf_filter: Testing for new Modules for Filtering/Transformation
 
 @author: James B. Pease
 @author: Ben K. Rosenzweig
@@ -23,6 +21,7 @@ version: 2015-06-09 Fixes and updates for 1.2.1
 version: 2015-09-04 Style fixes and upgrades
 version: 2015-12-31 Cleanup and header updates
 version: 2016-03-02 Added collapsemerge module and fixes for mincoverage and removelower
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -53,7 +52,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 # (descending order of most common frequency)
 
 
-from __future__ import print_function
 import sys
 import argparse
 from copy import deepcopy
@@ -61,6 +59,7 @@ from itertools import combinations
 from time import time
 from mvfbase import MultiVariantFile, encode_mvfstring
 from mvfbiolib import merge_bases
+
 
 def get_linetype(alleles):
     """Determines the line type from allele string
@@ -187,7 +186,8 @@ def make_module(modulename, ncol, optargs=None):
                         entry[0:3], merge_bases([entry[1], entry[3]]), num)
                 elif num in optargs:
                     entry = "{}{}{}".format(
-                        entry[0:3], marge_bases([entry[1], entry[3]]), optargs[0][0])
+                        entry[0:3], merge_bases([entry[1], entry[3]]),
+                        optargs[0][0])
                 return entry
             elif mvfenc == 'refvar':
                 if optargs[0][0] == 0:
@@ -305,7 +305,6 @@ def make_module(modulename, ncol, optargs=None):
                 if entry[1] in 'X-' and optargs[0][0] > 1:
                     return False
                 return True
-
 
     # NOTCHAR
     elif modulename == "notchar":

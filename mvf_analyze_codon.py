@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -19,7 +18,8 @@ MVF_analyze_codon: Analysis modules for codons
 version 2015-06-11: v.1.2.1 release
 version 2015-12-31: updates to Lineage-specific test
 version 2016-01-04: added gff-less mode for GroupUniqueAlleleWindows
-@version 2016-01-12: added outgroup and allspeciestree options to GUAW
+version 2016-01-12: added outgroup and allspeciestree options to GUAW
+@version 2016-08-02: Python3 conversion
 
 This file is part of MVFtools.
 
@@ -37,7 +37,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function, unicode_literals
 import sys
 import argparse
 import re

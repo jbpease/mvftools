@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
@@ -20,7 +20,8 @@ mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
 version: 2015-02-01 - First Public Release
 version: 2015-09-04 - Cleanup and style fixes
 version: 2015-12-22 - Bug fixes to contig labels
-@version: 2015-12-31 - Header updates
+version: 2015-12-31 - Header updates
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -38,7 +39,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 from itertools import combinations

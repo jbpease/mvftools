@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
@@ -11,7 +11,8 @@ MVF_analyze_dna: Base analysis class handler and functions
 version: 2015-06-11 - v.1.2.1 release
 version: 2015-09-04 - upgrades and fixes
 version: 2015-12-16 - change QuintetCount to general PatternCount
-@version: 2016-03-18 - bug fixes
+version: 2016-03-18 - bug fixes
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -29,7 +30,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 from random import randint
@@ -570,7 +570,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version: 2016-03-18")
+        print("Version: 2016-08-02")
         sys.exit()
     time0 = time()
     # HELP MENU

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -18,7 +17,8 @@ mvfpaml: PAML wrapping and parsing utility for MVFtools
 
 version: 2015-12-31 - First release
 version: 2016-01-11 - Minor bug fix
-@version: 2016-01-12 - Compatibility fixes, added options
+version: 2016-01-12 - Compatibility fixes, added options
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -36,7 +36,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function, unicode_literals
 import subprocess
 import os
 import re
@@ -342,5 +341,5 @@ def cleanup(pamltmp):
     return ''
 
 if __name__ == ("__main__"):
-    print("""MVF PAML wrappers v. 2015-12-31, please run one of the
+    print("""MVF PAML wrappers, please run one of the
              other MVFtools scripts to access these functions""")

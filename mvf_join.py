@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -11,14 +10,14 @@ Pease JB and BK Rosenzweig. 2016.
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
 
 mvf_join: Concatenate and merge MVF files
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
 version: 2015-02-01 - First Public Release
-@version: 2015-12-31 - Update to header and cleanup
+version: 2015-12-31 - Update to header and cleanup
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -36,7 +35,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 from mvfbase import MultiVariantFile

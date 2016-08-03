@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -16,7 +15,8 @@ mvf_annotate: reannotate MVF file with gene ids from GFF
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-@version 2016-03-04: inital release
+version 2016-03-04: inital release
+@version 2016-08-02: Python3 conversion
 
 This file is part of MVFtools.
 
@@ -34,7 +34,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function, unicode_literals
 import sys
 import argparse
 import re

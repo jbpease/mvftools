@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -16,7 +15,8 @@ MVF2DUMP: Dumps an MVF to multiple FASTA files by contig
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-@version: 2016-04-13 - First testing release
+version: 2016-04-13 - First testing release
+@version 2016-08-02 - Python3 release
 
 This file is part of MVFtools.
 
@@ -34,12 +34,10 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function, unicode_literals
 import sys
 import argparse
-import os
-from random import randint
 from mvfbase import MultiVariantFile
+
 
 def main(arguments=sys.argv[1:]):
     """Main method for mvf2fasta"""
@@ -79,8 +77,9 @@ def main(arguments=sys.argv[1:]):
         if contig != current_contig:
             if seqs:
                 with open("{}.{}.fa".format(
-                        args.outprefix, 
-                        mvf.metadata['contigs'][contig]['label']), 'wt') as outfile:
+                        args.outprefix,
+                        mvf.metadata['contigs'][contig]['label']),
+                        'wt') as outfile:
                     for seqname in sorted(seqs):
                         outfile.write(">{}\n{}\n".format(
                             seqname, ''.join(seqs[seqname])))
@@ -98,10 +97,10 @@ def main(arguments=sys.argv[1:]):
                 seqs[label].append(allelesets[0][col])
             elif flavor == 'codon' and args.outdata == 'dna':
                 seqs[label].extend([allelesets[x][col] == 'X' and 'N' or
-                         allelesets[x][col] for x in (1, 2, 3)])
+                                    allelesets[x][col] for x in (1, 2, 3)])
     if seqs:
         with open("{}.{}.fa".format(
-                args.outprefix, 
+                args.outprefix,
                 mvf.metadata['contigs'][contig][
                     'label']), 'wt') as outfile:
             for seqname in sorted(seqs):

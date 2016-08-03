@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -11,7 +10,6 @@ Pease JB and BK Rosenzweig. 2016.
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
 
 MVFbiolib: Biological sequence object library for use in MVFtools
 @author: James B. Pease
@@ -21,6 +19,7 @@ version: 2015-02-01 - First Public Release
 version: 2015-06-11 - Cleanup and Python 3.x compatibility fixes
 version: 2015-09-04 - Cleanup and a few fixes
 version: 2015-12-31 - Header updates
+@version 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -39,7 +38,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from __future__ import print_function
 from itertools import combinations, permutations
 from random import randint
 
@@ -226,7 +224,7 @@ def hapsplit(alleles, mode):
             else:
                 newalleles.extend([base, base])
         if mode == 'major':
-            alleles = ''.join([x[0] for base in newalleles])
+            alleles = ''.join([x[0] for x in newalleles])
         elif mode == 'minor':
             alleles = ''.join([x[1] for x in newalleles])
         elif mode == 'majorminor':
