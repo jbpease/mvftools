@@ -205,8 +205,9 @@ class PatternCount(AnalysisModule):
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = dict([
                     ('contig', current_contig),
-                    ('position', current_position)] +
-                     sitepatterns.items())
+                    ('position', current_position)])
+                self.data[(current_contig, current_position)].update(
+                     sitepatterns)
                 sitepatterns = {}
                 if contig != current_contig:
                     current_position = 0
@@ -233,8 +234,9 @@ class PatternCount(AnalysisModule):
         if sitepatterns:
             self.data[(current_contig, current_position)] = dict([
                 ('contig', current_contig),
-                ('position', current_position)] +
-                 sitepatterns.items())
+                ('position', current_position)])
+            self.data[(current_contig, current_position)].update(
+                 sitepatterns)
 
         self.write()
         return ''
@@ -395,7 +397,7 @@ class PairwiseDistance(AnalysisModule):
         headers = ['taxa', 'ndiff', 'ntotal', 'dist']
         outfile = OutputFile(path=self.params['out'],
                              headers=headers)
-        for _, entry in iter(self.data.items()):
+        for entry in self.data.values():
             outfile.write_entry(entry)
         return ''
 
@@ -514,7 +516,7 @@ class PairwiseDistanceWindow(AnalysisModule):
 def pairwise_distance(basepairs):
     total = 0
     diff = 0
-    for pairbases, paircount in iter(basepairs.items()):
+    for pairbases, paircount in basepairs.items():
         base0, base1 = pairbases[0], pairbases[1]
         if base0 not in 'ATGCKMRYWS' or base1 not in 'ATGCKMRYWS':
             # print("ERROR", base0, base1)

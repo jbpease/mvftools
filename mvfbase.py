@@ -454,10 +454,10 @@ class MultiVariantFile(object):
                 data: string datastream
         """
         if self.metadata['isgzip'] or self.path.endswith('.gz'):
-            with gzip.open(self.path, 'a') as outfile:
+            with gzip.open(self.path, 'at') as outfile:
                 outfile.write(data)
         else:
-            with open(self.path, 'a') as outfile:
+            with open(self.path, 'at') as outfile:
                 outfile.write(data)
 
     def write_entries(self, entries, encoded=True):
@@ -542,7 +542,7 @@ class OutputFile(object):
 
     def write_headers(self):
         """Write headers to file"""
-        with open(self.path, 'w') as outfile:
+        with open(self.path, 'wt') as outfile:
             outfile.write('#' + '\t'.join(self.headers) + "\n")
         return ''
 
@@ -551,7 +551,7 @@ class OutputFile(object):
             Arguments:
                 entry: dict of values with keys matching header
         """
-        with open(self.path, 'a') as outfile:
+        with open(self.path, 'at') as outfile:
             outfile.write("\t".join([str(k not in entry and '.' or entry[k])
                                      for k in self.headers]) + "\n")
         return ''

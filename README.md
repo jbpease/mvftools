@@ -13,7 +13,7 @@ Pease JB and BK Rosenzweig. 2016. "Encoding Data Using Biological Principles: th
 MVFtools requires **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
 
 Programs within MVFtools have specific dependencies as follows (\* denotes non-Python program):
-* mvf_chromoplot.py: [PIL](http://www.pythonware.com/products/pil/), [Scipy](http://www.scipy.org/)
+* mvf_chromoplot.py: [Scipy](http://www.scipy.org/)
 * mvf_window_tree.py: [Biopython](http://www.biopython.org/) 1.6+, [Numpy](http://www.numpy.org/), [Scipy](http://www.scipy.org/), [RAxML](http://sco.h-its.org/exelixis/web/software/raxml/index.html/)\* 
 
 ## Installation:
