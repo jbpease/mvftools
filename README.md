@@ -1,6 +1,7 @@
 # mvftools
 ###Multisample Variant Format ToolKit
-***See also the MVFtools-dev for the latest testing releases at http://www.github.com/jbpease/mvftools-dev***
+**Update 2016-09-02: MVFtools now requires Python 3.x**
+**Update 2016-07-15: the mvftools-dev repository has merged with mvftools under the branch *develop*, see this branch for the latest features**
 
 ## Description:
 This repository contains the specification for the Multisample Variant Format (MVF), which is designed for compact storage and efficient analysis of multi-genome and multi-transcriptome datasets.  The programs provided in MVFtools support this format, both with conversion utilities, filtering and transformation programs, and data analysis and visualization modules.  MVF format is designed specifically for biological data analysis, since sequence data is encoded based on the information content at a particular aligned sequence site.  This contextual encoding allows for rapid computation of phylogenetic and population genetic analyses, and small file sizes that enable data sharing and distribution.
@@ -9,7 +10,7 @@ This repository contains the specification for the Multisample Variant Format (M
 Pease JB and BK Rosenzweig. 2016. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. In press. http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 ## Requirements:
-MVFtools requires Python 2.7+ or Python 3.x, but can be run on any operating system.
+MVFtools requires **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
 
 Programs within MVFtools have specific dependencies as follows (\* denotes non-Python program):
 * mvf_chromoplot.py: [PIL](http://www.pythonware.com/products/pil/), [Scipy](http://www.scipy.org/)
