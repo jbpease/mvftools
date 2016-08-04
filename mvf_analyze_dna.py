@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
@@ -11,7 +11,8 @@ MVF_analyze_dna: Base analysis class handler and functions
 version: 2015-06-11 - v.1.2.1 release
 version: 2015-09-04 - upgrades and fixes
 version: 2015-12-16 - change QuintetCount to general PatternCount
-@version: 2016-03-18 - bug fixes
+version: 2016-03-18 - bug fixes
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -29,19 +30,18 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 from random import randint
 from itertools import combinations
-from mvfanalysisbase import AnalysisModule, OutputFile, abpattern
-from mvfbase import MultiVariantFile
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, abpattern
 from mvfbiolib import HAPSPLIT
 from time import time
 
 
 MODULENAMES = ("BaseCountWindow", "Coverage", "DstatComb",
-               "PairwiseDistance", "PatternCount")
+               "PairwiseDistance", "PairwiseDistanceWindow",
+               "PatternCount")
 
 
 class Coverage(AnalysisModule):
@@ -139,7 +139,6 @@ class DstatComb(AnalysisModule):
                             self.data[trio] = {}
                         if contig not in self.data[trio]:
                             self.data[trio][contig] = [0, 0, 0]
-                        print(val)
                         self.data[trio][contig][val - 1] += 1
         self.write()
 
@@ -206,8 +205,9 @@ class PatternCount(AnalysisModule):
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = dict([
                     ('contig', current_contig),
-                    ('position', current_position)] +
-                     sitepatterns.items())
+                    ('position', current_position)])
+                self.data[(current_contig, current_position)].update(
+                     sitepatterns)
                 sitepatterns = {}
                 if contig != current_contig:
                     current_position = 0
@@ -234,8 +234,9 @@ class PatternCount(AnalysisModule):
         if sitepatterns:
             self.data[(current_contig, current_position)] = dict([
                 ('contig', current_contig),
-                ('position', current_position)] +
-                 sitepatterns.items())
+                ('position', current_position)])
+            self.data[(current_contig, current_position)].update(
+                 sitepatterns)
 
         self.write()
         return ''
@@ -263,7 +264,7 @@ class BaseCountWindow(AnalysisModule):
     """
 
     def analyze(self, mvf):
-        """Analyze Entries for GroupUniqueAlleleWindow Module"""
+        """Analyze Entries for BaseCountWindow Module"""
         labels = mvf.get_sample_labels()
         self.params['labels'] = labels[:]
         current_contig = None
@@ -272,12 +273,12 @@ class BaseCountWindow(AnalysisModule):
         total_counts = dict().fromkeys(labels, 0)
         all_match = 0
         all_total = 0
+        data_in_buffer = 0
         for contig, pos, allelesets in mvf:
             if self.params.get('mincoverage'):
                 if (sum([int(x not in 'Xx-') for x in allelesets[0]]) <
                         self.params['mincount']):
                     continue
-
             if not current_contig:
                 current_contig = contig[:]
             if contig != current_contig or (
@@ -301,6 +302,7 @@ class BaseCountWindow(AnalysisModule):
                 total_counts = dict().fromkeys(labels, 0)
                 all_total = 0
                 all_match = 0
+                data_in_buffer = 0
             else:
                 alleles = allelesets[0]
                 if len(alleles) == 1:
@@ -315,6 +317,18 @@ class BaseCountWindow(AnalysisModule):
                             match_counts[labels[i]] += 1
                         if base in self.params['basetotal']:
                             total_counts[labels[i]] += 1
+                data_in_buffer = 1
+        if data_in_buffer:
+            self.data[(current_contig, current_position)] = {
+                      'contig': current_contig, 'position': current_position}
+            for k in match_counts:
+                self.data[(current_contig, current_position)].update([
+                    (k + '.match', match_counts[k] + all_match),
+                    (k + '.total', total_counts[k] + all_total),
+                    (k + '.prop', (total_counts[k] + all_total and
+                                   (float(match_counts[k] + all_match) /
+                                    float(total_counts[k] + all_total)) or
+                                   0))])
         self.write()
         return ''
 
@@ -335,25 +349,6 @@ class BaseCountWindow(AnalysisModule):
 
 class PairwiseDistance(AnalysisModule):
     """Calculated pairwise distances among samples"""
-
-    def pairwise_distance(self, basepairs):
-        total = 0
-        diff = 0
-        print(basepairs)
-        for pairbases, paircount in iter(basepairs.items()):
-            base0, base1 = pairbases[0], pairbases[1]
-            if base0 not in 'ATGCKMRYWS' or base1 not in 'ATGCKMRYWS':
-                print("ERROR", base0, base1)
-                continue
-            total += paircount
-            if base0 in 'KMRYWS':
-                base0 = HAPSPLIT[base0][randint(0, 1)]
-            if base1 in 'KMRYWS':
-                base1 = HAPSPLIT[base1][randint(0, 1)]
-            if base0 != base1:
-                diff += paircount
-        print(diff, total)
-        return diff, total
 
     def analyze(self, mvf):
         """Analyze for PairwiseDistance module"""
@@ -384,9 +379,9 @@ class PairwiseDistance(AnalysisModule):
                 basepair = alleles[i] + alleles[j]
                 base_matches[samplepair][basepair] = (
                     base_matches[samplepair].get(basepair, 0) + 1)
-        all_diff, all_total = self.pairwise_distance(all_match)
+        all_diff, all_total = pairwise_distance(all_match)
         for samplepair in base_matches:
-            ndiff, ntotal = self.pairwise_distance(base_matches[samplepair])
+            ndiff, ntotal = pairwise_distance(base_matches[samplepair])
             self.data[samplepair] = {
                 'taxa': "{};{}".format(self.params['labels'][samplepair[0]],
                                        self.params['labels'][samplepair[1]]),
@@ -402,9 +397,138 @@ class PairwiseDistance(AnalysisModule):
         headers = ['taxa', 'ndiff', 'ntotal', 'dist']
         outfile = OutputFile(path=self.params['out'],
                              headers=headers)
-        for _, entry in iter(self.data.items()):
+        for entry in self.data.values():
             outfile.write_entry(entry)
         return ''
+
+
+class PairwiseDistanceWindow(AnalysisModule):
+    """Count the pairwise nucleotide distance between
+       combinations of samples in a window
+    """
+
+    def analyze(self, mvf):
+        """Analyze Entries for PairwiseDistanceWindow Module"""
+        labels = mvf.get_sample_labels()
+        self.params['labels'] = labels[:]
+        current_contig = None
+        current_position = 0
+        data_in_buffer = 0
+        ncol = mvf.metadata['ncol']
+        self.params['sample_pairs'] = [
+            tuple(x) for x in combinations(range(ncol), 2)]
+        base_matches = dict([(x, {})
+                             for x in self.params['sample_pairs']])
+        all_match = {}
+        for contig, pos, allelesets in mvf:
+            if self.params.get('mincoverage'):
+                if (sum([int(x not in 'Xx-') for x in allelesets[0]]) <
+                        self.params['mincoverage']):
+                    continue
+            if not current_contig:
+                current_contig = contig[:]
+            if contig != current_contig or (
+                    pos > current_position + self.params['windowsize']):
+                self.data[(current_contig, current_position)] = {
+                    'contig': current_contig, 'position': current_position}
+                all_diff, all_total = pairwise_distance(all_match)
+                for samplepair in base_matches:
+                    ndiff, ntotal = pairwise_distance(base_matches[samplepair])
+                    taxa = "{};{}".format(
+                        self.params['labels'][samplepair[0]],
+                        self.params['labels'][samplepair[1]])
+                    self.data[(current_contig, current_position)].update({
+                        '{};ndiff'.format(taxa): ndiff + all_diff,
+                        '{};ntotal'.format(taxa): ntotal + all_total,
+                        '{};dist'.format(taxa): zerodiv(ndiff + all_diff,
+                                                        ntotal + all_total)})
+                if contig != current_contig:
+                    current_contig = contig[:]
+                    current_position = 0
+                else:
+                    current_position += self.params['windowsize']
+                base_matches = dict([(x, {})
+                                     for x in self.params['sample_pairs']])
+                all_match = {}
+                data_in_buffer = 0
+            else:
+                alleles = allelesets[0]
+                if len(alleles) == 1:
+                    all_match["{}{}".format(alleles, alleles)] = (
+                        all_match.get("{}{}".format(alleles, alleles),
+                                      0) + 1)
+                    data_in_buffer = 1
+                    continue
+                if alleles[1] == '+':
+                    if 'X' in alleles or '-' in alleles:
+                        continue
+                    samplepair = (0, int(alleles[3:]))
+                    basepair = "{}{}".format(alleles[0], alleles[2])
+                    base_matches[samplepair][basepair] = (
+                        base_matches[samplepair].get(basepair, 0) + 1)
+                    data_in_buffer = 1
+                    continue
+                alleles = mvf.decode(alleles)
+                valid_positions = [i for i, x in enumerate(alleles)
+                                   if x not in 'X-']
+                for i, j in combinations(valid_positions, 2):
+                    samplepair = (i, j)
+                    basepair = "{}{}".format(alleles[i], alleles[j])
+                    base_matches[samplepair][basepair] = (
+                        base_matches[samplepair].get(basepair, 0) + 1)
+                data_in_buffer = 1
+        if data_in_buffer:
+            self.data[(current_contig, current_position)] = {
+                'contig': current_contig, 'position': current_position}
+            all_diff, all_total = pairwise_distance(all_match)
+            for samplepair in base_matches:
+                ndiff, ntotal = pairwise_distance(base_matches[samplepair])
+                taxa = "{};{}".format(
+                    self.params['labels'][samplepair[0]],
+                    self.params['labels'][samplepair[1]])
+                self.data[(current_contig, current_position)].update({
+                    '{};ndiff'.format(taxa): ndiff + all_diff,
+                    '{};ntotal'.format(taxa): ntotal + all_total,
+                    '{};dist'.format(taxa): zerodiv(ndiff + all_diff,
+                                                    ntotal + all_total)})
+        self.write()
+        return ''
+
+    def write(self):
+        """Write Output"""
+        headers = ['contig', 'position']
+        for samplepair in self.params['sample_pairs']:
+            headers.extend(['{};{};{}'.format(
+                self.params['labels'][samplepair[0]],
+                self.params['labels'][samplepair[1]],
+                x) for x in ('ndiff', 'ntotal', 'dist')])
+        outfile = OutputFile(path=self.params['out'],
+                             headers=headers)
+        sorted_entries = sorted([(self.data[k]['contig'],
+                                  self.data[k]['position'],
+                                  k)
+                                 for k in self.data])
+        for _, _, k in sorted_entries:
+            outfile.write_entry(self.data[k])
+        return ''
+
+
+def pairwise_distance(basepairs):
+    total = 0
+    diff = 0
+    for pairbases, paircount in basepairs.items():
+        base0, base1 = pairbases[0], pairbases[1]
+        if base0 not in 'ATGCKMRYWS' or base1 not in 'ATGCKMRYWS':
+            # print("ERROR", base0, base1)
+            continue
+        total += paircount
+        if base0 in 'KMRYWS':
+            base0 = HAPSPLIT[base0][randint(0, 1)]
+        if base1 in 'KMRYWS':
+            base1 = HAPSPLIT[base1][randint(0, 1)]
+        if base0 != base1:
+            diff += paircount
+    return diff, total
 
 
 def zerodiv(a, b):
@@ -447,7 +571,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version: 2016-03-18")
+        print("Version: 2016-08-02")
         sys.exit()
     time0 = time()
     # HELP MENU
@@ -465,6 +589,8 @@ def main(arguments=sys.argv[1:]):
         module = DstatComb(params=vars(args))
     elif args.module == 'PairwiseDistance':
         module = PairwiseDistance(params=vars(args))
+    elif args.module == 'PairwiseDistanceWindow':
+        module = PairwiseDistanceWindow(params=vars(args))
     elif args.module == "PatternCount":
         module = PatternCount(params=vars(args))
     # RUN MODULE

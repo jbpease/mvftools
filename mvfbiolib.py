@@ -1,9 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-
 MVFtools: Multisample Variant Format Toolkit
 http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 MVFbiolib: Biological sequence object library for use in MVFtools
 @author: James B. Pease
@@ -11,7 +17,9 @@ MVFbiolib: Biological sequence object library for use in MVFtools
 
 version: 2015-02-01 - First Public Release
 version: 2015-06-11 - Cleanup and Python 3.x compatibility fixes
-@version 2015-09-04 - Cleanup and a few fixes
+version: 2015-09-04 - Cleanup and a few fixes
+version: 2015-12-31 - Header updates
+@version 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -30,8 +38,8 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from __future__ import print_function
 from itertools import combinations, permutations
+from random import randint
 
 STANDARD_CODON_TABLE = {
     "AAA": "K", "AAC": "N", "AAG": "K", "AAT": "N",
@@ -171,6 +179,65 @@ def make_dna_pwtable():
     PWCODE.update([(k[::-1], v) for (k, v) in PWCODE.items()])
     return PWCODE
 
+
+def merge_bases(bases):
+    """Merges bases in a list or string"""
+    newbase = 'X'
+    bases = set(bases) - set('-')
+    if not bases:
+        newbase = '-'
+    elif bases == set('X'):
+        newbase = 'X'
+    elif len(bases) == 1:
+        newbase = list(bases)[0]
+    else:
+        try:
+            newbases = set(''.join([HAPSPLIT[x]
+                                    for x in bases if x not in 'X-']))
+            if len(newbases) > 2:
+                newbase = 'X'
+            elif len(newbases) == 1:
+                newbase = list(newbases)[0]
+            else:
+                newbase = HAPJOIN[''.join(sorted(list(newbases)))]
+        except:
+            print(bases)
+    return newbase
+
+
+def hapsplit(alleles, mode):
+    """Process Alleles into Haplotypes"""
+    if all(x not in 'RYMKWS' for x in alleles):
+        if mode in ['major', 'minor', 'randomone']:
+            return alleles
+        elif mode in ['majorminor', 'randomboth']:
+            return ''.join([base*2 for base in alleles])
+    if mode in ['major', 'minor', 'majorminor']:
+        hapleles = ''.join([HAPSPLIT[x] for x in alleles])
+        counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
+                        reverse=True)
+        order = [x[1] for x in counts]
+        newalleles = []
+        for base in alleles:
+            if base in 'RYMKWS':
+                newalleles.extend([x for x in order if x in HAPSPLIT[base]])
+            else:
+                newalleles.extend([base, base])
+        if mode == 'major':
+            alleles = ''.join([x[0] for x in newalleles])
+        elif mode == 'minor':
+            alleles = ''.join([x[1] for x in newalleles])
+        elif mode == 'majorminor':
+            alleles = ''.join([x for x in newalleles])
+    elif mode == 'randomone':
+        alleles = ''.join([HAPSPLIT[x][randint(0, 1)] for x in alleles])
+    elif mode == 'randomboth':
+        randx = randint(0, 1)
+        alleles = ''.join([HAPSPLIT[x][randx] + HAPSPLIT[x][1 - randx]
+                           for x in alleles])
+    return alleles
+
+
 if __name__ == ("__main__"):
-    print("""MVF biosequence library v. 2015-06-11, please run one of the
+    print("""MVF biosequence library v. 2015-12-31, please run one of the
           other MVFtools scripts to access these functions""")

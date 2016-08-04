@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -27,7 +26,8 @@ version: 2015-06-09 - Major update to 1.2.1. Fixes polytomy issue, Python 3.x
                       compatibility.
 version: 2015-09-04 - Cleanup and fixes
 version: 2015-12-31 - Updates to header information and minor fixes
-@version: 2016-04-11 - Bug fix for RAxML interface
+version: 2016-04-11 - Bug fix for RAxML interface
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -47,7 +47,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from __future__ import print_function, unicode_literals
 import os
 import sys
 import argparse
@@ -359,6 +358,14 @@ class OutputFile(object):
         return ''
 
 
+def verify_raxml(params):
+    """verify raxml path"""
+    out = str(subprocess.check_output([params['raxmlpath'], "-v"]))
+    if out.find("RAxML version") == -1:
+        raise RuntimeError("RAxML failed!\n{}".format(out))
+    return ''
+
+
 def run_raxml(filename, jobname, params):
     """Runs RAxML
         Parameters:
@@ -568,6 +575,7 @@ def main(arguments=sys.argv[1:]):
               'tempdir': tmpdir,
               'tempprefix': args.tempprefix}
     # WINDOW START INTERATION
+    verify_raxml(params)
     current_contig = ''
     window_start = 0
     window = None

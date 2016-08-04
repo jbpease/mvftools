@@ -1,7 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
+http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 http://www.github.org/jbpease/mvftools
 
 mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
@@ -11,7 +19,8 @@ mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
 version: 2015-02-01 - First Public Release
 version: 2015-09-04 - Cleanup and style fixes
 version: 2015-12-22 - Bug fixes to contig labels
-version: 2016-01-29 - Bug fix
+version: 2015-12-31 - Header updates
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -29,8 +38,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
-from PIL import Image
 import sys
 import argparse
 from itertools import combinations
@@ -84,7 +91,10 @@ class Pallette(object):
 
     def color_str(self, color):
         """Return ASCII color codes for numerical trio"""
-        return ''.join([chr(x) for x in self.colornames[color]])
+        return (self.colornames[color][0],
+                self.colornames[color][1],
+                self.colornames[color][2],
+                255)
 
     def solid_colortracks(self, values, infotrack=False):
         """Majority single-color tracks"""
@@ -103,7 +113,7 @@ class Pallette(object):
             colortracks = [self.color_str('white')]*4
         else:
             colortracks = [
-                ''.join([chr(int(255 - ((255 - x) * (values[j]/total))))
+                b''.join([chr(int(255 - ((255 - x) * (values[j]/total))))
                          for x in self.colornames[self.basecolors[j]]])
                 for j in range(len(values))]
             if infotrack:
@@ -209,6 +219,25 @@ class Chromoplot(object):
                     values = [float(x) / total for x in values]
         return majority_count, values
 
+    def write_png(self, buf, width, height):
+        import zlib
+        import struct
+        width_byte_4 = width * 4
+        raw_data = b"".join(b'\x00' + buf[span:span + width_byte_4]
+                            for span in range(
+                (height - 1) * width * 4, -1, - width_byte_4))
+
+        def png_pack(png_tag, data):
+            chunk_head = png_tag + data
+            return struct.pack("!I", len(data)) + chunk_head + struct.pack(
+                "!I", 0xFFFFFFFF & zlib.crc32(chunk_head))
+        return b"".join([
+            b'\x89PNG\r\n\x1a\n',
+            png_pack(b'IHDR', struct.pack(
+                "!2I5B", width, height, 8, 6, 0, 0, 0)),
+            png_pack(b'IDAT', zlib.compress(raw_data, 9)),
+            png_pack(b'IEND', b'')])
+
     def plot_chromoplot(self):
         """Make Chromoplot for count-based trio"""
         # BEGIN
@@ -244,16 +273,33 @@ class Chromoplot(object):
             self.write_window_log(window_codes=entry[0], contig=entry[1],
                                   pos=entry[2],
                                   track_order=self.params['track_order'])
-        image_data = []
-        for contig, _, _ in self.params['contigs']:
-            image_data.append(self.interpret_colors(contig_ab_values[contig]))
-            image_data.append("\x00\x00\x00" * width)
-        image_data = ''.join(image_data)
-        height = (len(image_data) / (
-            self.params['ntracks'] + int(self.params['infotrack']))) // width
-        img = Image.new('RGB', (width, height))
-        img.fromstring(image_data)
-        img.save(self.params['outpath'])
+        if self.params['plottype'] == "graph":
+            from matplotlib import pyplot as plt
+            import numpy as np
+            maxlen = max([len(contig_ab_values[x]) for x in contig_ab_values])
+            fig, ax = plt.subplots()
+            cvals = np.empty((3*len(self.params['contigs']), maxlen))
+            for i, (contig, _, _) in enumerate(self.params['contigs']):
+                c_ab_vals = contig_ab_values[contig]
+                print(c_ab_vals)
+                for j in range(len(c_ab_vals)):
+                    for k in range(len(c_ab_vals[j])):
+                        cvals[i + k, j] = c_ab_vals[j][k]
+            ax.pcolormesh(cvals)
+            plt.savefig(self.params['outpath'])
+        else:
+            image_data = []
+            for contig, _, _ in self.params['contigs']:
+                image_data.append(self.interpret_colors(
+                    contig_ab_values[contig]))
+                image_data.extend([(255, 255, 255, 255)] * width)
+            image_data = ''.join(image_data)
+            height = (len(image_data) / (
+                self.params['ntracks'] + int(
+                    self.params['infotrack']))) // width
+            with open(self.params['outpath'], 'wb') as imgfile:
+                imgfile.write(self.write_png(
+                    bytes(image_data), width, height))
         return ''
 
     def write_window_log(self, window_codes=None, contig=None, pos=None,
@@ -435,11 +481,12 @@ def main(arguments=sys.argv[1:]):
                         help="three colors to use for chromoplot")
     parser.add_argument("--quiet", "-q", action="store_true",
                         help="suppress all output messages")
+    parser.add_argument("--plottype", choices=["graph", "image"])
     parser.add_argument("-v", "--version", action="store_true",
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2016-01-29")
+        print("Version 2015-12-22")
         sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
@@ -470,7 +517,7 @@ def main(arguments=sys.argv[1:]):
             if (contigname == contigid or
                     contigname == mvf.metadata['contigs'][contigid]['label']):
                 master_contigs.append((
-                    contigid,
+                    mvf.metadata['contigs'][contigid]['label'],
                     mvf.metadata['contigs'][contigid]['label'],
                     mvf.metadata['contigs'][contigid]['length']))
                 contig_found = True
@@ -493,7 +540,8 @@ def main(arguments=sys.argv[1:]):
                   'infotrack': args.infotrack,
                   'yscale': args.yscale,
                   'xscale': args.xscale,
-                  'quiet': args.quiet}
+                  'quiet': args.quiet,
+                  'plottype': args.plottype}
         chromoplot = Chromoplot(params=params, pallette=pallette)
         quartet_indices = mvf.get_sample_indices(labels=quartet)
         current_contig = ''
@@ -521,6 +569,7 @@ def main(arguments=sys.argv[1:]):
         if not args.quiet:
             print("Writing image...")
         chromoplot.plot_chromoplot()
+
         if not args.quiet:
             print("Writing log...")
         chromoplot.write_total_log()

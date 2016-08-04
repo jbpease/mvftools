@@ -1,15 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
 http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 FASTA2MVF: Variant Call Format (FASTA) to MVF conversion program
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
 version 2015-09-05 - First release
-@version: 2015-12-16 - Updates to cmd line args additional fixes
+version: 2015-12-16 - Updates to cmd line args additional fixes
+version: 2015-12-31 - Updates to headers and cleanup
+version: 2016-01-11 - Fix for nucleotide ambiguity characters
+@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -27,7 +37,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import re
 import os
@@ -45,6 +54,8 @@ def main(arguments=sys.argv[1:]):
     parser.add_argument("--fasta", nargs='*', required=True,
                         help="input FASTA file(s)")
     parser.add_argument("--out", help="output MVF file", required=True)
+    parser.add_argument("--flavor", choices=['dna', 'protein'],
+                        help="type of file [dna] or protein", default='dna')
     parser.add_argument("--contigids", nargs='*',
                         help=("""manually specify one or more contig ids
                                  as ID:NAME"""))
@@ -86,7 +97,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-05")
+        print("Version 2016-08-02")
         sys.exit()
     sepchars = dict([("PIPE", "\\|"), ("TAB", "\\t"),
                      ("SPACE", "\\s"), ("DBLSPACE", "\\s\\s"),
@@ -149,6 +160,7 @@ def main(arguments=sys.argv[1:]):
         mvf.metadata['samples'][i] = {'label': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = 'fasta'
+    mvf.metadata['flavor'] = args.flavor
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
@@ -162,12 +174,14 @@ def main(arguments=sys.argv[1:]):
                         fasta[contig][samp][1][pos]
                         for samp in fsamples))
             if mvf_alleles:
+                if args.flavor == 'dna':
+                    mvf_alleles = ''.join([x in 'NXOBDHVnxobdhv' and 'X' or x
+                                           for x in mvf_alleles])
                 mvfentries.append(
                     (cind, pos+1, (mvf_alleles,)))
                 nentry += 1
                 if nentry == args.writebuffer:
                     mvf.write_entries(mvfentries, encoded=True)
-                    # print(mvfentries[:5])
                     mvfentries = []
                     nentry = 0
     if mvfentries:

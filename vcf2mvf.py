@@ -1,9 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
-http://www.github.org/jbpease/mvftools-dev (Latest Testing Updates)
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -24,7 +23,8 @@ version: 2015-09-04 - minor fixes and cleanup
 version 2015-09-05 - disabled indel feature for retuning
 version 2015-12-17 - bug fix
 version 2015-12-31 - updates to header and minor fixes
-@version 2016-04-05 - fixes to allow phased VCF and fix PL score interpretation
+version 2016-04-05 - fixes to allow phased VCF and fix PL score interpretation
+@version 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -42,7 +42,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function, unicode_literals
 import os
 import sys
 import argparse
@@ -261,12 +260,13 @@ class VariantCallFile(object):
         elif all(((indices[x] == -1 or sample[indices[x]] == '.')
                   for x in ('PL', 'GL', 'GQ', 'GP'))):
             quality = -1
-            if sample[indices['GT']] in ('0/0', '0|0'):
-                allele = alleles[0]
-            elif sample[indices['GT']] in ('1/1', '1|1'):
-                allele = alleles[1]
-            elif sample[indices['GT']] in ('0/1', '0|1', '0|1', '1/0'):
-                allele = HAPJOIN[''.join(alleles[0:2])]
+            allele = sample[indices['GT']]
+            if '/' in allele:
+                allele = [int(x) for x in allele.split('/')]
+                allele = HAPJOIN[''.join([alleles[x] for x in allele])]
+            elif '|' in allele:
+                allele = [int(x) for x in allele.split('|')]
+                allele = HAPJOIN[''.join([alleles[x] for x in allele])]
             else:
                 return ('X', -1, sample_depth)
         # Low coverage
@@ -287,13 +287,15 @@ class VariantCallFile(object):
             quality = (indices.get("GQ", -1) == -1 and -1 or
                        sample[indices['GQ']])
         elif len(alleles) <= 4:
+            print(alleles)
             if indices['PL'] == -1 and indices['GL'] != -1:
                 plvalues = [x for x in sample[indices['GL']].split(',')]
             else:
                 plvalues = [x for x in sample[indices['PL']].split(',')]
             if all(0 <= float(x) <= 1 for x in plvalues) and sum([
                     float(x) for x in plvalues]) == 1:
-                plvalues = [float(x) == 0 and 1 or float(x) != 1 and int(-10 * log10(float(x))) or 0 for x in plvalues]
+                plvalues = [float(x) == 0 and 1 or float(x) != 1 and
+                            int(-10 * log10(float(x))) or 0 for x in plvalues]
             maxpl = 0 not in plvalues and max(plvalues) or 0
             imaxpl = (plvalues.count(maxpl) != 1 and -1 or
                       plvalues.index(maxpl))

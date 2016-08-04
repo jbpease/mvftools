@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-
 MVFtools: Multisample Variant Format Toolkit
 http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 MVFbase: Base class MVF handler and functions
 @author: James B. Pease
@@ -11,8 +17,12 @@ MVFbase: Base class MVF handler and functions
 version: 2015-02-01 - First Public Release
 version: 2015-02-26 - Efficiency upgrades for iterators
 version: 2015-06-09 - MVF1.2.1 upgrade
-verison: 2015-09-04 - Small style fixes
-@version: 2015-12-15 - Python3 compatibilty fix
+version: 2015-09-04 - Small style fixes
+version: 2015-12-15 - Python3 compatibilty fix
+version: 2015-12-31 - Header and cleanup
+version:  2016-01-01 - Python3 compatiblity fix
+version:  2016-01-11 - fix for dna ambiguity characters
+@version: 2016-08-02 - Python3 conversion, integrate analysis_base
 
 This file is part of MVFtools.
 
@@ -20,7 +30,6 @@ MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -32,8 +41,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from __future__ import print_function
-from io import open
 import os
 import sys
 import gzip
@@ -70,13 +77,17 @@ def interpret_param(string):
                 return string
 
 
+def abpattern(num, digits=0):
+    return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
+
+
 # FASTA FILE HANDLER
 def fasta_iter(fasta_name):
     """
         given a fasta file. yield tuples of header, sequence
         Adapted from https://github.com/brentp
     """
-    filehandler = open(fasta_name, 'r')
+    filehandler = open(fasta_name, 'rt')
     faiter = (x[1] for x in groupby(filehandler, lambda line: line[0] == ">"))
     for header in faiter:
         header = next(header)[1:].strip()
@@ -118,8 +129,8 @@ class MultiVariantFile(object):
         if filemode in ('read', 'r', 'rb'):
             if os.path.exists(self.path):
                 filehandler = (self.metadata.get('isgzip', False) and
-                               gzip.open(self.path, 'rb') or
-                               open(self.path, 'r'))
+                               gzip.open(self.path, 'rt') or
+                               open(self.path, 'rt'))
                 # Process header lines
                 header_lines = []
                 self.entrystart = filehandler.tell()
@@ -143,8 +154,8 @@ class MultiVariantFile(object):
                     """MVF path {} already exists, use --overwrite
                     to replace""".format(self.path))
             filehandler = (self.metadata.get('isgzip', False) and
-                           gzip.open(self.path, 'wb') or
-                           open(self.path, 'wb'))
+                           gzip.open(self.path, 'wt') or
+                           open(self.path, 'wt'))
             self.metadata['ncol'] = kwargs.get('ncol', 2)
         filehandler.close()
         self.metadata['flavor'] = (kwargs.get('flavor', False) or
@@ -265,9 +276,9 @@ class MultiVariantFile(object):
         """
         linecount = 0
         if self.metadata['isgzip']:
-            filehandler = gzip.open(self.path, 'rb')
+            filehandler = gzip.open(self.path, 'rt')
         else:
-            filehandler = open(self.path, 'r')
+            filehandler = open(self.path, 'rt')
         filehandler.seek(self.entrystart)
         for line in filehandler:
             if line.strip() == '':
@@ -431,7 +442,11 @@ class MultiVariantFile(object):
             Arguments:
                 alleles: unencoded allele string
         """
-        return encode_mvfstring(alleles)
+        if self.meta['flavor'] == 'dna':
+            return encode_mvfstring(alleles).replace(
+                'N', 'X').replace('n', 'X')
+        else:
+            return encode_mvfstring(alleles)
 
     def write_data(self, data):
         """Writes datastring to the MVF file
@@ -439,10 +454,10 @@ class MultiVariantFile(object):
                 data: string datastream
         """
         if self.metadata['isgzip'] or self.path.endswith('.gz'):
-            with gzip.open(self.path, 'ab') as outfile:
+            with gzip.open(self.path, 'at') as outfile:
                 outfile.write(data)
         else:
-            with open(self.path, 'ab') as outfile:
+            with open(self.path, 'at') as outfile:
                 outfile.write(data)
 
     def write_entries(self, entries, encoded=True):
@@ -483,6 +498,80 @@ def encode_mvfstring(alleles):
         return '@' + alleles
     return alleles
 
+# ANALYSIS BACKEND
+
+
+class Counter(dict):
+    """dict subclass for counter with integer values"""
+
+    def add(self, key, val=1):
+        """Adds integer value to key, default = 1)"""
+        self[key] = self.get(key, 0) + val
+
+    def subtract(self, key, val=1):
+        """Subtracts integer value to key, default = 1)"""
+        self[key] = self.get(key, 0) - val
+        return ''
+
+    def iter_sorted(self, percentage=True, n_values=None, sort='desc'):
+        """Iterates values sorting in a list"""
+        total = float(sum(self.values()))
+        if not total:
+            yield "Nothing counted!"
+        entries = sorted([(v, k) for (k, v) in self.items()],
+                         reverse=(sort != 'asc'))
+        for (val, k) in entries[:n_values]:
+            if percentage:
+                yield "{} {} {}%\n".format(
+                    k, val, round(float(val) * 100/total, 2))
+            else:
+                yield "{} {}\n".format(k, val)
+
+
+class OutputFile(object):
+    """Set up Output File
+        Params:
+            path: file path
+            headers: list of header elements
+    """
+
+    def __init__(self, path, headers):
+        self.headers = headers
+        self.path = os.path.abspath(path)
+        self.write_headers()
+
+    def write_headers(self):
+        """Write headers to file"""
+        with open(self.path, 'wt') as outfile:
+            outfile.write('#' + '\t'.join(self.headers) + "\n")
+        return ''
+
+    def write_entry(self, entry):
+        """Writes entry to file
+            Arguments:
+                entry: dict of values with keys matching header
+        """
+        with open(self.path, 'at') as outfile:
+            outfile.write("\t".join([str(k not in entry and '.' or entry[k])
+                                     for k in self.headers]) + "\n")
+        return ''
+
+
+class AnalysisModule(object):
+    """General Functions for Analysis Modules
+        Params:
+            data = data dict
+            params = parameters dict
+            **kwargs = all other keywords are added to params as key=value
+
+    """
+    def __init__(self, data=None, params=None, **kwargs):
+        self.data = data or {}
+        self.params = params or {}
+        self.params.update([(k, v) for k, v in kwargs.items()
+                            if k not in ['data', 'params']])
+
+
 if __name__ == ("__main__"):
-    print("""MVF base handler library v. 2015-06-09, please run one of the
+    print("""MVF base handler library v. 2016-08-02, please run one of the
           other MVFtools scripts to access these functions""")

@@ -1,15 +1,24 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
 http://www.github.org/jbpease/mvftools
 
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+
 mvf_join: Concatenate and merge MVF files
 @author: James B. Pease
 @author: Ben K. Rosenzweig
 
-@version: 2015-02-01 - First Public Release
-version
+version: 2015-02-01 - First Public Release
+version: 2015-12-31 - Update to header and cleanup
+@version: 2016-08-02 - Python3 conversion
+
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
@@ -26,7 +35,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 import sys
 import argparse
 from mvfbase import MultiVariantFile
@@ -64,8 +72,9 @@ def main(arguments=sys.argv[1:]):
     parser = argparse.ArgumentParser(description="""
         MVF joining both vertically (separate contigs) and
         and horizontally (different samples)""")
-    parser.add_argument("mvf", nargs="*", help="one or more mvf files")
-    parser.add_argument("--out", help="output mvf file")
+    parser.add_argument("--mvf", nargs="*", help="one or more mvf files",
+                        required=True)
+    parser.add_argument("--out", help="output mvf file", required=True)
     parser.add_argument("--newcontigs", action="store_true",
                         help="Don't match contigs using labels (not IDs)")
     parser.add_argument("--newsamples", action="store_true",
@@ -83,7 +92,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-09-04")
+        print("Version 2015-12-31")
         sys.exit()
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
