@@ -103,20 +103,16 @@ class Pallette(object):
                 self.color_str('dgrey')] * infotrack)
         return ret
 
-    def colortracks(self, colors):
-        """Return list colortrack"""
-        return [self.color_str(x) for x in colors]
-
     def shaded_colortracks(self, values, infotrack=False):
         """Make shaded color using relative intensities"""
         total = float(sum(values))
         if not values or not total:
-            colortracks = [self.color_str('white')]*4
+            colortracks = [self.color_str('white')]*(3 + int(infotrack))
         else:
-            colortracks = [
-                b''.join([chr(int(255 - ((255 - x) * (values[j]/total))))
-                          for x in self.colornames[self.basecolors[j]]])
-                for j in range(len(values))]
+            colortracks = [tuple([int(255 - ((255 - x) * (values[j]/total)))
+                                  for x in self.colornames[self.basecolors[j]]] +
+                                      [255])
+                           for j in range(len(values))]
             if infotrack:
                 colortracks.append(self.color_str('dgrey'))
         return colortracks
@@ -437,6 +433,8 @@ def write_png(filepath, buf, width, height):
         raw_data = b"".join(bytearray([0]) + buf[span:span + width_byte_4]
                             for span in range(
                                 (height - 1) * width * 4, -1, - width_byte_4))
+        print(len(raw_data))
+        print(width, height, width * height)
         def png_pack(png_tag, data):
             """PNG packaging"""
             chunk_head = png_tag + data
