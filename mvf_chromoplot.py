@@ -98,9 +98,10 @@ class Pallette(object):
 
     def solid_colortracks(self, values, infotrack=False):
         """Majority single-color tracks"""
-        return [(x and self.color_str(self.basecolors[j]) or (
+        ret = [(x and self.color_str(self.basecolors[j]) or (
             self.color_str('white'))) for j, x in enumerate(values)] + ([
                 self.color_str('dgrey')] * infotrack)
+        return ret
 
     def colortracks(self, colors):
         """Return list colortrack"""
@@ -114,7 +115,7 @@ class Pallette(object):
         else:
             colortracks = [
                 b''.join([chr(int(255 - ((255 - x) * (values[j]/total))))
-                         for x in self.colornames[self.basecolors[j]]])
+                          for x in self.colornames[self.basecolors[j]]])
                 for j in range(len(values))]
             if infotrack:
                 colortracks.append(self.color_str('dgrey'))
@@ -183,9 +184,8 @@ class Chromoplot(object):
                 else:
                     colortracks.append(self.pallette.shaded_colortracks(
                         entry, infotrack=infotrack))
-
-        return ''.join(
-            [''.join(x) * self.params['yscale'] for x in zip(*colortracks)])
+        return b''.join([b''.join(bytes(y) for y in x) *
+                         self.params['yscale'] for x in zip(*colortracks)])
 
     def parse_count_trio(self, codes):
         """Parse Site Counts from Trios"""
@@ -219,32 +219,11 @@ class Chromoplot(object):
                     values = [float(x) / total for x in values]
         return majority_count, values
 
-    def write_png(self, buf, width, height):
-        import zlib
-        import struct
-        width_byte_4 = width * 4
-        raw_data = b"".join(b'\x00' + buf[span:span + width_byte_4]
-                            for span in range(
-                (height - 1) * width * 4, -1, - width_byte_4))
-
-        def png_pack(png_tag, data):
-            chunk_head = png_tag + data
-            return struct.pack("!I", len(data)) + chunk_head + struct.pack(
-                "!I", 0xFFFFFFFF & zlib.crc32(chunk_head))
-        return b"".join([
-            b'\x89PNG\r\n\x1a\n',
-            png_pack(b'IHDR', struct.pack(
-                "!2I5B", width, height, 8, 6, 0, 0, 0)),
-            png_pack(b'IDAT', zlib.compress(raw_data, 9)),
-            png_pack(b'IEND', b'')])
 
     def plot_chromoplot(self):
         """Make Chromoplot for count-based trio"""
-        # BEGIN
-        print(self.params['contigs'])
         maxlen = max([x[2] for x in self.params['contigs']])
         width = int(maxlen // self.params['windowsize']) + 1
-
         self.params['ntracks'] = [0, 0, 0, 0, 3, 15][4]
         # total_windows = (maxlen // self.params['windowsize'] + 1) * len(
         #    self.data)
@@ -252,7 +231,9 @@ class Chromoplot(object):
         majority_counts = Counter([(1, 0), (2, 0), (3, 0)])
         contig_ab_values = {}
         self.write_window_log(headermode=True)
+
         for contig, _, _ in self.params['contigs']:
+
             i = 0
             contig_ab_values[contig] = []
             while i < width:
@@ -269,6 +250,7 @@ class Chromoplot(object):
                 i += 1
         self.params['track_order'] = majority_counts.get_ranked_keys(
             mode='centered')
+
         for entry in self.datalog:
             self.write_window_log(window_codes=entry[0], contig=entry[1],
                                   pos=entry[2],
@@ -277,29 +259,25 @@ class Chromoplot(object):
             from matplotlib import pyplot as plt
             import numpy as np
             maxlen = max([len(contig_ab_values[x]) for x in contig_ab_values])
-            fig, ax = plt.subplots()
+            fig, axl = plt.subplots()
             cvals = np.empty((3*len(self.params['contigs']), maxlen))
             for i, (contig, _, _) in enumerate(self.params['contigs']):
                 c_ab_vals = contig_ab_values[contig]
-                print(c_ab_vals)
-                for j in range(len(c_ab_vals)):
-                    for k in range(len(c_ab_vals[j])):
-                        cvals[i + k, j] = c_ab_vals[j][k]
-            ax.pcolormesh(cvals)
+                for j in self.params['track_order']:
+                    for k, valk in enumerate(c_ab_vals[j]):
+                        cvals[i + k, j] = valk
+            axl.pcolormesh(cvals)
             plt.savefig(self.params['outpath'])
         else:
-            image_data = []
-            for contig, _, _ in self.params['contigs']:
-                image_data.append(self.interpret_colors(
-                    contig_ab_values[contig]))
-                image_data.extend([(255, 255, 255, 255)] * width)
-            image_data = ''.join(image_data)
-            height = (len(image_data) / (
-                self.params['ntracks'] + int(
-                    self.params['infotrack']))) // width
-            with open(self.params['outpath'], 'wb') as imgfile:
-                imgfile.write(self.write_png(
-                    bytes(image_data), width, height))
+            image_data = bytes()
+            for icontig, (contig, _, _) in enumerate(self.params['contigs']):
+                image_data += self.interpret_colors(contig_ab_values[contig])
+                if icontig != len(self.params['contigs']) - 1:
+                    image_data = image_data + b'\x00\x00\x00\xff'*width
+            height = len(image_data) / (width * (
+                1 + self.params['ntracks'] + int(self.params['infotrack'])))
+            write_png(self.params['outpath'],
+                      image_data, width, height)
         return ''
 
     def write_window_log(self, window_codes=None, contig=None, pos=None,
@@ -377,7 +355,7 @@ class Chromoplot(object):
                  'BBAA', 'ABBA', 'BABA', 'Dleft', 'Dright',
                  'Dsites', 'Dstat', 'Pvalue',
                  'pBBAA', 'pABBA', 'pBABA', 'Dorder'
-                 ])))
+                ])))
             for contig in contigorder:
                 counts = self.counts[contig]
                 total = float(sum([counts.get(x, 0) for x in [
@@ -449,6 +427,29 @@ def counter_print(dict_counter, reverse=True, percentage=True, n_values=None):
     return ''
 
 
+def write_png(filepath, buf, width, height):
+    """Writes PNG image"""
+    import zlib
+    import struct
+    with open(filepath, 'wb') as imgfile:
+        height = int(height)
+        width_byte_4 = width * 4
+        raw_data = b"".join(bytearray([0]) + buf[span:span + width_byte_4]
+                            for span in range(
+                                (height - 1) * width * 4, -1, - width_byte_4))
+        def png_pack(png_tag, data):
+            """PNG packaging"""
+            chunk_head = png_tag + data
+            return struct.pack("!I", len(data)) + chunk_head + struct.pack(
+                "!I", 0xFFFFFFFF & zlib.crc32(chunk_head))
+
+        imgfile.write(b"".join([b'\x89PNG\r\n\x1a\n',
+                                png_pack(b'IHDR', struct.pack(
+                                    "!2I5B", width, height, 8, 6, 0, 0, 0)),
+                                png_pack(b'IDAT', zlib.compress(raw_data, 9)),
+                                png_pack(b'IEND', b'')]))
+
+
 def main(arguments=sys.argv[1:]):
     """Main MVF Chromoplot method"""
     pallette = Pallette()
@@ -481,12 +482,15 @@ def main(arguments=sys.argv[1:]):
                         help="three colors to use for chromoplot")
     parser.add_argument("--quiet", "-q", action="store_true",
                         help="suppress all output messages")
-    parser.add_argument("--plottype", choices=["graph", "image"])
+    parser.add_argument("--plottype", choices=["graph", "image"],
+                        default="image",
+                        help="""PNG image or matplotlib plot
+                                ***graph is experimental still***""")
     parser.add_argument("-v", "--version", action="store_true",
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2015-12-22")
+        print("Version 2016-09-10")
         sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
@@ -501,9 +505,9 @@ def main(arguments=sys.argv[1:]):
     else:
         contignames = [mvf.metadata['contigs'][contigid]['label']
                        for contigid in mvf.metadata['contigs']]
-        for i in range(len(contignames)):
+        for i, contigname in enumerate(contignames):
             try:
-                contignames[i] = int(contignames[i])
+                contignames[i] = int(contigname)
             except:
                 pass
         contignames = [str(x) for x in sorted(contignames)]
@@ -517,7 +521,7 @@ def main(arguments=sys.argv[1:]):
             if (contigname == contigid or
                     contigname == mvf.metadata['contigs'][contigid]['label']):
                 master_contigs.append((
-                    mvf.metadata['contigs'][contigid]['label'],
+                    contigid,
                     mvf.metadata['contigs'][contigid]['label'],
                     mvf.metadata['contigs'][contigid]['length']))
                 contig_found = True
@@ -528,7 +532,6 @@ def main(arguments=sys.argv[1:]):
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
-    print(master_contigs)
     for quartet in quartets:
         if not args.quiet:
             print("Beginning quartet {}".format(",".join(quartet)))
@@ -547,7 +550,7 @@ def main(arguments=sys.argv[1:]):
         current_contig = ''
         for contig, pos, allelesets in mvf.iterentries(
                 subset=quartet_indices, decode=True,
-                contigs=[str(x[0]) for x in master_contigs]):
+                contigs=[str(x[1]) for x in master_contigs]):
             if contig != current_contig:
                 if not args.quiet:
                     print("Starting contig {}".format(contig))

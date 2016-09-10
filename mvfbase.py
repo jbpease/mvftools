@@ -22,7 +22,8 @@ version: 2015-12-15 - Python3 compatibilty fix
 version: 2015-12-31 - Header and cleanup
 version:  2016-01-01 - Python3 compatiblity fix
 version:  2016-01-11 - fix for dna ambiguity characters
-@version: 2016-08-02 - Python3 conversion, integrate analysis_base
+version: 2016-08-02 - Python3 conversion, integrate analysis_base
+@version: 2016-09-10 - Minor fixes to gz reading
 
 This file is part of MVFtools.
 
@@ -322,18 +323,23 @@ class MultiVariantFile(object):
                                       'ref', False)])
             else:
                 contigs = sorted(self.metadata['contigs'].keys())
+        else:
+            contigs = [x in self.metadata['contigs'] or self.get_contig_id(x)
+                       for x in contigs]
         subset = subset or ''
         current_contigid = ''
         linecount = 0
         if self.metadata['isgzip']:
             filehandler = gzip.open(self.path, 'rb')
-
         else:
             filehandler = open(self.path, 'r')
         filehandler.seek(self.entrystart)
         for line in filehandler:
             try:
-                arr = line.rstrip().split()
+                if self.metadata['isgzip']:
+                    arr = line.decode().rstrip().split()
+                else:
+                    arr = line.rstrip().split()
                 loc = str(arr[0]).split(':')
                 contigid = loc[0]
                 pos = int(loc[1])
