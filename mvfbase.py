@@ -324,7 +324,7 @@ class MultiVariantFile(object):
             else:
                 contigs = sorted(self.metadata['contigs'].keys())
         else:
-            contigs = [x in self.metadata['contigs'] or self.get_contig_id(x)
+            contigs = [x in self.metadata['contigs'] and x or self.get_contig_id(x)
                        for x in contigs]
         subset = subset or ''
         current_contigid = ''
