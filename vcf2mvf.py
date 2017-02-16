@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 MVFtools: Multisample Variant Format Toolkit
@@ -24,7 +24,8 @@ version 2015-09-05 - disabled indel feature for retuning
 version 2015-12-17 - bug fix
 version 2015-12-31 - updates to header and minor fixes
 version 2016-04-05 - fixes to allow phased VCF and fix PL score interpretation
-@version 2016-08-02 - Python3 conversion
+version 2016-08-02 - Python3 conversion
+@version 2017-02-15 - Small fix for VCF files with truncated entries
 
 This file is part of MVFtools.
 
@@ -257,7 +258,8 @@ class VariantCallFile(object):
         if sample_depth == 0:
             return ('-', 0, 0)
         # Fixed sites
-        elif all(((indices[x] == -1 or sample[indices[x]] == '.')
+        elif all(((indices[x] == -1 or indices[x] >= len(sample) or
+                   sample[indices[x]] == '.')
                   for x in ('PL', 'GL', 'GQ', 'GP'))):
             quality = -1
             allele = sample[indices['GT']]
