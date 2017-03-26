@@ -19,8 +19,8 @@ version: 2015-02-01 - First Public Release
 version: 2015-09-04 - Cleanup
 version: 2015-12-31 - New headers and cleanup
 version: 2016-03-15 - Major refurbish, changes to args
-@version: 2016-08-02 - Python3 conversion
-
+version: 2016-08-02 - Python3 conversion
+@version: 2016-10-25 - Minor fixes to regions lookup
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ import sys
 import argparse
 import os
 from random import randint
-from mvfbase import MultiVariantFile
+from mvfbase import MultiVariantFile, is_int
 
 
 def parse_regions_arg(regions, contigs):
@@ -51,13 +51,22 @@ def parse_regions_arg(regions, contigs):
     for elem in regions:
         row = elem.split(',')
         assert len(row) > 0 and len(row) < 4
-        assert row[0] in contigs
+        contig = ''
+        if row[0] in contigs:
+            contig = row[0][:]
+        elif is_int(row[0]):
+            if int(row[0]) in contigs:
+                contig = int(row[0])
+        if contig == '':
+            for cid in contigs:
+                if contigs[cid]['label'] == row[0]:
+                    contig = cid
+        assert contig in contigs
         if len(row) == 1:
-            fmt_regions.append((row[0], 1, contigs[row[0]]['length'], '+'))
+            fmt_regions.append((row[0], -1, -1, '+'))
         elif len(row) == 2:
             assert int(row[1]) > 0
-            fmt_regions.append((row[0], int(row[1]),
-                                contigs[row[0]]['length'], '+'))
+            fmt_regions.append((row[0], int(row[1]), -1, '+'))
         else:
             assert int(row[1]) > 0
             assert int(row[2]) > 0
@@ -68,11 +77,16 @@ def parse_regions_arg(regions, contigs):
     regions.sort()
     for contigid, _, maxcoord, _ in fmt_regions:
         if contigid not in region_max_coord:
-            region_max_coord[contigid] = maxcoord + 9
+            region_max_coord[contigid] = maxcoord + 0
         elif maxcoord > region_max_coord[contigid]:
             region_max_coord[contigid] = maxcoord + 0
-    regionlabel = ','.join(["{}:{}..{}({})".format(
-        contigs[x[0]]['label'], x[1], x[2], x[3]) for x in fmt_regions])
+    regionlabel = ','.join(["{}:{}{}{}{}".format(
+        contigs[x[0]]['label'], 
+        x[1] != -1 and x[1] or '', 
+        x[2] != -1 and '..' or '',
+        x[2] != -1 and x[2] or '', 
+        x[2] != -1 and "({})".format(x[3]) or ''
+        ) for x in fmt_regions])
     return fmt_regions, region_max_coord, regionlabel
 
 
@@ -102,7 +116,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2016-03-15")
+        print("Version 2016-10-25")
         sys.exit()
     mvf = MultiVariantFile(args.mvf, 'read')
     flavor = mvf.metadata['flavor']
@@ -113,7 +127,6 @@ def main(arguments=sys.argv[1:]):
                 args.outdata, flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.metadata['contigs'])
-    print(regions)
     sample_cols = mvf.get_sample_indices(args.samples or None)
     labels = mvf.get_sample_labels(sample_cols)
     skipcontig = ''
@@ -121,17 +134,20 @@ def main(arguments=sys.argv[1:]):
         fn, randint(1000000, 9999999)), 'w+', args.buffer)) for fn in labels)
     labelwritten = dict.fromkeys(labels, False)
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=max_region_coord.keys(),
+            contigs=[x for x in max_region_coord],
             quiet=args.quiet, decode=True):
         if contig == skipcontig:
             continue
-        if contig not in max_region_coord or pos > max_region_coord[contig]:
+        if contig not in max_region_coord or (
+                pos > max_region_coord[contig] and 
+                max_region_coord[contig] != -1):
             skipcontig = contig[:]
-            print('skip')
             continue
         inregion = False
         for (rcontig, rstart, rstop, _) in regions:
-            if contig == rcontig and rstart <= pos <= rstop:
+            if contig == rcontig and (
+                    rstart <= pos <= rstop or (
+                        pos >= rstart and rstop == -1)):
                 inregion = True
                 break
         if not inregion:
