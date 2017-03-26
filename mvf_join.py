@@ -121,7 +121,7 @@ def main(arguments=sys.argv[1:]):
             if concatmvf.metadata['labels'].index(label) != i:
                 transformer.set_label(
                     i, concatmvf.metadata['labels'].index(label))
-        for contigid, contigdata in mvf.metadata['contigs'].iteritems():
+        for contigid, contigdata in iter(mvf.metadata['contigs'].items()):
             if contigdata['label'] not in [
                     concatmvf.metadata['contigs'][x]['label']
                     for x in concatmvf.metadata['contigs']]:
@@ -173,6 +173,7 @@ def main(arguments=sys.argv[1:]):
         if not args.quiet:
             sys.stderr.write("done\n")
     return ''
+
 
 if __name__ == "__main__":
     main()
