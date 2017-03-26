@@ -324,7 +324,8 @@ class MultiVariantFile(object):
             else:
                 contigs = sorted(self.metadata['contigs'].keys())
         else:
-            contigs = [x in self.metadata['contigs'] and x or self.get_contig_id(x)
+            contigs = [x if x in self.metadata['contigs'] else
+                       self.get_contig_id(x)
                        for x in contigs]
         subset = subset or ''
         current_contigid = ''
@@ -448,7 +449,7 @@ class MultiVariantFile(object):
             Arguments:
                 alleles: unencoded allele string
         """
-        if self.meta['flavor'] == 'dna':
+        if self.metadata['flavor'] == 'dna':
             return encode_mvfstring(alleles).replace(
                 'N', 'X').replace('n', 'X')
         else:
