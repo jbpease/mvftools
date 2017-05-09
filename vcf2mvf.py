@@ -251,7 +251,7 @@ class VariantCallFile(object):
         except:
             sample_depth = -1
         # some samples are missing a PL score
-        if len(sample) < 5:
+        if len(sample) < 2:
             indices['PL'] = -1
         # No coverage
         if sample_depth == 0:
@@ -287,7 +287,7 @@ class VariantCallFile(object):
             quality = (indices.get("GQ", -1) == -1 and -1 or
                        sample[indices['GQ']])
         elif len(alleles) <= 4:
-            print(alleles)
+            # print(alleles)
             if indices['PL'] == -1 and indices['GL'] != -1:
                 plvalues = [x for x in sample[indices['GL']].split(',')]
             else:
@@ -313,7 +313,6 @@ class VariantCallFile(object):
             allele = allele.lower()
         if allele in 'NnBbDdHhVvXx':
             allele = 'X'
-        # print(sample, res)
         return (allele, quality, sample_depth)
 
 
@@ -473,7 +472,7 @@ def main(arguments=sys.argv[1:]):
     if mvfentries:
         mvf.write_entries(mvfentries)
         mvfentries = []
-    print(time() - time0)
+    print("Total time: ", time() - time0)
     return ''
 
 
