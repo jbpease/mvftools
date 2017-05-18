@@ -16,15 +16,9 @@ VCF2MVF: Variant Call Format (VCF) to MVF conversion program
 @author: Ben K. Rosenzweig
 
 version: 2015-02-01 - First Public Release
-version: 2015-02-26 - Fixes for 'N' characters still appearing in nucleotide
-version: 2015-05-25 - Fixes for Python 3.x compatibility
-version: 2015-06-11 - 1.2.1 upgrade, added indels and quality score parsing
-version: 2015-09-04 - minor fixes and cleanup
-version 2015-09-05 - disabled indel feature for retuning
-version 2015-12-17 - bug fix
-version 2015-12-31 - updates to header and minor fixes
-version 2016-04-05 - fixes to allow phased VCF and fix PL score interpretation
-@version 2016-08-02 - Python3 conversion
+...
+version 2016-08-02 - Python3 conversion
+@version 2017-05-17 - Fixes and refits to the allele calling
 
 This file is part of MVFtools.
 
@@ -54,6 +48,7 @@ from mvfbiolib import GTCODES, HAPJOIN
 
 RE_CONTIG_NAME = re.compile("ID=(.*?),")
 RE_CONTIG_LENGTH = re.compile("length=(.*?)>")
+VERSION = "2017-05-17"
 
 
 class VariantCallFile(object):
@@ -98,10 +93,12 @@ class VariantCallFile(object):
                 self.metadata['sourceformat'] = line[line.find('=') + 1:]
             if line.startswith("##contig"):
                 contig_name = re.findall(RE_CONTIG_NAME, line)
-                contig_name = (contig_name and contig_name[0] or (
-                    'contig{}'.format(tempid)))
+                contig_name = (contig_name[0] if len(contig_name) > 0 else
+                               'contig{}'.format(tempid))
                 contig_length = re.findall(RE_CONTIG_LENGTH, line)
-                contig_length = contig_length and int(contig_length[0]) or 0
+                contig_length = (int(contig_length[0])
+                                 if len(contig_length) > 0
+                                 else 0)
                 self.metadata['contigs'][tempid] = {
                     'label': contig_name, 'length': contig_length}
                 tempid += 1
@@ -139,7 +136,7 @@ class VariantCallFile(object):
                         max(self.metadata['contigs'][
                             contigndx[contig]]['length'],
                             coord))
-            except:
+            except Exception as e:
                 continue
         return ''
 
@@ -158,8 +155,8 @@ class VariantCallFile(object):
             nline += 1
             linebuffer.append(line)
             if nline == args.get('linebuffer', 10000):
-                for line in linebuffer:
-                    vcfrecord = self._parse_entry(line, **args)
+                for xline in linebuffer:
+                    vcfrecord = self._parse_entry(xline, **args)
                     if vcfrecord == -1:
                         continue
                     yield vcfrecord
@@ -187,10 +184,6 @@ class VariantCallFile(object):
             return -1
         if "INDEL" in vcfline:
             return -1
-            # if kwargs.get("outflavor", 'dna') in ('dna-indel',
-            #                                      'dnaqual-indel'):
-            #    return -1
-            # indel = True
         arr = vcfline.rstrip().split(kwargs.get('fieldsep', '\t'))
         if len(arr) < 9:
             return -1
@@ -206,25 +199,22 @@ class VariantCallFile(object):
                 record['alleles'].append(altbase)
         record['tagindex'] = {}
         tags = arr[8].split(':')
-        for tag in ["DP", "PL", "GT", "GL", "GQ", "GP"]:
-            if tag in tags:
-                record['tagindex'][tag] = tags.index(tag)
-            else:
-                record['tagindex'][tag] = -1
-        record['samples'] = arr[9:]
+        record['samples'] = []
+        for elem in arr[9:]:
+            record['samples'].append(dict(
+                zip(tags, elem.split(':'))))
         if "INDEL" in vcfline:  # and indel:
-            record
+            pass
         if record['alleles'][0] in 'NnXxBbDdHhVv':
             record['genotypes'] = ['X']
             record['qscores'] = ['@']
         else:
             record['genotypes'] = [record['alleles'][0]]
             record['qscores'] = ['h']
-        # print ( arr )
         for j in range(len(record['samples'])):
-            (allele, quality, depth) = (
-                self._call_allele(record['samples'][j].split(':'),
-                                  record['alleles'], record['tagindex'],
+            (allele, quality, _) = (
+                self._call_allele(record['samples'][j],
+                                  record['alleles'],
                                   **kwargs))
             if kwargs.get("outflavor") in ("dnaqual", 'dnaqual-indel'):
                 record['qscores'].append(chr(min(quality, 40) + 64))
@@ -235,7 +225,7 @@ class VariantCallFile(object):
                 info.get(label, '-') for label in kwargs.get("allelesfrom"))
         return record
 
-    def _call_allele(self, sample, alleles, indices, **kwargs):
+    def _call_allele(self, sample, alleles, **kwargs):
         """Determine the allele from a VCF entry
             Arguments:
                 sample: list of entry string elements
@@ -244,23 +234,23 @@ class VariantCallFile(object):
                 **kwargs: passthrough arguments
             Returns (allele, quality, depth)
         """
-        if sample[0] in ('./.', '.'):
+        phased = False
+        if '|' in sample.get('GT', ''):
+            phased = True
+            sample['GT'] = sample['GT'].replace('|', '/')
+        if list(sample.values())[0] in ('./.', '.'):
             return ('-', 0, 0)
         try:
-            sample_depth = int(sample[indices['DP']])
-        except:
+            sample_depth = int(sample['DP'])
+            if sample_depth == 0:
+                return ('-', 0, 0)
+        except Exception as e:
             sample_depth = -1
-        # some samples are missing a PL score
-        if len(sample) < 2:
-            indices['PL'] = -1
-        # No coverage
-        if sample_depth == 0:
-            return ('-', 0, 0)
         # Fixed sites
-        elif all(((indices[x] == -1 or sample[indices[x]] == '.')
-                  for x in ('PL', 'GL', 'GQ', 'GP'))):
+        if all(sample.get(x, -1) in (-1, '.')
+               for x in ('PL', 'GL', 'GQ', 'GP')):
             quality = -1
-            allele = sample[indices['GT']]
+            allele = sample.get('GT', 'X')
             if '/' in allele:
                 allele = [int(x) for x in allele.split('/')]
                 allele = HAPJOIN[''.join([alleles[x] for x in allele])]
@@ -268,44 +258,44 @@ class VariantCallFile(object):
                 allele = [int(x) for x in allele.split('|')]
                 allele = HAPJOIN[''.join([alleles[x] for x in allele])]
             else:
-                return ('X', -1, sample_depth)
+                allele = 'X'
         # Low coverage
         elif -1 < sample_depth < kwargs.get("maskdepth", 1):
-            return ('X', -1, -1)
+            quality = -1
+            allele = 'X'
         # Invariant sites
         elif len(alleles) == 1:
             allele = alleles[0]
-            if indices.get("GQ", -1) == -1:
+            if sample.get("GQ", -1) == -1:
                 quality = -1
             else:
-                quality = int(sample[indices['GQ']])
+                quality = int(sample['GQ'])
         # Variant site
-        elif (indices['PL'] == -1 or sample[indices['PL']] == '.') and (
-                sample[indices['GT']] in ('0/0', '1/1')):
-            allele = (sample[indices['GT']] == '0/0' and
-                      alleles[0] or alleles[1])
-            quality = (indices.get("GQ", -1) == -1 and -1 or
-                       sample[indices['GQ']])
+        elif (sample.get('PL', -1) in (-1, '.')) and (
+                sample['GT'] in ('0/0', '1/1')):
+            allele = (alleles[0] if sample['GT'] == '0/0' else alleles[1])
+            quality = (-1 if sample.get("GQ", -1) == -1 else sample['GQ'])
         elif len(alleles) <= 4:
-            # print(alleles)
-            if indices['PL'] == -1 and indices['GL'] != -1:
-                plvalues = [x for x in sample[indices['GL']].split(',')]
+            if sample.get('PL', -1) == -1 and sample.get('GL', -1) != -1:
+                plvalues = [float(x) for x in sample['GL'].split(',')]
             else:
-                plvalues = [x for x in sample[indices['PL']].split(',')]
-            if all(0 <= float(x) <= 1 for x in plvalues) and sum([
-                    float(x) for x in plvalues]) == 1:
-                plvalues = [float(x) == 0 and 1 or float(x) != 1 and
-                            int(-10 * log10(float(x))) or 0 for x in plvalues]
-            maxpl = 0 not in plvalues and max(plvalues) or 0
-            imaxpl = (plvalues.count(maxpl) != 1 and -1 or
+                # print(sample, alleles)
+                plvalues = [float(x) for x in sample['PL'].split(',')]
+            if all(0 <= x <= 1 for x in plvalues) and sum([
+                    x for x in plvalues]) == 1:
+                plvalues = [x == 0 and 1 or x != 1 and
+                            int(-10 * log10(x)) or 0 for x in plvalues]
+            maxpl = max(plvalues) if 0 not in plvalues else 0
+            imaxpl = (-1 if plvalues.count(maxpl) != 1 else
                       plvalues.index(maxpl))
-            allele = (imaxpl == -1 and 'X' or
+            allele = ('X' if imaxpl == -1 else
                       HAPJOIN[''.join([alleles[x] for x in GTCODES[imaxpl]])])
-            quality = indices['GQ'] != -1 and sample[indices['GQ']] or -1
+            quality = sample['GQ'] if sample['GQ'] != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
-            return ('!', -1, -1)
-        quality = quality != '.' and int(quality) or 60
+            allele = '!'
+            quality = -1
+        quality = int(quality) if quality != '.' else 60
         if -1 < quality < kwargs.get("maskqual", 10):
             return ('X', quality, sample_depth)
         elif (-1 < quality < kwargs.get("lowqual", 20) or
@@ -316,15 +306,17 @@ class VariantCallFile(object):
         return (allele, quality, sample_depth)
 
 
-def main(arguments=sys.argv[1:]):
+def main(arguments=None):
     """Main method for vcf2mvf"""
+    arguments = arguments if arguments is not None else sys.argv[1:]
     time0 = time()
     parser = argparse.ArgumentParser(description="""
     Converts multisample-VCF to MVF file with filtering """)
     parser.add_argument("--vcf", help="input VCF file", required=True)
     parser.add_argument("--out", help="output MVF file", required=True)
-    parser.add_argument("--outflavor", choices=['dna', 'dnaqual',
-                        'dnaqual-indel', 'dna-indel'], default='dna',
+    parser.add_argument("--outflavor",
+                        choices=['dna', 'dnaqual', 'dnaqual-indel',
+                                 'dna-indel'], default='dna',
                         help="""choose output MVF flavor to include
                                 quality scores and/or indels""")
     parser.add_argument("--maskdepth", type=int, default=1,
@@ -370,7 +362,7 @@ def main(arguments=sys.argv[1:]):
                         help="display version information")
     args = parser.parse_args(args=arguments)
     if args.version:
-        print("Version 2016-04-05")
+        print(VERSION)
         sys.exit()
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
@@ -421,7 +413,7 @@ def main(arguments=sys.argv[1:]):
                 raise RuntimeError("Error contig id {} is the same as"
                                    " the label for another contig"
                                    " ({} {})".format(
-                                      newid, xid, xlabel))
+                                       newid, xid, xlabel))
             if newlabel == xid:
                 raise RuntimeError("Error contig label {} is the same"
                                    "as the id for another contig"
