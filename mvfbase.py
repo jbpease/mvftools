@@ -1,29 +1,23 @@
 # -*- coding: utf-8 -*-
 """
+mvfbase - mvf base functions and classes
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
+"""
 
+import os
+import sys
+import gzip
+from itertools import groupby
+
+_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-
-MVFbase: Base class MVF handler and functions
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-version: 2015-02-26 - Efficiency upgrades for iterators
-version: 2015-06-09 - MVF1.2.1 upgrade
-version: 2015-09-04 - Small style fixes
-version: 2015-12-15 - Python3 compatibilty fix
-version: 2015-12-31 - Header and cleanup
-version:  2016-01-01 - Python3 compatiblity fix
-version:  2016-01-11 - fix for dna ambiguity characters
-version: 2016-08-02 - Python3 conversion, integrate analysis_base
-@version: 2016-09-10 - Minor fixes to gz reading
 
 This file is part of MVFtools.
 
@@ -38,17 +32,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
-
-
 """
 
-import os
-import sys
-import gzip
-from itertools import groupby
 
-# Math Functions
-
+# ==== Math Functions ====
 
 def is_int(num):
     """Checks if num is an integer, accepts strings as well"""
@@ -149,8 +136,8 @@ class MultiVariantFile(object):
                 raise IOError("MVF path {} not found!".format(self.path))
         # WRITE MODE
         elif filemode in ('write', 'w', 'wb'):
-            if os.path.exists(self.path) and not kwargs.get('overwrite',
-                                                            False):
+            if os.path.exists(self.path) and (
+                    not kwargs.get('overwrite', False)):
                 raise IOError(
                     """MVF path {} already exists, use --overwrite
                     to replace""".format(self.path))
@@ -406,7 +393,7 @@ class MultiVariantFile(object):
             ' '.join(["{}={}".format(k, v) for (k, v) in (
                 sorted(self.metadata['samples'][x].items())) if k != 'label']))
             for x in range(len(self.metadata['samples']))])
-        contigs = [is_int(k) and (int(k), v) or (k, v)
+        contigs = [(int(k) if is_int(k) else k, v)
                    for (k, v) in self.metadata['contigs'].items()]
         header.extend(["#c {} label={} length={} {}".format(
             cid, cdata['label'], cdata['length'],
@@ -475,7 +462,7 @@ class MultiVariantFile(object):
         """
         self.write_data('\n'.join(["{}:{} {}".format(
             entry[0], entry[1], (
-                ' '.join([encoded and x or encode_mvfstring(x)
+                ' '.join([x if encoded else encode_mvfstring(x)
                           for x in entry[2]])))
                 for entry in entries]) + '\n')
         return ''
@@ -559,7 +546,7 @@ class OutputFile(object):
                 entry: dict of values with keys matching header
         """
         with open(self.path, 'at') as outfile:
-            outfile.write("\t".join([str(k not in entry and '.' or entry[k])
+            outfile.write("\t".join([str('.' if k not in entry else entry[k])
                                      for k in self.headers]) + "\n")
         return ''
 
@@ -580,5 +567,6 @@ class AnalysisModule(object):
 
 
 if __name__ == ("__main__"):
-    print("""MVF base handler library v. 2016-08-02, please run one of the
-          other MVFtools scripts to access these functions""")
+    print("This is the MVF base function library. "
+          "Please run one of the other MVFtools scripts to access these "
+          "functions")

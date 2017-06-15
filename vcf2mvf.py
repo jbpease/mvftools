@@ -1,39 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+vcf2mvf - Converts multisample-VCF to MVF file with filtering
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-
-If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
-"Encoding Data Using Biological Principles: the Multisample Variant Format
-for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
-http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-
-VCF2MVF: Variant Call Format (VCF) to MVF conversion program
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-...
-version 2016-08-02 - Python3 conversion
-@version 2017-05-17 - Fixes and refits to the allele calling
-
-This file is part of MVFtools.
-
-MVFtools is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-MVFtools is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
@@ -46,9 +17,32 @@ from math import log10
 from mvfbase import encode_mvfstring, MultiVariantFile, is_int
 from mvfbiolib import GTCODES, HAPJOIN
 
+_LICENSE = """
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+
+This file is part of MVFtools.
+
+MVFtools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+MVFtools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+
 RE_CONTIG_NAME = re.compile("ID=(.*?),")
 RE_CONTIG_LENGTH = re.compile("length=(.*?)>")
-VERSION = "2017-05-17"
 
 
 class VariantCallFile(object):
@@ -104,7 +98,7 @@ class VariantCallFile(object):
                 tempid += 1
             elif line.startswith("#CHROM"):
                 self.metadata['samples'] = [
-                    '/' in elem and elem[elem.rfind('/') + 1:] or elem
+                    elem[elem.rfind('/') + 1:] if '/' in elem else elem
                     for elem in line.split()[9:]]
                 self.metadata['ncol'] = len(self.metadata['samples'])
         return ''
@@ -305,11 +299,7 @@ class VariantCallFile(object):
             allele = 'X'
         return (allele, quality, sample_depth)
 
-
-def main(arguments=None):
-    """Main method for vcf2mvf"""
-    arguments = arguments if arguments is not None else sys.argv[1:]
-    time0 = time()
+def generate_argparser():
     parser = argparse.ArgumentParser(description="""
     Converts multisample-VCF to MVF file with filtering """)
     parser.add_argument("--vcf", help="input VCF file", required=True)
@@ -358,12 +348,19 @@ def main(arguments=None):
                         help="""Include Phred genotype quality (GQ) scores""")
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("-v", "--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print(VERSION)
-        sys.exit()
+    return ''
+
+
+def main(arguments=None):
+    """Main method for vcf2mvf"""
+    arguments = arguments if arguments is not None else sys.argv[1:]
+    time0 = time()
+
+    args = parser.parse_args(args=arguments)
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.fieldsep]

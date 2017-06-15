@@ -50,9 +50,6 @@ def parse_regions_arg(regionfilepath, contigs):
             contig = ''
             if entry[0] in contigs:
                 contig = entry[0][:]
-            elif is_int(entry[0]):
-                if int(entry[0]) in contigs:
-                    contig = int(entry[0])
             if contig == '':
                 for cid in contigs:
                     if contigs[cid]['label'] == entry[0]:
@@ -87,6 +84,7 @@ def parse_regions_arg(regionfilepath, contigs):
 #        x[2] if x[2] is not None else '',
 #        "({})".format(x[3]) if x[2] is not None else ''
 #        ) for x in fmt_regions])
+    print(region_max_coord)
     return fmt_regions, region_max_coord  # , regionlabel
 
 
@@ -151,30 +149,32 @@ def main(arguments=None):
             contigs=(mvf.metadata['contigs'] if args.region is None else
                      [x for x in max_region_coord]),
             quiet=args.quiet, decode=True):
+        print(contig, pos, contig in max_region_coord, max_region_coord[contig])
         if contig == skipcontig:
             continue
-        if (contig not in max_region_coord) or (
-                max_region_coord[contig] is not None and
-                pos > max_region_coord[contig]):
+        if contig not in max_region_coord:
             skipcontig = contig[:]
             continue
-        if args.region is not None:
-            inregion = False
-            for rstart, rstop, _ in regions[contig]:
-                if rstart is None or pos >= rstart:
-                    if rstop is None or pos <= rstop:
-                        inregion = True
-                        break
-            if inregion is False:
-                continue
+        # if (max_region_coord[contig] is not None and
+        #       pos > max_region_coord[contig]):
+        #    skipcontig = contig[:]
+        #    continue
+        #if args.region is not None:
+        #    inregion = False
+        #    for rstart, rstop, _ in regions[contig]:
+        #        if rstart is None or pos >= rstart:
+        #            if rstop is None or pos <= rstop:
+        #                inregion = True
+        #                break
+        #    if inregion is False:
+        #        continue
         if curcontigname is None:
             curcontigname = contig[:]
-
         elif contig != curcontigname:
             print(contig)
             if args.partition is True:
                 if curcontigend > curcontigstart:
-                    partitionfile.write("{},{},{},{}\n".format(
+                    partitionfile.write("{}, {} = {}-{}\n".format(
                         partprefix, mvf.get_contig_label(curcontigname),
                         curcontigstart, curcontigend - 1))
             curcontigname = contig[:]
@@ -227,7 +227,7 @@ def main(arguments=None):
             buff = filehandler.read(args.buffer)
             while buff != '':
                 if first_file is True:
-                    #print(buff)
+                    # print(buff)
                     outfile.write("{} {}\n".format(
                         len(labels), len(buff.split()[1])))
                     first_file = False

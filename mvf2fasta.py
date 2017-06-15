@@ -44,53 +44,60 @@ from random import randint
 from mvfbase import MultiVariantFile, is_int
 
 
-def parse_regions_arg(regions, contigs):
-    """Parses the regions argument into coordinates"""
+def parse_regions_arg(regionfilepath, contigs):
+    """Parses the regions into coordinates"""
     fmt_regions = []
     region_max_coord = {}
-    for elem in regions:
-        row = elem.split(',')
-        assert len(row) > 0 and len(row) < 4
-        contig = ''
-        if row[0] in contigs:
-            contig = row[0][:]
-        elif is_int(row[0]):
-            if int(row[0]) in contigs:
-                contig = int(row[0])
-        if contig == '':
-            for cid in contigs:
-                if contigs[cid]['label'] == row[0]:
-                    contig = cid
-        assert contig in contigs
-        if len(row) == 1:
-            fmt_regions.append((row[0], -1, -1, '+'))
-        elif len(row) == 2:
-            assert int(row[1]) > 0
-            fmt_regions.append((row[0], int(row[1]), -1, '+'))
-        else:
-            assert int(row[1]) > 0
-            assert int(row[2]) > 0
-            if int(row[2]) > int(row[1]):
-                fmt_regions.append((row[0], int(row[1]), int(row[2]), '+'))
-            else:
-                fmt_regions.append((row[0], int(row[1]), int(row[2]), '-'))
-    regions.sort()
+    if regionfilepath is None:
+        fmt_regions = [(x, None, None, None) for x in contigs]
+        region_max_coord = dict.fromkeys(contigs, None)
+    else:
+        with open(regionfilepath) as regfile:
+            for line in regfile:
+                entry = line.rstrip().split(',')
+                if len(entry) > 4 or len(entry) < 1 or len(entry[0]) == 0:
+                    print("malformed entry ({}), ignoring...".format(entry))
+                    continue
+                contig = ''
+                if entry[0] in contigs:
+                    contig = entry[0][:]
+                elif is_int(entry[0]):
+                    if int(entry[0]) in contigs:
+                        contig = int(entry[0])
+                if contig == '':
+                    for cid in contigs:
+                        if contigs[cid]['label'] == entry[0]:
+                            contig = cid
+                assert contig in contigs
+                if len(entry) == 1:
+                    fmt_regions.append((entry[0], None, None, '+'))
+                elif len(entry) == 2:
+                    assert int(entry[1]) > 0
+                    fmt_regions.append((entry[0], int(entry[1]), None, '+'))
+                else:
+                    assert int(entry[1]) > 0
+                    assert int(entry[2]) > 0
+                    assert int(entry[2]) > int(entry[1])
+                    fmt_regions.append((
+                        entry[0], int(entry[1]), int(entry[2]),
+                        "+" if int(entry[2]) > int(entry[1]) else "-"))
+    fmt_regions.sort()
     for contigid, _, maxcoord, _ in fmt_regions:
         if contigid not in region_max_coord:
             region_max_coord[contigid] = maxcoord + 0
         elif maxcoord > region_max_coord[contigid]:
             region_max_coord[contigid] = maxcoord + 0
     regionlabel = ','.join(["{}:{}{}{}{}".format(
-        contigs[x[0]]['label'], 
-        x[1] != -1 and x[1] or '', 
+        contigs[x[0]]['label'],
+        x[1] != -1 and x[1] or '',
         x[2] != -1 and '..' or '',
-        x[2] != -1 and x[2] or '', 
+        x[2] != -1 and x[2] or '',
         x[2] != -1 and "({})".format(x[3]) or ''
         ) for x in fmt_regions])
     return fmt_regions, region_max_coord, regionlabel
 
 
-def main(arguments=sys.argv[1:]):
+def main(arguments=None):
     """Main method for mvf2fasta"""
     parser = argparse.ArgumentParser(description="""
     Process MVF into FASTA alignment""")
@@ -114,7 +121,8 @@ def main(arguments=sys.argv[1:]):
                         help="suppress screen output")
     parser.add_argument("-v", "--version", action="store_true",
                         help="display version information")
-    args = parser.parse_args(args=arguments)
+    args = parser.parse_args(
+        args=sys.argv[1:] if arguments is None else arguments)
     if args.version:
         print("Version 2016-10-25")
         sys.exit()
@@ -138,19 +146,19 @@ def main(arguments=sys.argv[1:]):
             quiet=args.quiet, decode=True):
         if contig == skipcontig:
             continue
-        if contig not in max_region_coord or (
-                pos > max_region_coord[contig] and 
-                max_region_coord[contig] != -1):
+        if (contig not in max_region_coord) or (
+                max_region_coord[contig] is not None and
+                pos > max_region_coord[contig]):
             skipcontig = contig[:]
             continue
         inregion = False
-        for (rcontig, rstart, rstop, _) in regions:
-            if contig == rcontig and (
-                    rstart <= pos <= rstop or (
-                        pos >= rstart and rstop == -1)):
-                inregion = True
-                break
-        if not inregion:
+        for rcontig, rstart, rstop, _ in regions:
+            if (contig == rcontig):
+                if rstart is None or pos >= rstart:
+                    if rstop is None or pos <= rstop:
+                        inregion = True
+                        break
+        if inregion is False:
             continue
         for col, label in zip(sample_cols, labels):
             if not labelwritten[label]:
