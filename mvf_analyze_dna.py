@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+mvf_analyze_dna - DNA analysis modules
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
+"""
 
-MVF_analyze_dna: Base analysis class handler and functions
-@author: James B. Pease
-@author: Ben K. Rosenzweig
+import sys
+import argparse
+from random import randint
+from itertools import combinations
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile
+from mvfbiolib import MvfBioLib
+from time import time
 
-version: 2015-06-11 - v.1.2.1 release
-version: 2015-09-04 - upgrades and fixes
-version: 2015-12-16 - change QuintetCount to general PatternCount
-version: 2016-03-18 - bug fixes
-@version: 2016-08-02 - Python3 conversion
+_LICENSE = """
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
 
@@ -20,7 +29,6 @@ MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,18 +38,12 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import argparse
-from random import randint
-from itertools import combinations
-from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, abpattern
-from mvfbiolib import HAPSPLIT
-from time import time
-
 
 MODULENAMES = ("BaseCountWindow", "Coverage", "DstatComb",
                "PairwiseDistance", "PairwiseDistanceWindow",
                "PatternCount")
+
+MLIB = MvfBioLib()
 
 
 class Coverage(AnalysisModule):
@@ -228,7 +230,7 @@ class PatternCount(AnalysisModule):
                     continue
                 if len(set(alleles)) > 2:
                     continue
-                pattern = ''.join([x == alleles[-1] and 'A' or 'B'
+                pattern = ''.join(['A' if x == alleles[-1] else 'B'
                                    for x in alleles[:-1]]) + 'A'
             sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
         if sitepatterns:
@@ -246,7 +248,7 @@ class PatternCount(AnalysisModule):
         """
         headers = ['contig', 'position']
         headers.extend(
-            [abpattern(x, self.params['nsamples'])
+            [MLIB.abpattern(x, self.params['nsamples'])
              for x in range(0, 2 ** self.params['nsamples'], 2)])
         outfile = OutputFile(path=self.params['out'],
                              headers=headers)
@@ -289,10 +291,10 @@ class BaseCountWindow(AnalysisModule):
                     self.data[(current_contig, current_position)].update([
                         (k + '.match', match_counts[k] + all_match),
                         (k + '.total', total_counts[k] + all_total),
-                        (k + '.prop', (total_counts[k] + all_total and
-                                       (float(match_counts[k] + all_match) /
-                                        float(total_counts[k] + all_total)) or
-                                       0))])
+                        (k + '.prop', (
+                            (float(match_counts[k] + all_match) /
+                             float(total_counts[k] + all_total)) if
+                            total_counts[k] + all_total > 0 else 0))])
                 if contig != current_contig:
                     current_contig = contig[:]
                     current_position = 0
@@ -325,10 +327,9 @@ class BaseCountWindow(AnalysisModule):
                 self.data[(current_contig, current_position)].update([
                     (k + '.match', match_counts[k] + all_match),
                     (k + '.total', total_counts[k] + all_total),
-                    (k + '.prop', (total_counts[k] + all_total and
-                                   (float(match_counts[k] + all_match) /
-                                    float(total_counts[k] + all_total)) or
-                                   0))])
+                    (k + '.prop', ((float(match_counts[k] + all_match) /
+                                    float(total_counts[k] + all_total)) if
+                                   total_counts[k] + all_total > 0 else 0))])
         self.write()
         return ''
 
@@ -513,19 +514,27 @@ class PairwiseDistanceWindow(AnalysisModule):
         return ''
 
 
-def pairwise_distance(basepairs):
+def pairwise_distance(basepairs, strict=False):
+    """Calculates pairwise distances between two sequences
+        strict = only use ATGC if True,
+        choose random heterozygous base if False.
+    """
     total = 0
     diff = 0
     for pairbases, paircount in basepairs.items():
         base0, base1 = pairbases[0], pairbases[1]
-        if base0 not in 'ATGCKMRYWS' or base1 not in 'ATGCKMRYWS':
-            # print("ERROR", base0, base1)
+        if base0 not in MLIB.validchars['dna+ambig'] or (
+                base1 not in MLIB.validchars['dna+ambig']):
             continue
         total += paircount
-        if base0 in 'KMRYWS':
-            base0 = HAPSPLIT[base0][randint(0, 1)]
-        if base1 in 'KMRYWS':
-            base1 = HAPSPLIT[base1][randint(0, 1)]
+        if base0 in MLIB.validchars['dnaambig2']:
+            if strict is True:
+                continue
+            base0 = MLIB.splitbases[base0][randint(0, 1)]
+        if base1 in MLIB.validchar['dnaambig2']:
+            if strict is True:
+                continue
+            base1 = MLIB.splitbases[base1][randint(0, 1)]
         if base0 != base1:
             diff += paircount
     return diff, total
@@ -544,13 +553,14 @@ def modulehelp(modulenames=MODULENAMES):
     return ''
 
 
-def main(arguments=sys.argv[1:]):
-    """Main MVF Analysis"""
-    parser = argparse.ArgumentParser(description="""
-        A set of analysis modules to analyze MVFs of dna flavor
-        options whose help text includes a [modulename]
-        are module-specific and have no function in other modules.""")
-    parser.add_argument("module", choices=MODULENAMES)
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_analyze_dna.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("module", choices=MODULENAMES,
+                        help="analysis module to run")
     parser.add_argument("--mvf", help="input MVF file")
     parser.add_argument("--out", help="output file")
     parser.add_argument("--contigs", nargs='*',
@@ -567,12 +577,17 @@ def main(arguments=sys.argv[1:]):
         "[BaseCountWindow] string of bases for total (i.e. denominator)"))
     parser.add_argument("--morehelp", action="store_true",
                         help="get additional information on modules")
-    parser.add_argument("--version", action="store_true",
-                        help="display version")
+    parser.add_argument("-v", "--version", action="version",
+                        version="2017-06-14",
+                        help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = arguments if arguments is not None else sys.argv[1:]
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version: 2016-08-02")
-        sys.exit()
     time0 = time()
     # HELP MENU
     if args.morehelp:
@@ -597,6 +612,7 @@ def main(arguments=sys.argv[1:]):
     module.analyze(mvf)
     print("Finished in {} seconds.".format(time() - time0))
     return ''
+
 
 if __name__ == "__main__":
     if "--morehelp" in sys.argv:

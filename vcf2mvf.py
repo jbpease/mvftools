@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-vcf2mvf - Converts multisample-VCF to MVF file with filtering
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
@@ -15,7 +14,7 @@ import re
 from time import time
 from math import log10
 from mvfbase import encode_mvfstring, MultiVariantFile, is_int
-from mvfbiolib import GTCODES, HAPJOIN
+from mvfbiolib import MvfBioLib
 
 _LICENSE = """
 If you use this software please cite:
@@ -40,6 +39,7 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+MLIB = MvfBioLib()
 
 RE_CONTIG_NAME = re.compile("ID=(.*?),")
 RE_CONTIG_LENGTH = re.compile("length=(.*?)>")
@@ -228,9 +228,9 @@ class VariantCallFile(object):
                 **kwargs: passthrough arguments
             Returns (allele, quality, depth)
         """
-        phased = False
+        # phased = False
         if '|' in sample.get('GT', ''):
-            phased = True
+            # phased = True
             sample['GT'] = sample['GT'].replace('|', '/')
         if list(sample.values())[0] in ('./.', '.'):
             return ('-', 0, 0)
@@ -247,10 +247,10 @@ class VariantCallFile(object):
             allele = sample.get('GT', 'X')
             if '/' in allele:
                 allele = [int(x) for x in allele.split('/')]
-                allele = HAPJOIN[''.join([alleles[x] for x in allele])]
+                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
             elif '|' in allele:
                 allele = [int(x) for x in allele.split('|')]
-                allele = HAPJOIN[''.join([alleles[x] for x in allele])]
+                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
             else:
                 allele = 'X'
         # Low coverage
@@ -283,7 +283,8 @@ class VariantCallFile(object):
             imaxpl = (-1 if plvalues.count(maxpl) != 1 else
                       plvalues.index(maxpl))
             allele = ('X' if imaxpl == -1 else
-                      HAPJOIN[''.join([alleles[x] for x in GTCODES[imaxpl]])])
+                      MLIB.joinbases[''.join(
+                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])])
             quality = sample['GQ'] if sample['GQ'] != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
@@ -299,21 +300,26 @@ class VariantCallFile(object):
             allele = 'X'
         return (allele, quality, sample_depth)
 
+
 def generate_argparser():
-    parser = argparse.ArgumentParser(description="""
-    Converts multisample-VCF to MVF file with filtering """)
-    parser.add_argument("--vcf", help="input VCF file", required=True)
+    parser = argparse.ArgumentParser(
+        prog="vcf2mvf.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("--vcf", help="input VCF file", required=True,
+                        type=os.path.abspath)
     parser.add_argument("--out", help="output MVF file", required=True)
     parser.add_argument("--outflavor",
                         choices=['dna', 'dnaqual', 'dnaqual-indel',
                                  'dna-indel'], default='dna',
-                        help="""choose output MVF flavor to include
-                                quality scores and/or indels""")
+                        help=("choose output MVF flavor to include "
+                              "quality scores and/or indels"))
     parser.add_argument("--maskdepth", type=int, default=1,
-                        help="below this depth mask with N/n")
+                        help="below this read depth mask with N/n")
     parser.add_argument("--lowdepth", type=int, default=3,
-                        help="""below this depth convert to lower case
-                              set to 0 to disable""")
+                        help=("below this read depth coverage, "
+                              "convert to lower case set to 0 to disable"))
     parser.add_argument("--maskqual", type=int, default=3,
                         help="""low quality cutoff, bases replaced by N/-
                              set to 0 to disable""")
@@ -342,8 +348,6 @@ def generate_argparser():
     parser.add_argument("--fieldsep", default="TAB",
                         choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED'],
                         help="""VCF field separator (default='TAB')""")
-    # parser.add_argument("--indel", action="store_true",
-    #                    help="""Include INDEL from VCF""")
     parser.add_argument("--qual", action="store_true",
                         help="""Include Phred genotype quality (GQ) scores""")
     parser.add_argument("--overwrite", action="store_true",
@@ -351,16 +355,16 @@ def generate_argparser():
     parser.add_argument("-v", "--version", action="version",
                         version="2017-06-14",
                         help="display version information")
-    args = parser.parse_args(args=arguments)
-    return ''
+    return parser
 
 
 def main(arguments=None):
     """Main method for vcf2mvf"""
     arguments = arguments if arguments is not None else sys.argv[1:]
+    parser = generate_argparser()
+    args = parser.parse_args(args=arguments)
     time0 = time()
 
-    args = parser.parse_args(args=arguments)
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.fieldsep]
@@ -422,7 +426,7 @@ def main(arguments=None):
         args.allelesfrom = args.allelesfrom.split(':')
         samplelabels += args.allelesfrom
     if args.samplereplace:
-        newsample = [':' in tuple(x) and x.split(':') or tuple([x, x])
+        newsample = [x.split(':') if ':' in tuple(x) else tuple([x, x])
                      for x in args.samplereplace]
         unmatched = [x for x in enumerate(samplelabels)]
         for old, new in newsample:
@@ -451,8 +455,9 @@ def main(arguments=None):
             mvfentries.append(
                 (contig_translate.get(vcfrecord['contig'])[0],
                  vcfrecord['coord'],
-                 (args.outflavor in ('dnaqual',) and
-                  (mvf_alleles, qual_alleles) or (mvf_alleles,))))
+                 ((mvf_alleles, qual_alleles) if
+                  args.outflavor in ('dnaqual',) else
+                  (mvf_alleles,))))
             nentry += 1
             if nentry == args.linebuffer:
                 mvf.write_entries(mvfentries, encoded=True)

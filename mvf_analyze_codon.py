@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+mvf_analyze_codon - Codon analysis modules
+"""
+
+import sys
+import argparse
+import re
+from random import randint
+from itertools import combinations
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, Counter
+from mvfbiolib import MvfBioLib  # HAPSPLIT, FULL_CODON_TABLE, AMBIGSTOPS
+from mvfpaml import paml_branchsite, paml_pwcalc_dnds
+MLIB = MvfBioLib()
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,23 +26,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MVF_analyze_codon: Analysis modules for codons
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version 2015-06-11: v.1.2.1 release
-version 2015-12-31: updates to Lineage-specific test
-version 2016-01-04: added gff-less mode for GroupUniqueAlleleWindows
-version 2016-01-12: added outgroup and allspeciestree options to GUAW
-@version 2016-08-02: Python3 conversion
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,15 +40,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-import re
-from random import randint
-from itertools import combinations
-from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, Counter
-from mvfbiolib import HAPSPLIT, FULL_CODON_TABLE, AMBIGSTOPS
-from mvfpaml import paml_branchsite, paml_pwcalc_dnds
 
 
 def parse_gff(gffpath):
@@ -86,12 +81,12 @@ def parse_dndsfile(dndsfile):
 def frac(numer, denom):
     """Calculates fraction safely (returns zero for zero denominator).
     """
-    return denom and float(numer) / float(denom) or 0.
+    return float(numer) / float(denom) if denom != 0 else 0.
 
 
 def pi_diversity(seq):
     """Calculate Pi sequence diversity"""
-    seq = ''.join([HAPSPLIT[x] for x in seq])
+    seq = ''.join([MLIB.splitbases[x] for x in seq])
     base_count = [seq.count(x) for x in 'ATGC']
     total = float(sum(base_count))
     if not total:
@@ -120,12 +115,15 @@ def hapgroup(group):
         else:
             for frame in (0, 1, 2):
                 if codon[frame] in 'RYWKMS':
-                    new_group.update((''.join([''.join(codon[0:frame]),
-                                               HAPSPLIT[codon[frame]][0],
-                                               ''.join(codon[frame+1:3])]),
-                                      ''.join([''.join(codon[0:frame]),
-                                               HAPSPLIT[codon[frame]][1],
-                                               ''.join(codon[frame+1:3])]),))
+                    new_group.update((
+                        ''.join([
+                            ''.join(codon[0:frame]),
+                            MLIB.splitbases[codon[frame]][0],
+                            ''.join(codon[frame+1:3])]),
+                        ''.join([
+                            ''.join(codon[0:frame]),
+                            MLIB.splitbases[codon[frame]][1],
+                            ''.join(codon[frame+1:3])]),))
                     break
     return new_group
 
@@ -280,7 +278,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
             proteins = allelesets[0]
             codons = allelesets[1:4]
             if len(proteins) == 1 and all(len(x) == 1 for x in codons):
-                if proteins == '*' or ''.join(codons) in AMBIGSTOPS:
+                if proteins == '*' or ''.join(codons) in MLIB.stop_codons:
                     continue
                 counts.add('total_codons')
                 totals.add('total_codons')
@@ -314,7 +312,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                 continue
             xcodons = [mvf.decode(x) for x in codons]
             codons = [''.join(x) for x in zip(*xcodons)]
-            if any(codons[x] in AMBIGSTOPS for x in allsets):
+            if any(codons[x] in MLIB.stop_codons for x in allsets):
                 continue
             if any(any(x != species_groups[0][0] for x in y)
                     for y in species_groups):
@@ -351,9 +349,10 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                     codon_groups[i] = hapgroup(codon_groups[i])
             if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                    combinations(codon_groups, 2)):
-                protein_groups = [set([FULL_CODON_TABLE[''.join(x)]
-                                       for x in codon_groups[i]])
-                                  for i in range(len(codon_groups))]
+                protein_groups = [set(
+                    [MLIB.codon_tables['full'][''.join(x)]
+                     for x in codon_groups[i]])
+                     for i in range(len(codon_groups))]
                 if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                        combinations(protein_groups, 2)):
                     nonsyn_change = True
@@ -507,7 +506,7 @@ class PairwiseDNDS(AnalysisModule):
             proteins = allelesets[0]
             codons = allelesets[1:4]
             if len(proteins) == 1 and all(len(x) == 1 for x in codons):
-                if proteins == '*' or ''.join(codons) in AMBIGSTOPS:
+                if proteins == '*' or ''.join(codons) in MLIB.stop_codons:
                     continue
                 counts.add('total_codons')
                 totals.add('total_codons')
@@ -541,7 +540,7 @@ class PairwiseDNDS(AnalysisModule):
                 continue
             xcodons = [mvf.decode(x) for x in codons]
             codons = [''.join(x) for x in zip(*xcodons)]
-            if any(codons[x] in AMBIGSTOPS for x in allsets):
+            if any(codons[x] in MLIB.stop_codons for x in allsets):
                 continue
             if any(any(x != species_groups[0][0] for x in y)
                     for y in species_groups):
@@ -578,9 +577,10 @@ class PairwiseDNDS(AnalysisModule):
                     codon_groups[i] = hapgroup(codon_groups[i])
             if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                    combinations(codon_groups, 2)):
-                protein_groups = [set([FULL_CODON_TABLE[''.join(x)]
-                                       for x in codon_groups[i]])
-                                  for i in range(len(codon_groups))]
+                protein_groups = [set(
+                    [MLIB.codon_table['full'][''.join(x)]
+                     for x in codon_groups[i]])
+                     for i in range(len(codon_groups))]
                 if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                        combinations(protein_groups, 2)):
                     nonsyn_change = True
@@ -662,12 +662,12 @@ class PiDiversityWindow(AnalysisModule):
                     self.params['windowsize'] != -1 and
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = {
-                    'pi': nsites and pidiff / float(nsites + 1) or 0,
+                    'pi': pidiff / float(nsites + 1) if nsites > 0 else 0,
                     'pinumer': pidiff,
                     'nsites': nsites,
-                    'contig': (self.params['uselabels'] and
-                               mvf.get_contig_label(current_contig) or
-                               current_contig),
+                    'contig': (mvf.get_contig_label(current_contig)
+                               if self.params['uselabels'] is True
+                               else current_contig),
                     'position': current_position}
                 if contig != current_contig:
                     current_contig = contig[:]
@@ -837,8 +837,8 @@ class PairwiseNS(AnalysisModule):
                             if codons[pos][i] != codons[pos][j]:
                                 synonchange = True
                                 break
-                        elif (HAPSPLIT[codons[pos][i]][randint(0, 1)] !=
-                              HAPSPLIT[codons[pos][j]][randint(0, 1)]):
+                        elif (MLIB.splitbases[codons[pos][i]][randint(0, 1)] !=
+                              MLIB.splitbases[codons[pos][j]][randint(0, 1)]):
                             synonchange = True
                             break
                     if synonchange:
@@ -871,9 +871,12 @@ def modulehelp(modulenames=MODULENAMES):
     return ''
 
 
-def main(arguments=sys.argv[1:]):
-    """Main MVF Analysis"""
-    parser = argparse.ArgumentParser(description="")
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_analyze_codon.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
     parser.add_argument("module", choices=MODULENAMES)
     parser.add_argument("--mvf", help="input MVF file")
     parser.add_argument("--out", help="output file")
@@ -926,10 +929,13 @@ def main(arguments=sys.argv[1:]):
                                 to the basic patterns scan""")
     parser.add_argument("-v", "--version",
                         help="display version information")
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = arguments if arguments is not None else sys.argv[1:]
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2016-01-04")
-        sys.exit()
     # HELP MENU
     if args.morehelp:
         modulehelp(MODULENAMES)

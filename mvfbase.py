@@ -65,10 +65,6 @@ def interpret_param(string):
                 return string
 
 
-def abpattern(num, digits=0):
-    return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
-
-
 # FASTA FILE HANDLER
 def fasta_iter(fasta_name):
     """
@@ -483,11 +479,11 @@ def encode_mvfstring(alleles):
     elif alleles[1:].count(alleles[1]) == len(alleles) - 2:
         pos = [(j, x) for j, x in enumerate(alleles[1:]) if x != alleles[1]]
         alleles = "{}{}+{}{}".format(
-            alleles[0], alleles[1] != '-' and alleles[1] or '',
+            alleles[0], alleles[1] if alleles[1] != '-' else '',
             pos[0][1], pos[0][0] + 1)
     elif all(x == alleles[2] for x in alleles[3:]):
         alleles = "{}{}+{}1".format(
-            alleles[0], alleles[2] != '-' and alleles[2] or '', alleles[1])
+            alleles[0], alleles[2] if alleles[2] != '-' else '', alleles[1])
     if denovo:
         return '@' + alleles
     return alleles
