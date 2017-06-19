@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-mvf_analyze_dna - DNA analysis modules
-MVFtools: Multisample Variant Format Toolkit
-James B. Pease and Ben K. Rosenzweig
-http://www.github.org/jbpease/mvftools
+This program analyzes a DNA MVF alignment using the modules specified below,
+use the --morehelp option for additional module information.
 """
 
 import sys
@@ -16,6 +14,10 @@ from mvfbiolib import MvfBioLib
 from time import time
 
 _LICENSE = """
+MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
+http://www.github.org/jbpease/mvftools
+
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -585,7 +587,7 @@ def generate_argparser():
 
 def main(arguments=None):
     """Main method"""
-    arguments = arguments if arguments is not None else sys.argv[1:]
+    arguments = sys.argv[1:] if arguments is None else arguments
     parser = generate_argparser()
     args = parser.parse_args(args=arguments)
     time0 = time()

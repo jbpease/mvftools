@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program filters an MVF alignment using the modules specified below,
+use the --morehelp option for additional module information.
+"""
+
+import os
+import sys
+import argparse
+from copy import deepcopy
+from itertools import combinations
+from time import time
+from mvfbase import MultiVariantFile, encode_mvfstring
+from mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,25 +27,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-mvf_filter: Testing for new Modules for Filtering/Transformation
-
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-16 Release
-version: 2015-06-09 Fixes and updates for 1.2.1
-version: 2015-09-04 Style fixes and upgrades
-version: 2015-12-31 Cleanup and header updates
-version: 2016-03-02 Added collapsemerge module and fixes for mincoverage and removelower
-@version: 2016-08-02 - Python3 conversion
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -50,15 +53,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 # For new modules, the preferred order of 'mvfenc' checks is:
 # full, invar, onecov, onevar, refvar
 # (descending order of most common frequency)
-
-
-import sys
-import argparse
-from copy import deepcopy
-from itertools import combinations
-from time import time
-from mvfbase import MultiVariantFile, encode_mvfstring
-from mvfbiolib import merge_bases
 
 
 def get_linetype(alleles):
@@ -145,7 +139,7 @@ def make_module(modulename, ncol, optargs=None):
                     entry = entry[0:2]
                 return entry
             elif mvfenc == 'refvar':
-                if 0 in optargs[0] and optargs[0][0] is not 0:
+                if 0 in optargs[0] and optargs[0][0] != 0:
                     return entry[1]
                 elif optargs[0][0] == 0 and len(optargs[0]) == ncol:
                     return entry[0]
@@ -159,7 +153,7 @@ def make_module(modulename, ncol, optargs=None):
             """Samples merged completely, uses ambiguity codes
                for heterozygous alleles"""
             if mvfenc == 'full':
-                newbase = merge_bases([entry[x] for x in optargs[0]])
+                newbase = MLIB.merge_bases([entry[x] for x in optargs[0]])
                 return ''.join([(j == optargs[0][0] and newbase) or
                                (j not in optargs[0] and entry[j]) or
                                 '' for j in range(len(entry))])
@@ -176,22 +170,24 @@ def make_module(modulename, ncol, optargs=None):
                 if optargs[0][0] == 0:
                     if num in optargs[0]:
                         if len(optargs[0]) > 2:
-                            entry = "{}{}".format(merge_bases([
+                            entry = "{}{}".format(MLIB.merge_bases([
                                 entry[0], entry[1], entry[3]]), entry[1])
                         else:
-                            entry = "{}{}".format(merge_bases([
+                            entry = "{}{}".format(MLIB.merge_bases([
                                 entry[0], entry[1]]), entry[2:])
                 elif optargs[0][0] == num:
                     entry = "{}{}{}".format(
-                        entry[0:3], merge_bases([entry[1], entry[3]]), num)
+                        entry[0:3], MLIB.merge_bases([entry[1], entry[3]]),
+                        num)
                 elif num in optargs:
                     entry = "{}{}{}".format(
-                        entry[0:3], merge_bases([entry[1], entry[3]]),
+                        entry[0:3], MLIB.merge_bases([entry[1], entry[3]]),
                         optargs[0][0])
                 return entry
             elif mvfenc == 'refvar':
                 if optargs[0][0] == 0:
-                    return "{}{}".format(merge_bases(entry[0:2]), entry[1])
+                    return "{}{}".format(MLIB.merge_bases(entry[0:2]),
+                                         entry[1])
                 return entry
 
     # COLUMNS
@@ -547,6 +543,7 @@ def make_module(modulename, ncol, optargs=None):
 
 # END OF MODULE DEFINITION
 
+
 MODULENAMES = ['allelegroup', 'collapsemerge', 'collapsepriority',
                'columns', 'maskchar', 'masklower', 'mincoverage',
                'notchar', 'promotelower', 'removechar', 'removelower',
@@ -562,7 +559,6 @@ def modulehelp():
         modulename, modtype, module, _ = make_module(
             modulename, 0, optargs='')
         print("{}: {} ({})".format(modulename, module.__doc__, modtype))
-    sys.exit()
     return ''
 
 # HELP Generator
@@ -604,48 +600,55 @@ def build_actionset(moduleargs, ncol):
     return actionset
 
 
-def main(arguments=sys.argv[1:]):
-    """Main method for mvf_filter"""
-    parser = argparse.ArgumentParser(description="""
-        Filters and Transforms MVF files""")
-    parser.add_argument("--mvf", help="input MVF file")
-    parser.add_argument("--out", help="output MVF file")
-    parser.add_argument("--actions", nargs='*',
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_filter.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        help="Input MVF file.")
+    parser.add_argument("-o", "--out", type=os.path.abspath,
+                        help="Output MVF file")
+    parser.add_argument("-a", "--actions", nargs='*',
                         help=("set of actions:args to perform,"
                               " note these are done in order as listed"))
-    parser.add_argument("--labels", action="store_true",
+    parser.add_argument("-l", "--labels", action="store_true",
                         help="use sample labels instead of indices")
     parser.add_argument("--test", help="manually input a line for testing")
-    parser.add_argument("--testnchar", type=int,
+    parser.add_argument("--test-nchar", type=int,
                         help="total number of samples for test string")
-    parser.add_argument("--modulehelp", action="store_true",
+    parser.add_argument("--morehelp", action="store_true",
                         help="prints full module list and descriptions")
-    parser.add_argument("--linebuffer", type=int, default=100000,
+    parser.add_argument("-B", "--linebuffer", type=int, default=100000,
                         help="number of lines to write at once to MVF")
-    parser.add_argument("--verbose", action="store_true",
+    parser.add_argument("-V", "--verbose", action="store_true",
                         help="report every line (for debugging)")
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("--quiet", action="store_true",
+    parser.add_argument("-q", "--quiet", action="store_true",
                         help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("-v", "--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
-    args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2016-03-02")
-        sys.exit()
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
     time0 = time()
-    if args.modulehelp:
+    if args.morehelp is True:
         modulehelp()
-    if not args.mvf and not args.test:
+        sys.exit()
+    if args.mvf is None and args.test is None:
         raise RuntimeError("No input file specified with --mvf")
-    if not args.out and not args.test:
-        raise RuntimeError("No output file specified with --outs")
-    if not args.actions:
-        raise RuntimeError("No --actions specified!")
+    if args.out is None and args.test is None:
+        raise RuntimeError("No output file specified with --out")
     # Establish Input MVF
-    if args.test:
+    if args.test is not None:
         ncol = args.testnchar or len(args.test)
     else:
         mvf = MultiVariantFile(args.mvf, 'read')
@@ -704,7 +707,7 @@ def main(arguments=sys.argv[1:]):
                     break
                 else:
                     sys.stdout.write("Location Pass\n")
-        if not linefail:
+        if linefail is False:
             if transformed:
                 if linetype == 'full':
                     alleles = encode_mvfstring(alleles)
@@ -760,7 +763,7 @@ def main(arguments=sys.argv[1:]):
         linetype = get_linetype(alleles)
         if linetype == 'empty':
             continue
-        if args.verbose:
+        if args.verbose is True:
             sys.stdout.write(" {} {}".format(alleles, linetype))
         for actionname, actiontype, actionfunc, actionargs in actionset:
             if actiontype == 'filter':
@@ -777,13 +780,13 @@ def main(arguments=sys.argv[1:]):
                     linefail = True
             if linefail:
                 break
-        if not linefail:
+        if linefail is False:
             if transformed:
                 if linetype == 'full':
                     alleles = mvf.encode(alleles)
                 if not alleles:
                     linefail = True
-        if not linefail:
+        if linefail is False:
             nbuffer += 1
             linebuffer.append((chrom, pos, (alleles,)))
             if args.verbose:
@@ -797,9 +800,10 @@ def main(arguments=sys.argv[1:]):
     if linebuffer:
         outmvf.write_entries(linebuffer)
         linebuffer = []
-    if not args.quiet:
+    if args.quiet is False:
         print("Completed in {} seconds".format(time() - time0))
     return ''
+
 
 if __name__ == "__main__":
     main()

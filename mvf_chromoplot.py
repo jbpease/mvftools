@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
+This program creates a chromoplot from an MVF alignment.
+A chromoplot shows a genome-wide diagram of different
+evolutionary histories for a given quartet of taxa.
+"""
 
+import os
+import sys
+import argparse
+from itertools import combinations
+from mvfbase import MultiVariantFile
+from scipy.stats import chi2
+
+_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
-
-mvf_chromoplot: Chromoplot generator from Mulitsample Variant Format files
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-version: 2015-09-04 - Cleanup and style fixes
-version: 2015-12-22 - Bug fixes to contig labels
-version: 2015-12-31 - Header updates
-@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -28,7 +27,6 @@ MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,12 +35,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-from itertools import combinations
-from mvfbase import MultiVariantFile
-from scipy.stats import chi2
 
 
 class Counter(dict):
@@ -87,7 +79,9 @@ class Pallette(object):
             'blue': (0, 0, 192), 'teal': (27, 158, 119),
             'puce': (117, 112, 179), 'purple': (192, 0, 192),
             'none': ()}
-        self.basecolors = basecolors or ['puce', 'orange', 'teal']
+        self.basecolors = (basecolors
+                           if basecolors is not None
+                           else ['puce', 'orange', 'teal'])
 
     def color_str(self, color):
         """Return ASCII color codes for numerical trio"""
@@ -98,7 +92,7 @@ class Pallette(object):
 
     def solid_colortracks(self, values, infotrack=False):
         """Majority single-color tracks"""
-        ret = [(x and self.color_str(self.basecolors[j]) or (
+        ret = [(self.color_str(self.basecolors[j]) if x > 0 else (
             self.color_str('white'))) for j, x in enumerate(values)] + ([
                 self.color_str('dgrey')] * infotrack)
         return ret
@@ -109,10 +103,10 @@ class Pallette(object):
         if not values or not total:
             colortracks = [self.color_str('white')]*(3 + int(infotrack))
         else:
-            colortracks = [tuple([int(255 - ((255 - x) * (values[j]/total)))
-                                  for x in self.colornames[self.basecolors[j]]] +
-                                      [255])
-                           for j in range(len(values))]
+            colortracks = [
+                tuple([int(255 - ((255 - x) * (values[j]/total)))
+                       for x in self.colornames[self.basecolors[j]]] + [255])
+                for j in range(len(values))]
             if infotrack:
                 colortracks.append(self.color_str('dgrey'))
         return colortracks
@@ -214,7 +208,6 @@ class Chromoplot(object):
                 if total:
                     values = [float(x) / total for x in values]
         return majority_count, values
-
 
     def plot_chromoplot(self):
         """Make Chromoplot for count-based trio"""
@@ -320,9 +313,8 @@ class Chromoplot(object):
                         'ambiguous', 'nonpolar', 'triallelic',
                         'gap', 12, 6, 10]] +
                     [leftcount, rightcount, total_ab, dval, pval] +
-                    [total_ab and
-                     round(float(window_codes.get(x, 0))/total_ab, 3) or
-                     0 for x in [6, 10, 12]] +
+                    [(round(float(window_codes.get(x, 0))/total_ab, 3)
+                      if total_ab > 0 else 0) for x in [6, 10, 12]] +
                     [d_order]
                     ])))
         return ''
@@ -351,7 +343,7 @@ class Chromoplot(object):
                  'BBAA', 'ABBA', 'BABA', 'Dleft', 'Dright',
                  'Dsites', 'Dstat', 'Pvalue',
                  'pBBAA', 'pABBA', 'pBABA', 'Dorder'
-                ])))
+                 ])))
             for contig in contigorder:
                 counts = self.counts[contig]
                 total = float(sum([counts.get(x, 0) for x in [
@@ -378,9 +370,9 @@ class Chromoplot(object):
                         'ambiguous', 'nonpolar', 'triallelic', 'gap',
                         12, 6, 10]] +
                     [leftcount, rightcount, total_ab, dval, pval] +
-                    [total_ab and round(float(counts.get(x, 0))/total_ab, 3) or
-                     0 for x in [6, 10, 12]] +
-                    [d_order]
+                    [(round(float(counts.get(x, 0))/total_ab, 3)
+                      if total_ab > 0 else 0)
+                     for x in [6, 10, 12]] + [d_order]
                     ])))
         return ''
 
@@ -388,8 +380,8 @@ class Chromoplot(object):
 def dcalc(abba, baba):
     """Calculate the D-statistic and Chi2 P-value
     """
-    dval = abba + baba and (float(abba - baba)/(abba + baba)) or 0
-    pval = abba + baba and chi2_test(abba, baba)[1] or 1
+    dval = (float(abba - baba)/(abba + baba)) if abba + baba > 0 else 0
+    pval = chi2_test(abba, baba)[1] if abba + baba > 0 else 1
     return dval, pval
 
 
@@ -398,7 +390,7 @@ def chi2_test(val0, val1):
     """
     try:
         chisq = float((val0 - val1)**2) / float(val0 + val1)
-        if not chisq:
+        if chisq == 0:
             return (0, 1)
         pval = 1.0 - chi2.cdf(chisq, 1)
         return (chisq, pval)
@@ -435,6 +427,7 @@ def write_png(filepath, buf, width, height):
                                 (height - 1) * width * 4, -1, - width_byte_4))
         print(len(raw_data))
         print(width, height, width * height)
+
         def png_pack(png_tag, data):
             """PNG packaging"""
             chunk_head = png_tag + data
@@ -448,48 +441,62 @@ def write_png(filepath, buf, width, height):
                                 png_pack(b'IEND', b'')]))
 
 
-def main(arguments=sys.argv[1:]):
-    """Main MVF Chromoplot method"""
+def generate_argparser():
     pallette = Pallette()
-    parser = argparse.ArgumentParser(description="""
-    Makes chromoplots from MVF format""")
-    parser.add_argument("--mvf", help="Input MVF file", required=True)
-    parser.add_argument("--outprefix", help="output prefix (not required)")
-    parser.add_argument("--samples", nargs='*', required=True,
+    parser = argparse.ArgumentParser(
+        prog="mvf_chromoplot.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("--mvf", help="Input MVF file.", required=True,
+                        type=os.path.abspath)
+    parser.add_argument("-o", "--outprefix",
+                        help="Output prefix (not required).")
+    parser.add_argument("-s", "--samples", nargs='*', required=True,
                         help="3 or more taxa to use for quartets")
-    parser.add_argument("--outgroup", nargs='*', required=True,
+    parser.add_argument("-o", "--outgroup", nargs='*', required=True,
                         help="1 or more outgroups to use for quartets")
-    parser.add_argument("--windowsize", type=int, default=100000)
-    parser.add_argument("--contigs", nargs='*',
-                        help="""order of contigs/chromosomes
-                                defaults to order present in MVF
-                                """)
-    parser.add_argument("--majority", action="store_true",
-                        help="call majority pattern in each window")
-    parser.add_argument("--infotrack", action="store_true",
-                        help="""additional coverage information track
-                                on the bottom""")
-    parser.add_argument("--emptymask", choices=pallette.colornames,
+    parser.add_argument("-w", "--windowsize", type=int, default=100000)
+    parser.add_argument("-c", "--contigs", nargs='*',
+                        help=("Enter the ids of one or more contigs in the "
+                              "order they will appear in the chromoplot. "
+                              "(defaults to all ids in order present in MVF)"))
+    parser.add_argument("-M", "--majority", action="store_true",
+                        help=("Plot only 100% shading in the majority track "
+                              " rather than shaded proportions in all "
+                              "tracks."))
+    parser.add_argument("-I", "--infotrack", action="store_true",
+                        help=("Include an additional coverage information "
+                              "track that will show empty, uninformative, "
+                              "and informative loci. (Useful for "
+                              "ranscriptomes/RAD or other reduced sampling."))
+    parser.add_argument("-E", "--emptymask", choices=pallette.colornames,
                         default="none",
-                        help="mask empty regions with color (default=none)")
-    parser.add_argument("--yscale", default=20, type=int,
-                        help="number of pixels tall for each track")
-    parser.add_argument("--xscale", default=1, type=int,
-                        help="number of pixels wide for each window")
-    parser.add_argument("--colors", nargs=3, choices=pallette.colornames,
+                        help="Mask empty regions with this color.")
+    parser.add_argument("-y", "--yscale", default=20, type=int,
+                        help="Height (in number of pixels) for each track")
+    parser.add_argument("-x", "--xscale", default=1, type=int,
+                        help="Width (in number of pixels) for each window")
+    parser.add_argument("-C", "--colors", nargs=3, choices=pallette.colornames,
                         help="three colors to use for chromoplot")
-    parser.add_argument("--quiet", "-q", action="store_true",
+    parser.add_argument("-q", "--quiet", action="store_true",
                         help="suppress all output messages")
-    parser.add_argument("--plottype", choices=["graph", "image"],
+    parser.add_argument("-P", "--plottype", choices=["graph", "image"],
                         default="image",
-                        help="""PNG image or matplotlib plot
-                                ***graph is experimental still***""")
-    parser.add_argument("-v", "--version", action="store_true",
+                        help=("PNG image (default) "
+                              "or graph via matplotlib (experimental)"))
+    parser.add_argument("-v", "--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = arguments if arguments is not None else sys.argv[1:]
+    pallette = Pallette()
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2016-09-10")
-        sys.exit()
     if args.colors:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
@@ -526,7 +533,6 @@ def main(arguments=sys.argv[1:]):
         if contig_found:
             continue
         raise RuntimeError(contigname, "not found in MVF contig ids or labels")
-
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
