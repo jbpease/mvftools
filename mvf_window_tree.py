@@ -1,50 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools
-
-If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
-"Encoding Data Using Biological Principles: the Multisample Variant Format
-for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
-http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-
-mvf_window_tree: RAxML trees from sequence regions encoded by MVF format
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-version: 2015-02-26 - Major Upgrade. Alignment preparation fixes and
-                      enhancements.  Added additional options for RAxML
-                      including custom temporary directories, rapid
-                      bootstrapping, and custom arguments to pass to RAxML.
-                      Fixes to post-processing and duplicate sequence
-                      handling.  Addition of whole-contig mode.
-version: 2015-06-09 - Major update to 1.2.1. Fixes polytomy issue, Python 3.x
-                      compatibility.
-version: 2015-09-04 - Cleanup and fixes
-version: 2015-12-31 - Updates to header information and minor fixes
-version: 2016-04-11 - Bug fix for RAxML interface
-@version: 2016-08-02 - Python3 conversion
-
-This file is part of MVFtools.
-
-MVFtools is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-MVFtools is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
-
-
+This program makes phylogenies from individual genomic windows of
+a DNA MVF alignment (Requires: BioPython).
 """
 
 import os
@@ -57,7 +15,36 @@ from io import StringIO
 from itertools import combinations
 from Bio import Phylo
 from mvfbase import MultiVariantFile
-from mvfbiolib import HAPSPLIT
+from mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
+
+
+_LICENSE = """
+MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
+http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2016.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+
+This file is part of MVFtools.
+
+MVFtools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+MVFtools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 
 class WindowData(object):
@@ -74,12 +61,12 @@ class WindowData(object):
         self.labels = window_params.get('labels', '')
         self.seqs = [[] for _ in range(len(self.labels))]
 
-    def append_alleles(self, alleles, minsitedepth=1):
+    def append_alleles(self, alleles, mindepth=1):
         """Add alleles to the window
             Arguments:
                 alleles: list of allele strings
         """
-        site_depth = minsitedepth + 0
+        site_depth = mindepth + 0
         i = 0
         while site_depth and i < len(alleles):
             if alleles[i] in 'AaTtGgCcUu':
@@ -107,7 +94,8 @@ class WindowData(object):
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
-                         'alignlength': self.seqs and len(self.seqs[0]) or 0,
+                         'alignlength': (
+                             len(self.seqs[0]) if len(self.seqs) > 0 else 0),
                          'aligndepth': len(self.seqs) or 0})
         # CHECK FOR OVERALL ALIGNMENT LENGTH
         if len(self.seqs[0]) < params.get('minsites', 0):
@@ -151,7 +139,7 @@ class WindowData(object):
                              'aligndepth': len(self.seqs) or 0})
         # CHECK AGAIN FOR EMPTY SITES
         self.remove_empty_sites()
-        if len(self.seqs[0]) < params.get('minsites', 0):
+        if len(self.seqs[0]) < params.get('dminsites', 0):
             return ('', {'status': 'short.proc',
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
@@ -169,7 +157,8 @@ class WindowData(object):
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
-                         'alignlength': self.seqs and len(self.seqs[0]) or 0,
+                         'alignlength': (
+                             len(self.seqs[0]) if len(self.seqs) > 0 else 0),
                          'aligndepth': len(self.seqs) or 0})
 
         # IF ALL OTHER CHECKS PASS, RETURN DUPLICATE LIST AND EMPTY ENTRY
@@ -435,17 +424,18 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
 def hapsplit(alleles, mode):
     """Process Alleles into Haplotypes"""
     if all([x not in 'RYMKWS' for x in alleles]):
-        return (mode in ['major', 'minor', 'randomone'] and alleles or
+        return (alleles if mode in ['major', 'minor', 'randomone'] else
                 ''.join([base*2 for base in alleles]))
     elif mode in ['major', 'minor', 'majorminor']:
-        hapleles = ''.join([HAPSPLIT[x] for x in alleles])
+        hapleles = ''.join([MLIB.hapsplit[x] for x in alleles])
         counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
                         reverse=True)
         order = [x[1] for x in counts]
         newalleles = []
         for base in alleles:
             if base in 'RYMKWS':
-                newalleles.extend([x for x in order if x in HAPSPLIT[base]])
+                newalleles.extend([
+                    x for x in order if x in MLIB.hapsplit[base]])
             else:
                 newalleles.extend([base, base])
         if mode is 'major':
@@ -455,89 +445,98 @@ def hapsplit(alleles, mode):
         elif mode is 'majorminor':
             alleles = ''.join([x for x in newalleles])
     elif mode is 'randomone':
-        alleles = ''.join([HAPSPLIT[x][randint(0, 1)] for x in alleles])
+        alleles = ''.join([MLIB.hapsplit[x][randint(0, 1)] for x in alleles])
     elif mode is 'randomboth':
         randx = randint(0, 1)
-        alleles = ''.join([HAPSPLIT[x][randx] + HAPSPLIT[x][1 - randx]
-                           for x in alleles])
+        alleles = ''.join([
+            MLIB.hapsplit[x][randx] + MLIB.hapsplit[x][1 - randx]
+            for x in alleles])
     return alleles
 
 
-def main(arguments=sys.argv[1:]):
-    """Main MVF Treemaker"""
-    parser = argparse.ArgumentParser(description="""
-    Process MVF into alignment""")
-    parser.add_argument("--mvf", help="inputmvf", required=True)
-    parser.add_argument("--out", help="tree list output file", required=True)
-    parser.add_argument("--samples", nargs='*',
-                        help="one or more taxon labels, default=all")
-    parser.add_argument("--raxml_outgroups", nargs="*",
-                        help="select outgroups to use in RAxML")
-    parser.add_argument("--rootwith", nargs='*',
-                        help="""root output trees with
-                                these taxa after RAxML""")
-    parser.add_argument("--contigs", nargs='*',
-                        help="choose one or more contigs, default=all")
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_windows_tree.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", required=True, type=os.path.abspath,
+                        help="Input MVF file.")
+    parser.add_argument("-o", "--out", required=True, type=os.path.abspath,
+                        help="Tree list output text file.")
+    parser.add_argument("-s", "--samples", nargs='*',
+                        help="One or more taxon labels (default=all)")
+    parser.add_argument("-g", "--raxml-outgroups", "--raxml_outgroups",
+                        nargs="*",
+                        help="Outgroups taxon labels to use in RAxML.")
+    parser.add_argument("-r", "--rootwith", nargs='*',
+                        help="Root output trees with these taxa after RAxML.")
+    parser.add_argument("-c", "--contigs", nargs='*',
+                        help="Contig ids to use in analysis (default=all)")
     parser.add_argument("--outputcontiglabels", action="store_true",
-                        help="output contig labels instead of ids")
-    parser.add_argument("--outputempty", action="store_true",
-                        help="output entries of windows with no data")
-    parser.add_argument("--hapmode", default="none",
+                        help=("Output will use contig labels instead of id "
+                              "numbers."))
+    parser.add_argument("-e", "--outputempty", action="store_true",
+                        help=("Include entries of windows with no data in "
+                              "output."))
+    parser.add_argument("-A", "--choose_allele", "--hapmode",
+                        default="none", dest="choose_allele",
                         choices=["none", "randomone", "randomboth",
                                  "major", "minor", "majorminor"],
-                        help="""haplotype splitting mode.
-                                'none' = no splitting;
-                                'randomone' = pick one allele randomly
-                                              (recommended);
-                                'randomboth = pick alleles randomly,
-                                              keep both;
-                                'major' = pick the more common allele;
-                                'minor' = pick the less common allele;
-                                'majorminor' = put the major in 'a' and
-                                               minor in 'b'
-                            """)
-    parser.add_argument("--windowsize", type=int, default=10000,
-                        help="""specify genomic region size,
-                                or use -1 for whole contig""")
-    parser.add_argument("--minsites", type=int, default=100,
-                        help="""minimum number of sites [100]""")
-    parser.add_argument("--minsitedepth", type=int, default=1,
-                        help="""mininum depth of sites to use in alignment
-                                [1]""")
-    parser.add_argument("--minseqcoverage", type=float, default=0.1,
+                        help=("Chooses how heterozygous alleles are "
+                              "handled. (none=no splitting (default); "
+                              "randomone=pick one allele randomly "
+                              "(recommended); randomboth=pick two alleles "
+                              "randomly, but keep both; major=pick the "
+                              "more common allele; minor=pick the less "
+                              "common allele; majorminor= pick the major in "
+                              "'a' and minor in 'b'"))
+    parser.add_argument("-w", "--windowsize", type=int, default=10000,
+                        help=("specify genomic region size, "
+                              "or use -1 for whole contig"))
+    parser.add_argument("-M", "--minsites", type=int, default=100,
+                        help="minimum number of sites ")
+    parser.add_argument("-C", "--minseqcoverage", type=float, default=0.1,
                         help="""proportion of total alignment a sequence
                                 must cover to be retianed [0.1]""")
-    parser.add_argument("--mindepth", type=int, default=4,
-                        help="""minimum number of sequences [4]""")
-    parser.add_argument("--bootstrap", type=int,
-                        help="""turn on rapid bootstrapping for RAxML and
-                             perform specified number of replicates""")
-    parser.add_argument("--raxml_model", default="GTRGAMMA",
-                        help="""choose custom RAxML model [GTRGAMMA]""")
-    parser.add_argument("--raxmlpath", default="raxml",
-                        help="manually specify RAxML path")
-    parser.add_argument("--raxmlopts", default="",
-                        help="specify additional RAxML arguments")
-    parser.add_argument("--duplicateseq", default="dontuse",
+    parser.add_argument("-D", "--mindepth", type=int, default=4,
+                        help=("minimum number of alleles per site"))
+    parser.add_argument("-b", "--bootstrap", type=int,
+                        help=("turn on rapid bootstrapping for RAxML and "
+                              "perform specified number of replicates"))
+    parser.add_argument("-m", "--raxml_model", default="GTRGAMMA",
+                        help=("choose RAxML model"))
+    parser.add_argument("-X", "--raxmlpath", default="raxml",
+                        help="RAxML path for manual specification.")
+    parser.add_argument("-R", "--raxmlopts", default="",
+                        help=("specify additional RAxML arguments as a "
+                              "double-quotes encased string"))
+    parser.add_argument("-d", "--duplicateseq", default="dontuse",
                         choices=["dontuse", "keep", "remove"],
-                        help="""[dontuse] remove for tree making,
-                                replace as zero-branch-length sister taxa;
-                                keep=keep in for tree making,
-                                may cause errors for RAxML;
-                                remove=remove entirely from alignment""")
-    parser.add_argument("--tempdir", default='raxmltemp',
-                        help="""temporary dir. location default=./tempdir""")
+                        help=("dontuse=remove duplicate sequences prior to "
+                              "RAxML tree inference, then add them to the "
+                              "tree manually as zero-branch-length sister "
+                              "taxa; keep=keep in for RAxML tree inference "
+                              "(may cause errors for RAxML); "
+                              "remove=remove entirely from alignment"))
+    parser.add_argument("--tempdir", default='./raxmltemp',
+                        type=os.path.abspath,
+                        help=("Temporary directory path"))
     parser.add_argument("--tempprefix", default="mvftree",
-                        help="""temporary file prefix, default=mvftree""")
+                        help="Temporary file prefix")
     parser.add_argument("--quiet", action="store_true",
                         help="suppress screen output")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
 
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2015-04-11")
-        sys.exit()
     # ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []
     mvf = MultiVariantFile(args.mvf, 'read')
@@ -548,14 +547,11 @@ def main(arguments=sys.argv[1:]):
                                    'alignlength', 'aligndepth', 'status'])
     topofile = OutputFile(args.out + '.counts',
                           headers=['rank', 'topology', 'count'])
-    sample_cols = args.samples and mvf.get_sample_indices(args.samples) or None
-    if args.tempdir:
-        tmpdir = os.path.abspath(args.tempdir)
-    else:
-        tmpdir = os.path.abspath('./raxmltemp')
-    if not os.path.exists(tmpdir):
-        os.mkdir(tmpdir)
-    os.chdir(tmpdir)
+    sample_cols = (None if args.samples is None else
+                   mvf.get_sample_indices(args.samples))
+    if not os.path.exists(args.tempdir):
+        os.mkdir(args.tempdir)
+    os.chdir(args.tempdir)
     # SETUP PARAMS
     main_labels = mvf.get_sample_labels(sample_cols)
     if args.hapmode in ['randomboth', 'majorminor']:
@@ -572,7 +568,7 @@ def main(arguments=sys.argv[1:]):
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
               'hapmode': args.hapmode,
-              'tempdir': tmpdir,
+              'tempdir': args.tempdir,
               'tempprefix': args.tempprefix}
     # WINDOW START INTERATION
     verify_raxml(params)
@@ -608,14 +604,14 @@ def main(arguments=sys.argv[1:]):
                 'contigname': (args.outputcontiglabels and
                                mvf.get_contig_label(current_contig) or
                                current_contig[:]),
-                "windowstart": (args.windowsize is -1 and '-1' or
-                                window_start + 0),
+                "windowstart": ('-1' if args.windowsize == -1
+                                else window_start + 0),
                 "windowsize": args.windowsize,
                 "labels": main_labels[:]})
         # ADD ALLELES
         if args.hapmode is not 'none':
             allelesets[0] = hapsplit(allelesets[0], args.hapmode)
-        window.append_alleles(allelesets[0], minsitedepth=args.minsitedepth)
+        window.append_alleles(allelesets[0], mindepth=args.mindepth)
     # LAST LOOP
     if window:
         entry = window.maketree_raxml(params)
@@ -626,7 +622,8 @@ def main(arguments=sys.argv[1:]):
             topo = entry["topology"]
             topo_counts[topo] = topo_counts.get(topo, 0) + 1
             if topo not in topo_ids:
-                topo_ids[topo] = (topo_ids and max(topo_ids.values()) + 1 or 0)
+                topo_ids[topo] = (
+                    max(topo_ids.values()) + 1 if topo_ids else 0)
             entry["topoid"] = topo_ids[topo]
             treefile.write_entry(entry)
         window = None

@@ -5,6 +5,7 @@ This program analyzes a DNA MVF alignment using the modules specified below,
 use the --morehelp option for additional module information.
 """
 
+import os
 import sys
 import argparse
 from random import randint
@@ -563,23 +564,28 @@ def generate_argparser():
         epilog=_LICENSE)
     parser.add_argument("module", choices=MODULENAMES,
                         help="analysis module to run")
-    parser.add_argument("--mvf", help="input MVF file")
-    parser.add_argument("--out", help="output file")
-    parser.add_argument("--contigs", nargs='*',
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        required=True,
+                        help="Input MVF file.")
+    parser.add_argument("-o", "--out", help="output file", required=True,
+                        type=os.path.abspath)
+    parser.add_argument("-c", "--contigs", nargs='*',
                         help="limit analyses to these contigs")
-    parser.add_argument("--samples", nargs='*',
+    parser.add_argument("-s", "--samples", nargs='*',
                         help="limit analyses to these samples")
-    parser.add_argument("--mincoverage", type=int,
+    parser.add_argument("-m", "--mincoverage", type=int,
                         help="mininum sample coverage for site")
-    parser.add_argument("--windowsize", type=int, default=100000,
+    parser.add_argument("-w", "--windowsize", type=int, default=100000,
                         help="""window size""")
-    parser.add_argument("--basematch", help=(
-        "[BaseCountWindow] string of bases to match (i.e. numerator)."))
-    parser.add_argument("--basetotal", help=(
-        "[BaseCountWindow] string of bases for total (i.e. denominator)"))
+    parser.add_argument("--base-match",
+                        help=("[BaseCountWindow] string of "
+                              "bases to match (i.e. numerator)."))
+    parser.add_argument("--base-total",
+                        help=("[BaseCountWindow] string of bases "
+                              "for total (i.e. denominator)."))
     parser.add_argument("--morehelp", action="store_true",
                         help="get additional information on modules")
-    parser.add_argument("-v", "--version", action="version",
+    parser.add_argument("--version", action="version",
                         version="2017-06-14",
                         help="display version information")
     return parser
