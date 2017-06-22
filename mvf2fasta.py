@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program takes an MVF file and converts the data to a FASTA file
+"""
+
+import sys
+import argparse
+import os
+from random import randint
+from mvfbase import MultiVariantFile, is_int
+
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,23 +23,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MVF2FASTA: Convert MVF file to a FASTA file
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-version: 2015-09-04 - Cleanup
-version: 2015-12-31 - New headers and cleanup
-version: 2016-03-15 - Major refurbish, changes to args
-version: 2016-08-02 - Python3 conversion
-@version: 2016-10-25 - Minor fixes to regions lookup
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,12 +37,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-import os
-from random import randint
-from mvfbase import MultiVariantFile, is_int
 
 
 def parse_regions_arg(regionfilepath, contigs):
@@ -89,10 +84,10 @@ def parse_regions_arg(regionfilepath, contigs):
             region_max_coord[contigid] = maxcoord + 0
     regionlabel = ','.join(["{}:{}{}{}{}".format(
         contigs[x[0]]['label'],
-        x[1] != -1 and x[1] or '',
-        x[2] != -1 and '..' or '',
-        x[2] != -1 and x[2] or '',
-        x[2] != -1 and "({})".format(x[3]) or ''
+        "" if x[1] == -1 else x[1],
+        "" if x[2] == -1 else '..',
+        "" if x[2] == -1 else x[2],
+        "" if x[2] == -1 else "({})".format(x[3])
         ) for x in fmt_regions])
     return fmt_regions, region_max_coord, regionlabel
 
@@ -176,7 +171,7 @@ def main(arguments=None):
                     args.outdata == 'prot'):
                 tmp_files[label].write(allelesets[0][col])
             elif flavor == 'codon' and args.outdata == 'dna':
-                codon = [allelesets[x][col] == 'X' and 'N' or
+                codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
     with open(args.out, 'w') as outfile:

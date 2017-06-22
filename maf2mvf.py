@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program analyzes a DNA MVF alignment using the modules specified below,
+use the --morehelp option for additional module information.
+"""
+
+import os
+import sys
+import argparse
+import gzip
+import re
+from mvfbase import encode_mvfstring, MultiVariantFile
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,21 +24,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MAF2MVF: MAF to MVF conversion program
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-09-04
-version: 2015-12-31 - Updates to header and cleanup
-@version: 2016-08-02 - Python3 conversion
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -35,12 +39,6 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-import sys
-import argparse
-import gzip
-import re
-from mvfbase import encode_mvfstring, MultiVariantFile
 
 # TODO: handle multiple contigs in same file - default 's SAMPLE.CONTIG START LENGTH etc...', allow user to specify alternate formats
 # TODO: filter alignment blocks by score (i.e. reject all blocks below score X)
@@ -131,40 +129,51 @@ class MultiAlignFile(object):
         return "", None
 
 
-def main(arguments=sys.argv[1:]):
-    """Main method for maf2mvf"""
-    parser = argparse.ArgumentParser(description="""
-    Converts Multiple Alignment Files to MVF file with some filters """)
-    parser.add_argument("--maf", help="input MAF file", required=True)
-    parser.add_argument("--out", help="output MVF file", required=True)
-    parser.add_argument("--reftag", help="old reference tag")
-    parser.add_argument("--mvfreflabel", default="REF",
-                        help="new label for reference sample (default='REF')")
-    parser.add_argument("--contigids", nargs='*',
-                        help=("manually specify one or more contig ids"
-                              " as ID:NAME"))
-    parser.add_argument("--sampletags", nargs="*",
-                        help="""one or more TAG:NEWLABEL or TAG, items,
-                                if TAG found in sample label, replace with
-                                NEW (or TAG if NEW not specified)
-                                NEW and TAG must each be unique""")
-    parser.add_argument("--linebuffer", type=int, default=100000,
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="maf2mvf.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--maf", help="input MAF file",
+                        required=True, type=os.path.abspath,)
+    parser.add_argument("-o", "--out", help="output MVF file",
+                        type=os.path.abspath, required=True)
+    parser.add_argument("-R", "--ref-tag", "--reftag",
+                        help="old reference tag")
+    parser.add_argument("-M", "--mvf-ref-label", "--mvfreflabel",
+                        default="REF",
+                        help=("new label for reference sample "
+                              "(default='REF')"))
+    parser.add_argument("-s", "--sample-tags", "--sampletags", nargs="*",
+                        help=("one or more TAG:NEWLABEL or TAG, items, "
+                              "if TAG found in sample label, replace with "
+                              "NEW (or TAG if NEW not specified) "
+                              "NEW and TAG must each be unique."))
+    parser.add_argument("-B", "--line-buffer", "--linebuffer",
+                        type=int, default=100000,
                         help="number of lines to hold in read/write buffer")
     parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("-v", "--version", help="display version information")
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
+                        help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2015-12-31")
-        sys.exit()
     # ESTABLISH MAF
     maf = MultiAlignFile(args)
     # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS SAMPLE INFO
     contig_translate = {1: 1}
-    samplelabels = [s.split(':')[0] for s in args.sampletags]
-    samplelabels.remove(args.reftag)
-    samplelabels.insert(0, args.reftag)
+    samplelabels = [s.split(':')[0] for s in args.sample_tags]
+    samplelabels.remove(args.ref_tag)
+    samplelabels.insert(0, args.ref_tag)
     mvf.metadata['labels'] = samplelabels[:]
     for i, label in enumerate(samplelabels):
         mvf.metadata['samples'][i] = {'label': label}
@@ -187,13 +196,12 @@ def main(arguments=sys.argv[1:]):
                     (contig_translate.get(msa['contig']),
                      pos+i, (mvf_alleles,)))
                 nentry += 1
-                if nentry == args.linebuffer:
+                if nentry == args.line_buffer:
                     mvf.write_entries(mvfentries, encoded=True)
                     mvfentries = []
                     nentry = 0
     if mvfentries:
         mvf.write_entries(mvfentries)
-
     return ''
 
 

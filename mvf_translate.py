@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program translates a DNA MVF file into a codon or protein MVF file
+using a GFF3 annotation file.
+"""
+
+import os
+import sys
+import argparse
+import re
+from copy import deepcopy
+from mvfbase import MultiVariantFile
+from mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,22 +26,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MVF_translate: Translate MVF dna to protein or codon format
-@author: James B. Pease
-
-version: 2015-02-05 - MVF1.2 update
-version: 2015-09-04 - minor fixes and style cleanup
-version: 2015-12-31 - updates to header and minor fixes
-version: 2016-01-01 - added GFF-less mode for de novo alignments
-@version: 2016-08-02 - Python3 conversion
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -35,14 +40,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-import re
-from copy import deepcopy
-from mvfbase import MultiVariantFile
-from mvfbiolib import FULL_CODON_TABLE, COMPCODE
-
 
 PARENTGENE = re.compile("Parent=mRNA:(.*?);")
 
@@ -59,7 +56,7 @@ def crop_to_stop(seq, firststop=""):
         codon = ''.join(seq[i * 3:(i + 1)*3]).upper().replace('U', 'T')
         if not codon:
             break
-        if FULL_CODON_TABLE.get(codon, 'X') == '*':
+        if MLIB.codon_tables['full'].get(codon, 'X') == '*':
             stop_index = 3 * (i + int(firststop == "inclusive"))
             break
     return seq[:stop_index]
@@ -81,7 +78,7 @@ def translate(seq, firststop=None):
         if codon == '---':
             aa_seq.append('-')
         else:
-            aa_seq.append(FULL_CODON_TABLE.get(codon, 'X'))
+            aa_seq.append(MLIB.codon_tables['full'].get(codon, 'X'))
     if firststop:
         aa_seq = '*' in aa_seq and aa_seq[:aa_seq.index('*') + int(
             firststop == "inclusive")] or aa_seq
@@ -157,35 +154,47 @@ def iter_codons(inputbuffer, mvf):
             inputbuffer[i+2][1][0]]
 
 
-def main(arguments=sys.argv[1:]):
-    """Main method for mvf filter"""
-
-    parser = argparse.ArgumentParser(description="""
-    Filters and Transforms MVF""")
-    parser.add_argument("--mvf", help="Input MAF file", required=True)
-    parser.add_argument("--gff", help="""
-        Input GFF3 file. If GFF3 not provided, alignments are assumed
-        to be in-frame as input.""")
-    parser.add_argument("--out", help="Output MAF file", required=True)
-    parser.add_argument("--outtype", choices=['protein', 'codon'],
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_translate.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        help="Input MAF file", required=True)
+    parser.add_argument("-g", "--gff", type=os.path.abspath,
+                        help=("Input GFF3 file. "
+                              "If GFF3 not provided, "
+                              "alignments are assumed to be "
+                              "in-frame coding sequences."))
+    parser.add_argument("-o", "--out", help="Output MVF file", required=True)
+    parser.add_argument("-t" "--outtype", choices=['protein', 'codon'],
                         default="codon",
-                        help="""single data column protein alleles,
-                                or four column protein frame1 frame2 frame3""")
-    parser.add_argument("--filter_annotation",
-                        help="""skip GFF entries with text
-                                matching this in their 'Notes' field""")
-    parser.add_argument("--linebuffer", type=int, default=100000,
+                        help=("protein=single data column "
+                              "of protein alleles; "
+                              "codon=four columns with: "
+                              "protein frame1 frame2 frame3"))
+    parser.add_argument("-F", "--filter-annotation",
+                        help=("skip GFF entries with text "
+                              "matching this in their 'Notes' field"))
+    parser.add_argument("-B", "--line-buffer", "--linebuffer",
+                        type=int, default=100000,
                         help="number of entries to write in a block")
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
     parser.add_argument("--quiet", action="store_true",
                         help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2015-12-31")
-        sys.exit()
     mvf = MultiVariantFile(args.mvf, 'read')
     if not mvf.metadata['flavor'] == 'dna':
         raise RuntimeError("MVF must be flavor=dna to translate")
@@ -264,12 +273,14 @@ def main(arguments=sys.argv[1:]):
                                for x in coords[0:3]]
                 if all(len(x) == 1 for x in alleles):
                     if reverse_strand:
-                        alleles = [COMPCODE[x] for x in alleles]
+                        alleles = [MLIB.complement_bases[x]
+                                   for x in alleles]
                     decoded_alleles = alleles
                     amino_acids = translate(''.join(alleles))[0]
                 else:
                     if reverse_strand:
-                        decoded_alleles = [[COMPCODE[y] for y in mvf.decode(x)]
+                        decoded_alleles = [[MLIB.complement_bases[y]
+                                            for y in mvf.decode(x)]
                                            for x in alleles]
                         alleles = [mvf.encode(''.join(x))
                                    for x in decoded_alleles]
@@ -298,6 +309,7 @@ def main(arguments=sys.argv[1:]):
         entrybuffer = []
         nentry = 0
     return ''
+
 
 if __name__ == "__main__":
     main()

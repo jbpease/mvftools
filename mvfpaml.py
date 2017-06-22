@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+mvfpaml - PAML library for MVFtools
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -9,16 +11,6 @@ Pease JB and BK Rosenzweig. 2016.
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
-
-mvfpaml: PAML wrapping and parsing utility for MVFtools
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-12-31 - First release
-version: 2016-01-11 - Minor bug fix
-version: 2016-01-12 - Compatibility fixes, added options
-@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -34,7 +26,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
+
 """
+
 
 import subprocess
 import os
@@ -339,6 +333,7 @@ def cleanup(pamltmp):
         except:
             pass
     return ''
+
 
 if __name__ == ("__main__"):
     print("""MVF PAML wrappers, please run one of the
