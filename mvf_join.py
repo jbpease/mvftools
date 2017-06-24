@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program checks an MVF file for inconsistencies or errors
+"""
+
+import os
+import sys
+import argparse
+from mvfbase import MultiVariantFile
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,21 +21,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-mvf_join: Concatenate and merge MVF files
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2015-02-01 - First Public Release
-version: 2015-12-31 - Update to header and cleanup
-@version: 2016-08-02 - Python3 conversion
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -34,10 +35,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-from mvfbase import MultiVariantFile
 
 
 class MvfTransformer(object):
@@ -67,33 +64,47 @@ class MvfTransformer(object):
         return ''
 
 
-def main(arguments=sys.argv[1:]):
-    """Main method for mvf_join"""
-    parser = argparse.ArgumentParser(description="""
-        MVF joining both vertically (separate contigs) and
-        and horizontally (different samples)""")
-    parser.add_argument("--mvf", nargs="*", help="one or more mvf files",
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_join.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", nargs="*", type=os.path.abspath,
+                        help="One or more mvf files.",
                         required=True)
-    parser.add_argument("--out", help="output mvf file", required=True)
-    parser.add_argument("--newcontigs", action="store_true",
-                        help="Don't match contigs using labels (not IDs)")
-    parser.add_argument("--newsamples", action="store_true",
-                        help="Don't match samples using labels")
-    parser.add_argument("--linebuffer", type=int, default=100000,
+    parser.add_argument("-o" "--out", help="Output mvf file.",
+                        required=True, type=os.path.abspath)
+    parser.add_argument("-c", "--newcontigs", action="store_true",
+                        help=("By default, contigs are matched between files "
+                              "using their text labels in the header. "
+                              "Use this option to turn matching off and treat "
+                              "each file's contigs as distinct."))
+    parser.add_argument("-s", "--newsamples", action="store_true",
+                        help=("By default, samples are matched between files "
+                              "using their text labels in the header. "
+                              "Use this option to turn matching off and treat "
+                              "each file's sample columns as distinct."))
+    parser.add_argument("-B", "--linebuffer", type=int, default=100000,
                         help="number of entries to write in a block")
-    parser.add_argument("--main_header_file",
-                        help="""name of MVF file to use the headers from
-                                (default=first in list)""")
+    parser.add_argument("-M", "--main_header_file",
+                        help=("Output file will use same headers as "
+                              "this input file (default=first in list)."))
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
     parser.add_argument("--quiet", action="store_true",
                         help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2015-12-31")
-        sys.exit()
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
     if args.main_header_file:

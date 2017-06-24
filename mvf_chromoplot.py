@@ -216,7 +216,6 @@ class Chromoplot(object):
         self.params['ntracks'] = [0, 0, 0, 0, 3, 15][4]
         # total_windows = (maxlen // self.params['windowsize'] + 1) * len(
         #    self.data)
-        nwindow = 0
         majority_counts = Counter([(1, 0), (2, 0), (3, 0)])
         contig_ab_values = {}
         self.write_window_log(headermode=True)
@@ -235,7 +234,6 @@ class Chromoplot(object):
                             majority_counts.add(majority_call)
                         self.datalog.append((window_codes, contig,
                                              i * self.params['windowsize']))
-                nwindow += 1
                 i += 1
         self.params['track_order'] = majority_counts.get_ranked_keys(
             mode='centered')
@@ -448,13 +446,13 @@ def generate_argparser():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=_LICENSE)
-    parser.add_argument("--mvf", help="Input MVF file.", required=True,
+    parser.add_argument("-i", "--mvf", help="Input MVF file.", required=True,
                         type=os.path.abspath)
     parser.add_argument("-o", "--outprefix",
                         help="Output prefix (not required).")
     parser.add_argument("-s", "--samples", nargs='*', required=True,
                         help="3 or more taxa to use for quartets")
-    parser.add_argument("-o", "--outgroup", nargs='*', required=True,
+    parser.add_argument("-G", "--outgroup", nargs='*', required=True,
                         help="1 or more outgroups to use for quartets")
     parser.add_argument("-w", "--windowsize", type=int, default=100000)
     parser.add_argument("-c", "--contigs", nargs='*',
@@ -497,15 +495,15 @@ def main(arguments=None):
     pallette = Pallette()
     parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.colors:
+    if args.colors is None:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
-    if not args.quiet:
+    if args.quiet is False:
         print("Reading MVF...")
     mvf = MultiVariantFile(args.mvf, 'read')
-    if not args.quiet:
+    if args.quiet is False:
         print("Parsing headers...")
-    if args.contigs:
+    if args.contigs is None:
         contignames = args.contigs
     else:
         contignames = [mvf.metadata['contigs'][contigid]['label']
@@ -516,7 +514,7 @@ def main(arguments=None):
             except:
                 pass
         contignames = [str(x) for x in sorted(contignames)]
-    if not args.quiet:
+    if args.quiet is False:
         print("Plotting chromoplot for contigs: {}".format(
             ",".join(contignames)))
     master_contigs = []
@@ -537,7 +535,7 @@ def main(arguments=None):
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
     for quartet in quartets:
-        if not args.quiet:
+        if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet)))
         params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
                   'outpath': (args.outprefix or '_'.join(quartet)) + ".png",
@@ -556,7 +554,7 @@ def main(arguments=None):
                 subset=quartet_indices, decode=True,
                 contigs=[str(x[1]) for x in master_contigs]):
             if contig != current_contig:
-                if not args.quiet:
+                if args.quiet is False:
                     print("Starting contig {}".format(contig))
                     current_contig = contig[:]
             alleles = allelesets[0]

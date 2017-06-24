@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program checks an MVF file for inconsistencies or errors
+"""
+
+import os
+import sys
+import argparse
+from mvfbase import MultiVariantFile
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
-http://www.github.org/jbpease/mvftools (Stable Releases)
+James B. Pease and Ben K. Rosenzweig
+http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
@@ -10,13 +20,6 @@ Pease JB and BK Rosenzweig. 2016.
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
-http://www.github.org/jbpease/mvftools
-
-MVF_check: Verify Compliance and Check for Errors in MVF Format
-@author: James B. Pease
-
-version: 2015-12-31 - Updates to headers and cleanup
-@version: 2016-08-02 - Python3 conversion
 
 This file is part of MVFtools.
 
@@ -24,7 +27,6 @@ MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -34,24 +36,26 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import argparse
-from mvfbase import MultiVariantFile
 
-
-def main(arguments=sys.argv[1:]):
-    """Main method for mvf_annotate"""
-    parser = argparse.ArgumentParser(description="""
-    Reannotates MVF based on genes""")
-    parser.add_argument("mvf", help="input MVF file")
-    parser.add_argument("--quiet", action="store_true",
-                        help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="store_true",
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf_check.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("mvf", type=os.path.abspath,
+                        help="Input MVF file.")
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2015-12-31")
-        sys.exit()
     mvf = MultiVariantFile(args.mvf, 'read')
     contigs = mvf.metadata['contigs']
     ncol = mvf.metadata['ncol']
@@ -124,6 +128,7 @@ def main(arguments=sys.argv[1:]):
     elif mvf.metadata['mvftype'] == 'codon':
         print("codon checking coming soon")
     return ''
+
 
 if __name__ == "__main__":
     main()

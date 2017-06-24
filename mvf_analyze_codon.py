@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-mvf_analyze_codon - Codon analysis modules
+This program analyzes a codon MVF using several analysis modules.
+Run 'python3 mvf_analyze_codon.py --morehelp' for details on
+module functions.
 """
 
+import os
 import sys
 import argparse
 import re
@@ -183,7 +186,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                ["null.{}".format(x) for x in fieldtags] +
                ["test.{}".format(x) for x in fieldtags] +
                ['tree']) + "\n")
-        groups = self.params['allelegroups'].values()
+        groups = self.params['allele_groups'].values()
         speciesgroups = self.params['speciesgroups'].values()
         allsets = set([])
         for group in groups:
@@ -201,7 +204,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                 raise RuntimeError("""
                     Error: GroupUniqueAlleleWindow:
                     --mincoverage cannot be lower than the twice the number
-                    of specified groups in --allelegroups
+                    of specified groups in --allele-groups
                     """)
         for contig, pos, allelesets in mvf:
             if not current_contig:
@@ -244,7 +247,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                             raxmlpath=self.params.get('raxmlpath', 'raxmlHPC'),
                             pamltmp=self.params['pamltmp'],
                             target=self.params['target'],
-                            targetspec=self.params['targetspec'],
+                            targetspec=self.params['num_target_species'],
                             allsampletrees=self.params['allsampletrees'],
                             outgroup=self.params['outgroup'])
                         lrtscore = -1
@@ -388,7 +391,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                    "total_codons", "annotation", "coordinates"]
         if self.params['windowsize'] == -1:
             headers.remove('position')
-        if not self.params['chitest']:
+        if not self.params['chi_test']:
             headers.remove('pvalue')
         outfile = OutputFile(path=self.params['out'], headers=headers)
         sorted_entries = sorted([
@@ -433,7 +436,7 @@ class PairwiseDNDS(AnalysisModule):
                ["null.{}".format(x) for x in fieldtags] +
                ["test.{}".format(x) for x in fieldtags] +
                ['tree']) + "\n")
-        groups = self.params['allelegroups'].values()
+        groups = self.params['allele_groups'].values()
         speciesgroups = self.params['speciesgroups'].values()
         allsets = set([])
         for group in groups:
@@ -448,7 +451,7 @@ class PairwiseDNDS(AnalysisModule):
                 raise RuntimeError("""
                     Error: GroupUniqueAlleleWindow:
                     --mincoverage cannot be lower than the twice the number
-                    of specified groups in --allelegroups
+                    of specified groups in --allele-groups
                     """)
         for contig, pos, allelesets in mvf:
             if not current_contig:
@@ -616,7 +619,7 @@ class PairwiseDNDS(AnalysisModule):
                    "total_codons", "annotation", "coordinates"]
         if self.params['windowsize'] == -1:
             headers.remove('position')
-        if not self.params['chitest']:
+        if not self.params['chi_test']:
             headers.remove('pvalue')
         outfile = OutputFile(path=self.params['out'], headers=headers)
         sorted_entries = sorted([
@@ -724,7 +727,7 @@ class PairwiseProtein(AnalysisModule):
         site_count = 0
         var_count = 0
         total_count = 0
-        groups = self.params['allelegroups'].values()
+        groups = self.params['allele_groups'].values()
         for contig, pos, allelesets in mvf:
             if not current_contig:
                 current_contig = contig[:]
@@ -878,62 +881,82 @@ def generate_argparser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=_LICENSE)
     parser.add_argument("module", choices=MODULENAMES)
-    parser.add_argument("--mvf", help="input MVF file")
-    parser.add_argument("--out", help="output file")
-    parser.add_argument("--contigs", nargs='*',
-                        help="list of contig ids")
-    parser.add_argument("--samples", nargs='*', help="list of sample names")
-    parser.add_argument("--allelegroups", nargs='*',
+    parser.add_argument("-i", "--mvf", help='Input MVF file.',
+                        type=os.path.abspath)
+    parser.add_argument("-o", "--out", help="output file",
+                        type=os.path.abspath)
+    parser.add_argument("-c", "--contigs", nargs='*',
+                        help="List of space-separated contig ids.")
+    parser.add_argument("-s", "--samples", nargs='*',
+                        help="List of space-separated sample names.")
+    parser.add_argument("--allele-groups", "--allelegroups", nargs='*',
                         help="""GROUP1:LABEL,LABEL GROUP2:LABEL,LABEL
                                 (GroupUniqueAlleleWindow)""")
-    parser.add_argument("--speciesgroups", nargs='*')
-    parser.add_argument("--gff", help="GFF3 file for use in annotation")
-    parser.add_argument("--chitest",
-                        help="Input two number values for expected N and S")
-    parser.add_argument("--mincoverage", type=int,
-                        help="minimum coverage for sites")
+    parser.add_argument("--species-groups", "--speciesgroups", nargs='*')
+    parser.add_argument("-g", "--gff", help="GFF3 file for use in annotation")
+    parser.add_argument("-x", "--chi-test", "--chitest",
+                        help=("(GroupUniqueAlleleWindow,PairwiseDNDS)"
+                              "Input two number values for expected "
+                              "Nonsynonymous and Synonymous expected values. "
+                              ))
+    parser.add_argument("-m", "--mincoverage", type=int,
+                        help=("Minimum number of samples with alleles needed "
+                              "to use site for analysis."))
     parser.add_argument("--target", nargs="*",
-                        help="""(GroupUniqueAlleleWindow) to
-                                specify the taxa labels that define the
-                                target lineage-specific branch to be tested""")
-    parser.add_argument("--targetspec", type=int, default=1,
-                        help="""(GroupUniqueAlleleWindow) to specify
-                              the minimum number of taxa in the target set
-                              that are required to conduct analysis""")
-    parser.add_argument("--outputalign",
-                        help="output alignment for GroupAUW to .phy")
-    parser.add_argument("--outgroup",
-                        help="""(GroupUniqueAlleleWindow) specify sample
-                                name to root tree""")
-    parser.add_argument("--windowsize", type=int, default=-1,
-                        help="""window size, -1 for whole contig""")
-    parser.add_argument("--uselabels", action="store_true",
-                        help="use contig labels instead of IDs in output")
-    parser.add_argument("--codemlpath", default="codeml",
-                        help="full path for PAML codeml executable")
-    parser.add_argument("--raxmlpath")
-    parser.add_argument("--startcontig", type=int, default=0)
-    parser.add_argument("--endcontig", type=int, default=1000000)
-    parser.add_argument("--pamltmp", default="pamltmp")
-    parser.add_argument("--allsampletrees", action="store_true",
-                        help="""(GroupUniqueAlleleWindow) makes trees from
-                                all samples instead of only the
-                                most complete sequence from each species""")
+                        help=("(GroupUniqueAlleleWindow) "
+                              "Specify the taxa labels that define the "
+                              "target lineage-specific branch to be tested."))
+    parser.add_argument("--num-target-species", "--targetspec",
+                        type=int, default=1,
+                        help=("(GroupUniqueAlleleWindow) "
+                              "Specify the minimum number of "
+                              "taxa in the target set "
+                              "that are required to conduct analysis"))
+    parser.add_argument("--output-align", "--outputalign",
+                        help=("(GroupUniqueAlleleWindow) "
+                              "Output alignment to this file path in "
+                              "phylip format."))
+    parser.add_argument("-O", "--outgroup",
+                        help=("(GroupUniqueAlleleWindow) Specify sample "
+                              "name with which to root trees."))
+    parser.add_argument("-w", "--windowsize", type=int, default=-1,
+                        help="Window size in bp, use -1 for whole contig.")
+    parser.add_argument("-L", "--uselabels", action="store_true",
+                        help="Use contig labels instead of IDs in output.")
+    parser.add_argument("-P", "--codemlpath", default="codeml",
+                        type=os.path.abspath,
+                        help="Full path for PAML codeml executable.")
+    parser.add_argument("-X", "--raxmlpath", type=os.path.abspath,
+                        default="raxml",
+                        help="Full path to RAxML program executable.")
+    parser.add_argument("-S", "--startcontig", type=int, default=0,
+                        help="Numerical ID for the starting contig.")
+    parser.add_argument("-E", "--endcontig", type=int, default=100000000,
+                        help="Numerical id for the ending contig.")
+    parser.add_argument("--pamltmp", default="pamltmp", type=os.path.abspath,
+                        help="path for temporary folder for PAML output files")
+    parser.add_argument("--all-sample-trees", "--allsampletrees",
+                        action="store_true",
+                        help=("(GroupUniqueAlleleWindow) Makes trees from "
+                              "all samples instead of only the "
+                              "most complete sequence from each species"))
     parser.add_argument("--morehelp", action="store_true",
-                        help="get additional information on modules")
-    parser.add_argument("--branchlrt",
-                        help="""(GroupUniqueAlleleWindow) specify the
-                                output file for and turn on the
-                                RAxML-PAML format LRT test scan for
-                                selection on the target branch in addition
-                                to the basic patterns scan""")
-    parser.add_argument("-v", "--version",
+                        help="Get additional information on modules.")
+    parser.add_argument("--branchlrt", type=os.path.abspath,
+                        help=("(GroupUniqueAlleleWindow) Specify the "
+                              "output file for and turn on the "
+                              "RAxML-PAML format LRT test scan for "
+                              "selection on the target branch in addition "
+                              "to the basic patterns scan"))
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
 
 
 def main(arguments=None):
     """Main method"""
-    arguments = arguments if arguments is not None else sys.argv[1:]
+    arguments = sys.argv[1:] if arguments is None else arguments
     parser = generate_argparser()
     args = parser.parse_args(args=arguments)
     # HELP MENU
@@ -943,12 +966,12 @@ def main(arguments=None):
     # ESTABLISH MVF
     mvf = MultiVariantFile(args.mvf, 'read')
     # Argument Pre-processing
-    if args.allelegroups:
+    if args.allele_groups:
         groups = {}
-        for elem in args.allelegroups:
+        for elem in args.allele_groups:
             elem = elem.split(':')
             groups[elem[0]] = mvf.get_sample_indices(labels=elem[1].split(','))
-        args.allelegroups = groups.copy()
+        args.allele_groups = groups.copy()
         for grp0, grp1 in combinations(groups, 2):
             if set(groups[grp0]) & set(groups[grp1]):
                 raise RuntimeError("Groups contain same element",
@@ -961,7 +984,7 @@ def main(arguments=None):
         args.speciesgroups = groups.copy()
         for specgroup in groups:
             ngroup = 0
-            for allelegroup in args.allelegroups.values():
+            for allelegroup in args.allele_groups.values():
                 if set(allelegroup) & set(groups[specgroup]):
                     ngroup += 1
                     if ngroup > 1:

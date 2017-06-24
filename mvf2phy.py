@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This program is used to export MVF data to Phylip format.
+"""
+
+import sys
+import argparse
+import os
+from random import randint
+from mvfbase import MultiVariantFile
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,30 +22,20 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MVF2PHY: Convert MVF file to a PHYLIP file
-@author: James B. Pease
-
-@version: 2017-03-25 - First Version
+This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import sys
-import argparse
-import os
-from random import randint
-from mvfbase import MultiVariantFile, is_int
 
 
 def parse_regions_arg(regionfilepath, contigs):
@@ -76,51 +77,54 @@ def parse_regions_arg(regionfilepath, contigs):
                     region_max_coord[contig] = regionentry[1] + 0
                 elif region_max_coord[contig] < regionentry[1]:
                     region_max_coord[contig] = regionentry[1] + 0
-
-#    regionlabel = ','.join(["{}:{}{}{}{}".format(
-#        contigs[x[0]]['label'],
-#        x[1] if x[1] is not None else '',
-#        ".." if x[2] is not None else '',
-#        x[2] if x[2] is not None else '',
-#        "({})".format(x[3]) if x[2] is not None else ''
-#        ) for x in fmt_regions])
-    print(region_max_coord)
     return fmt_regions, region_max_coord  # , regionlabel
 
 
-def main(arguments=None):
-    """Main method for mvf2fasta"""
-    parser = argparse.ArgumentParser(description="""
-    Process MVF into FASTA alignment""")
-    parser.add_argument("--mvf", help="input MVF file", required=True)
-    parser.add_argument("--out", help="target FASTA file", required=True)
-    parser.add_argument("--region",
-                        help="""points to a file containing one more lines
-                                with entries 'contigid,stop,start'
-                                (one per line, inclusive coordinates)
-                                all data will be returned if left blank""")
-    parser.add_argument("--labeltype", choices=['long', 'short'],
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf2phy.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        help="Input MVF file.", required=True)
+    parser.add_argument("-o", "--out", type=os.path.abspath,
+                        help="Output Phylip file.", required=True)
+    parser.add_argument("-r", "--region",
+                        type=os.path.abspath,
+                        help=("Path of a plain text file "
+                              "containing one more lines "
+                              "with entries 'contigid,stop,start' "
+                              "(one per line, inclusive coordinates) "
+                              "all data will be returned if left blank."))
+    parser.add_argument("-L", "--labeltype", choices=('long', 'short'),
                         default='short',
-                        help="long labels with all metadata or short ids")
-    parser.add_argument("--outdata", choices=("dna", "rna", "prot"),
-                        help="output dna, rna or prot data")
-    parser.add_argument("--samples", nargs='*',
-                        help="one or more taxon labels, leave blank for all")
-    parser.add_argument("--buffer", type=int, default=100000,
+                        help="Long labels with all metadata or short ids")
+    parser.add_argument("-d", "--outdata", choices=("dna", "rna", "prot"),
+                        help="Output dna, rna or prot data.")
+    parser.add_argument("-s", "--samples", nargs='*',
+                        help="One or more taxon labels, leave blank for all.")
+    parser.add_argument("-B", "--buffer", type=int, default=100000,
                         help="size (bp) of write buffer for each sample")
-    parser.add_argument("--tmpdir", default=".",
+    parser.add_argument("-t", "--tmpdir", default=".",
                         help="directory to write temporary fasta files")
-    parser.add_argument("--partition", action="store_true",
-                        help="output a CSV partitions file")
+    parser.add_argument("-p", "--partition", action="store_true",
+                        help=("Output a CSV partitions file with RAxML"
+                              "formatting for use in partitioned "
+                              "phylogenetic methods."))
     parser.add_argument("--quiet", action="store_true", default=True,
                         help="suppress screen output")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
-    args = parser.parse_args(
-        args=sys.argv[1:] if arguments is None else arguments)
-    if args.version:
-        print("Version 2017-03-25")
-        sys.exit()
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
+    args = parser.parse_args(args=arguments)
     mvf = MultiVariantFile(args.mvf, 'read')
     flavor = mvf.metadata['flavor']
     if (flavor in ("dna", "rna") and args.outdata == "prot") or (
@@ -149,29 +153,14 @@ def main(arguments=None):
             contigs=(mvf.metadata['contigs'] if args.region is None else
                      [x for x in max_region_coord]),
             quiet=args.quiet, decode=True):
-        print(contig, pos, contig in max_region_coord, max_region_coord[contig])
         if contig == skipcontig:
             continue
         if contig not in max_region_coord:
             skipcontig = contig[:]
             continue
-        # if (max_region_coord[contig] is not None and
-        #       pos > max_region_coord[contig]):
-        #    skipcontig = contig[:]
-        #    continue
-        #if args.region is not None:
-        #    inregion = False
-        #    for rstart, rstop, _ in regions[contig]:
-        #        if rstart is None or pos >= rstart:
-        #            if rstop is None or pos <= rstop:
-        #                inregion = True
-        #                break
-        #    if inregion is False:
-        #        continue
         if curcontigname is None:
             curcontigname = contig[:]
         elif contig != curcontigname:
-            print(contig)
             if args.partition is True:
                 if curcontigend > curcontigstart:
                     partitionfile.write("{}, {} = {}-{}\n".format(
@@ -202,7 +191,7 @@ def main(arguments=None):
                 if label == labels[0]:
                     curcontigend += 1
             elif flavor == 'codon':
-                codon = [allelesets[x][col] == 'X' and 'N' or
+                codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
                 if label == labels[0]:
@@ -227,7 +216,6 @@ def main(arguments=None):
             buff = filehandler.read(args.buffer)
             while buff != '':
                 if first_file is True:
-                    # print(buff)
                     outfile.write("{} {}\n".format(
                         len(labels), len(buff.split()[1])))
                     first_file = False

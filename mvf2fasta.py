@@ -92,35 +92,44 @@ def parse_regions_arg(regionfilepath, contigs):
     return fmt_regions, region_max_coord, regionlabel
 
 
-def main(arguments=None):
-    """Main method for mvf2fasta"""
-    parser = argparse.ArgumentParser(description="""
-    Process MVF into FASTA alignment""")
-    parser.add_argument("--mvf", help="input MVF file", required=True)
-    parser.add_argument("--out", help="target FASTA file", required=True)
-    parser.add_argument("--regions", nargs='*', required=True,
-                        help="""one or more regions contigid,
-                                start,stop (inclusive)""")
-    parser.add_argument("--labeltype", choices=['long', 'short'],
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf2fasta.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        help="Input MVF file.", required=True)
+    parser.add_argument("-o", "--out", type=os.path.abspath,
+                        help="target FASTA file", required=True)
+    parser.add_argument("-r", "--regions", nargs='*', required=True,
+                        help=("One or more space-separated arguments "
+                              "formatted as contigid,start,stop "
+                              "coordinates are (inclusive)"))
+    parser.add_argument("-l", "--labeltype", choices=('long', 'short'),
                         default='long',
-                        help="long labels with all metadata or short ids")
-    parser.add_argument("--outdata", choices=("dna", "rna", "prot"),
-                        help="output dna, rna or prot data")
-    parser.add_argument("--samples", nargs='*',
-                        help="one or more taxon labels, leave blank for all")
-    parser.add_argument("--buffer", type=int, default=10,
+                        help=("Long labels with all metadata or short ids"))
+    parser.add_argument("-d", "--outdata", choices=("dna", "rna", "prot"),
+                        help="Output dna, rna or prot data.")
+    parser.add_argument("-s", "--samples", nargs='*',
+                        help="One or more taxon labels, leave blank for all")
+    parser.add_argument("-B", "--buffer", type=int, default=10,
                         help="size (Mbp) of write buffer for each sample")
-    parser.add_argument("--tmpdir", default=".",
+    parser.add_argument("-t", "--tmpdir", default=".",
                         help="directory to write temporary fasta files")
     parser.add_argument("--quiet", action="store_true", default=True,
                         help="suppress screen output")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
-    args = parser.parse_args(
-        args=sys.argv[1:] if arguments is None else arguments)
-    if args.version:
-        print("Version 2016-10-25")
-        sys.exit()
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
+    args = parser.parse_args(args=arguments)
     mvf = MultiVariantFile(args.mvf, 'read')
     flavor = mvf.metadata['flavor']
     if (flavor in ("dna", "rna") and args.outdata == "prot") or (
@@ -165,8 +174,8 @@ def main(arguments=None):
                 labelwritten[label] = True
             if flavor == 'dna':
                 tmp_files[label].write(
-                    allelesets[0][col] == 'X' and
-                    'N' or allelesets[0][col])
+                    "N" if allelesets[0][col] == 'X'
+                    else allelesets[0][col])
             elif flavor in ('codon', 'prot') and (
                     args.outdata == 'prot'):
                 tmp_files[label].write(allelesets[0][col])

@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
+This program exports the entirety of an MVF to FASTA format,
+with many fewer options than mvf2fasta.py.  This is designed
+to export large MVF files faster, but with less specific
+formatting and region-finding options.
+"""
+
+import os
+import sys
+import argparse
+from mvfbase import MultiVariantFile
+
+_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
@@ -11,20 +25,12 @@ for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-MVF2DUMP: Dumps an MVF to multiple FASTA files by contig
-@author: James B. Pease
-@author: Ben K. Rosenzweig
-
-version: 2016-04-13 - First testing release
-@version 2016-08-02 - Python3 release
-
 This file is part of MVFtools.
 
 MVFtools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 MVFtools is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -34,33 +40,41 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import argparse
-from mvfbase import MultiVariantFile
 
-
-def main(arguments=sys.argv[1:]):
-    """Main method for mvf2fasta"""
-    parser = argparse.ArgumentParser(description="""
-    Process MVF into FASTA alignment""")
-    parser.add_argument("--mvf", help="input MVF file", required=True)
-    parser.add_argument("--outprefix", help="target FASTA file", required=True)
-    parser.add_argument("--outdata", choices=("dna", "rna", "prot"),
+def generate_argparser():
+    parser = argparse.ArgumentParser(
+        prog="mvf2dump.py",
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_LICENSE)
+    parser.add_argument("-i", "--mvf", type=os.path.abspath,
+                        help="Input MVF file.",
+                        required=True)
+    parser.add_argument("-o", "--outprefix", type=os.path.abspath,
+                        help="Target FASTA file", required=True)
+    parser.add_argument("-d", "--outdata",
+                        choices=("dna", "rna", "prot"),
                         help="output dna, rna or prot data")
-    parser.add_argument("--samples", nargs='*',
-                        help="one or more taxon labels, leave blank for all")
-    parser.add_argument("--buffer", type=int, default=10,
+    parser.add_argument("-s", "--samples", nargs='*',
+                        help="One or more taxon labels, leave blank for all")
+    parser.add_argument("-B", "--buffer", type=int, default=10,
                         help="size (Mbp) of write buffer for each sample")
-    parser.add_argument("--tmpdir", default=".",
+    parser.add_argument("-t", "--tmpdir", default=".",
+                        type=os.path.abspath,
                         help="directory to write temporary fasta files")
     parser.add_argument("--quiet", action="store_true", default=True,
                         help="suppress screen output")
-    parser.add_argument("-v", "--version", action="store_true",
+    parser.add_argument("--version", action="version",
+                        version="2017-06-14",
                         help="display version information")
+    return parser
+
+
+def main(arguments=None):
+    """Main method"""
+    arguments = sys.argv[1:] if arguments is None else arguments
+    parser = generate_argparser()
     args = parser.parse_args(args=arguments)
-    if args.version:
-        print("Version 2016-04-13")
-        sys.exit()
     mvf = MultiVariantFile(args.mvf, 'read')
     flavor = mvf.metadata['flavor']
     if (flavor in ("dna", "rna") and args.outdata == "prot") or (

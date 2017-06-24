@@ -121,7 +121,7 @@ def generate_argparser():
     parser.add_argument("-v", "--version", action="version",
                         version="2017-06-14",
                         help="display version information")
-    return parser()
+    return parser
 
 
 def main(arguments=None):
