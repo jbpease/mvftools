@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# MVftools documentation build configuration file, created by
+# MVFtools documentation build configuration file, created by
 # sphinx-quickstart on Sat Jun 24 18:26:51 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -102,7 +102,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'MVftools'
+project = 'MVFtools'
 copyright = '2017, James B. Pease, Ben K. Rosenzweig'
 author = 'James B. Pease, Ben K. Rosenzweig'
 
@@ -157,7 +157,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'MVftoolsdoc'
+htmlhelp_basename = 'MVFtoolsdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -183,7 +183,7 @@ latex_logo = 'logo.png'
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'MVftools.tex', 'MVftools Documentation',
+    (master_doc, 'MVFtools.tex', 'MVFtools Documentation',
      'James B. Pease, Ben K. Rosenzweig', 'manual'),
 ]
 
@@ -193,7 +193,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mvftools', 'MVftools Documentation',
+    (master_doc, 'mvftools', 'MVFtools Documentation',
      [author], 1)
 ]
 
@@ -204,7 +204,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'MVftools', 'MVftools Documentation',
-     author, 'MVftools', 'One line description of project.',
+    (master_doc, 'MVFtools', 'MVFtools Documentation',
+     author, 'MVFtools', 'One line description of project.',
      'Miscellaneous'),
 ]
