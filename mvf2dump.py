@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
 This program exports the entirety of an MVF to FASTA format,
 with many fewer options than mvf2fasta.py.  This is designed
@@ -65,7 +64,7 @@ def generate_argparser():
     parser.add_argument("--quiet", action="store_true", default=True,
                         help="suppress screen output")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 
@@ -86,7 +85,7 @@ def main(arguments=None):
     labels = mvf.get_sample_labels(sample_cols)
     current_contig = ''
     seqs = {}
-    for contig, pos, allelesets in mvf.iterentries(
+    for contig, _, allelesets in mvf.iterentries(
             quiet=args.quiet, decode=True):
         if contig != current_contig:
             if seqs:

@@ -94,7 +94,7 @@ def generate_argparser():
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

@@ -484,7 +484,7 @@ def generate_argparser():
                         help=("PNG image (default) "
                               "or graph via matplotlib (experimental)"))
     parser.add_argument("-v", "--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

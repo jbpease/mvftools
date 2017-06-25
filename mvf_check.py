@@ -46,7 +46,7 @@ def generate_argparser():
     parser.add_argument("mvf", type=os.path.abspath,
                         help="Input MVF file.")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

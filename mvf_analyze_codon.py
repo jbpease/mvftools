@@ -174,7 +174,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
         current_position = 0
         counts = Counter()
         totals = Counter()
-        if self.params['outputalign']:
+        if self.params['output_align']:
             outputalign = []
         fieldtags = ['likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a',
                      'bgdnds2b', 'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b',
@@ -285,7 +285,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                     continue
                 counts.add('total_codons')
                 totals.add('total_codons')
-                if self.params['outputalign']:
+                if self.params['output_align']:
                     if not outputalign:
                         outputalign = [[''.join(codons)]
                                        for x in range(mvf.metadata['ncol'])]
@@ -327,7 +327,7 @@ class GroupUniqueAlleleWindow(AnalysisModule):
             totals.add('variable_codons',
                        val=int(sum([int(len(set(x) - set('X-')) > 1)
                                     for x in xcodons]) > 0))
-            if self.params['outputalign']:
+            if self.params['output_align']:
                 if not outputalign:
                     outputalign = [[x] for x in codons]
                 else:
@@ -374,8 +374,8 @@ class GroupUniqueAlleleWindow(AnalysisModule):
                 totals.add('synonymous_changes')
         self.params['totals'] = totals
         self.write()
-        if self.params['outputalign']:
-            with open(self.params['outputalign'], 'w') as alignfile:
+        if self.params['output_align']:
+            with open(self.params['output_align'], 'w') as alignfile:
                 alignfile.write(
                     "\n".join([">{}\n{}".format(mvf.metadata['labels'][i],
                                                 ''.join(outputalign[i]))
@@ -424,7 +424,7 @@ class PairwiseDNDS(AnalysisModule):
         current_position = 0
         counts = Counter()
         totals = Counter()
-        if self.params['outputalign']:
+        if self.params['output_align']:
             outputalign = []
         fieldtags = ['likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a',
                      'bgdnds2b', 'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b',
@@ -513,7 +513,7 @@ class PairwiseDNDS(AnalysisModule):
                     continue
                 counts.add('total_codons')
                 totals.add('total_codons')
-                if self.params['outputalign']:
+                if self.params['output_align']:
                     if not outputalign:
                         outputalign = [[''.join(codons)]
                                        for x in range(mvf.metadata['ncol'])]
@@ -555,7 +555,7 @@ class PairwiseDNDS(AnalysisModule):
             totals.add('variable_codons',
                        val=int(sum([int(len(set(x) - set('X-')) > 1)
                                     for x in xcodons]) > 0))
-            if self.params['outputalign']:
+            if self.params['output_align']:
                 if not outputalign:
                     outputalign = [[x] for x in codons]
                 else:
@@ -602,8 +602,8 @@ class PairwiseDNDS(AnalysisModule):
                 totals.add('synonymous_changes')
         self.params['totals'] = totals
         self.write()
-        if self.params['outputalign']:
-            with open(self.params['outputalign'], 'w') as alignfile:
+        if self.params['output_align']:
+            with open(self.params['output_align'], 'w') as alignfile:
                 alignfile.write(
                     "\n".join([">{}\n{}".format(mvf.metadata['labels'][i],
                                                 ''.join(outputalign[i]))
@@ -807,25 +807,25 @@ class PairwiseNS(AnalysisModule):
 
     def analyze(self, mvf):
         """Analyze Entries for PairwiseNS Module"""
-        invar = 0
+        # invar = 0
         total_count = 0
         dnon = dict.fromkeys([tuple([i, j]) for (i, j) in combinations(
             range(mvf.metadata['ncol']), 2)], 0)
         dsyn = dict.fromkeys([tuple([i, j]) for (i, j) in combinations(
             range(mvf.metadata['ncol']), 2)], 0)
-        invalid = 0
+        # invalid = 0
         # ncol = mvf.metadata['ncol'] + 0
         for _, _, allelesets in mvf:
             if any('*' in x or '-' in x for x in allelesets):
-                invalid += 1
+                # invalid += 1
                 continue
             elif any('X' in x for x in allelesets[1:3]):
-                invalid += 1
+                # invalid += 1
                 continue
             total_count += 1
             codons = allelesets[1:3]
             if all(len(x) == 1 for x in codons):
-                invar += 1
+                # invar += 1
                 continue
             aminoacids = mvf.decode(allelesets[0])
             codons = [mvf.decode(allelesets[x]) for x in (1, 2, 3)]
@@ -853,8 +853,6 @@ class PairwiseNS(AnalysisModule):
                                'Ks': dsyn[(i, j)],
                                'dN': float(dnon[(i, j)]) / float(total_count),
                                'dS': float(dsyn[(i, j)]) / float(total_count)}
-        self.altdata = {'invalid': invalid, 'invar': invar,
-                        'total': total_count}
         self.write()
         return ''
 
@@ -949,7 +947,7 @@ def generate_argparser():
                               "selection on the target branch in addition "
                               "to the basic patterns scan"))
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

@@ -95,7 +95,7 @@ def generate_argparser():
     parser.add_argument("--quiet", action="store_true",
                         help="suppress progress meter")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

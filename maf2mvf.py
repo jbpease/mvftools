@@ -155,7 +155,7 @@ def generate_argparser():
                         help="number of lines to hold in read/write buffer")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 

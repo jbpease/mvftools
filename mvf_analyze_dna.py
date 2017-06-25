@@ -586,7 +586,7 @@ def generate_argparser():
     parser.add_argument("--morehelp", action="store_true",
                         help="get additional information on modules")
     parser.add_argument("--version", action="version",
-                        version="2017-06-14",
+                        version="2017-06-24",
                         help="display version information")
     return parser
 
