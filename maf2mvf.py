@@ -91,9 +91,9 @@ class MultiAlignFile(object):
            Returns (str(chrom), int(pos), list(allele entries))
         """
         if self.metadata['isgzip']:
-            filehandler = gzip.open(self.path, 'rb')
+            filehandler = gzip.open(self.path, 'rt')
         else:
-            filehandler = open(self.path, 'r')
+            filehandler = open(self.path, 'rt')
         filehandler.seek(self.entrystart)
         line = filehandler.readline()
         while line:
@@ -149,7 +149,8 @@ def generate_argparser():
                         help=("one or more TAG:NEWLABEL or TAG, items, "
                               "if TAG found in sample label, replace with "
                               "NEW (or TAG if NEW not specified) "
-                              "NEW and TAG must each be unique."), required=True)
+                              "NEW and TAG must each be unique."),
+                        required=True)
     parser.add_argument("-B", "--line-buffer", "--linebuffer",
                         type=int, default=100000,
                         help="number of lines to hold in read/write buffer")
