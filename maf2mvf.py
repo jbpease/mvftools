@@ -71,7 +71,7 @@ class MultiAlignFile(object):
                                    args.get('isgzip', False))
         # READ MODE
         filehandler = (self.metadata['isgzip'] and
-                       gzip.open(self.path, 'r') or open(self.path, 'r'))
+                       gzip.open(self.path, 'rt') or open(self.path, 'rt'))
         # Process header lines
         line = filehandler.readline()
         if line.startswith("##maf"):
@@ -149,7 +149,7 @@ def generate_argparser():
                         help=("one or more TAG:NEWLABEL or TAG, items, "
                               "if TAG found in sample label, replace with "
                               "NEW (or TAG if NEW not specified) "
-                              "NEW and TAG must each be unique."))
+                              "NEW and TAG must each be unique."), required=True)
     parser.add_argument("-B", "--line-buffer", "--linebuffer",
                         type=int, default=100000,
                         help="number of lines to hold in read/write buffer")
