@@ -62,7 +62,7 @@ class MultiAlignFile(object):
 
     def __init__(self, args):
         self.path = os.path.abspath(args.maf)
-        self.ref = args.reftag
+        self.ref = args.ref_tag
         self.metadata = {'sourceformat': 'MAF'}
         self.metadata['labels'] = set()
         self.entrystart = 0
