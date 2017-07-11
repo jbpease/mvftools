@@ -170,7 +170,7 @@ class MvfBioLib(object):
                                for x in alleles])
         return alleles
 
-    def make_allele_resolution_table():
+    def make_allele_resolution_table(self):
         """Generate Allele Conflict Table"""
         ambig = [('AG', 'R'), ('CT', 'Y'), ('AC', 'M'), ('GT', 'K'),
                  ('AT', 'W'), ('CG', 'S'), ('AR', 'R'), ('AY', 'X'),
@@ -196,7 +196,7 @@ class MvfBioLib(object):
         xtable.update([(x[::-1], y) for (x, y) in xtable.items()])
         return xtable
 
-    def make_dna_pwtable():
+    def make_dna_pwtable(self):
         """Returns pairwise distance class codes
         H=homozygous, h=heterozygous
         0 = H-H match
@@ -252,7 +252,7 @@ class MvfBioLib(object):
                 print(bases)
         return newbase
 
-    def abpattern(num, digits=0):
+    def abpattern(self, num, digits=0):
         return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
 
 
