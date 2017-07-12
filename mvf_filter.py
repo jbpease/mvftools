@@ -258,19 +258,20 @@ def make_module(modulename, ncol, optargs=None):
         def masklower(entry, mvfenc):
             """turn lower case to 'X'"""
             if mvfenc == 'invar':
-                return entry.islower() and 'X' or entry
+                return 'X' if entry.islower() else entry
             elif mvfenc in ('refvar', 'full'):
-                return ''.join([x.isupper() and 'X' or x for x in entry])
+                return ''.join(['X' if x.islower() is True
+                                else x for x in entry])
             elif mvfenc == 'onecov':
                 return "{}+{}{}".format(
-                    entry[0].islower() and 'X' or entry[0],
-                    entry[2].islower() and 'X' or entry[2],
+                    'X' if entry[0].islower() else entry[0],
+                    'X' if entry[2].islower() else entry[2],
                     entry[3:])
             elif mvfenc == 'onevar':
                 return "{}{}+{}{}".format(
-                    entry[0].islower() and 'X' or entry[0],
-                    entry[1].islower() and 'X' or entry[1],
-                    entry[3].islower() and 'X' or entry[2],
+                    'X' if entry[0].islower() else entry[0],
+                    'X' if entry[1].islower() else entry[1],
+                    'X' if entry[3].islower() else entry[2],
                     entry[4:])
 
     # MINCOVERAGE
@@ -338,13 +339,13 @@ def make_module(modulename, ncol, optargs=None):
         def removelower(entry, mvfenc):
             """turn lower case to '-'"""
             if mvfenc in ('refvar', 'full'):
-                entry = ''.join([(x.isupper() or x == '-') and
-                                 x or '-' for x in entry])
+                entry = ''.join([x if (x.isupper() or x == '-')
+                                 else '-' for x in entry])
                 if all(x == '-' for x in entry):
                     return ''
                 return entry
             elif mvfenc == 'invar':
-                return entry.isupper() and entry or ''
+                return entry if entry.isupper() else ''
             elif mvfenc == 'onecov':
                 if entry[2].islower() or entry[2] == '-':
                     if entry[0].islower() or entry[0] == '-':
@@ -362,12 +363,12 @@ def make_module(modulename, ncol, optargs=None):
                     else:
                         return "{}-".format(entry[0])
                 return '{}{}+{}{}'.format(
-                    ((entry[0].islower() or entry[0] == '-') and
-                     '-' or entry[0]),
-                    ((entry[1].isupper() or entry[1] == '-') and
-                     entry[1] or ''),
-                    ((entry[3].islower() or entry[3] == '-') and
-                     '-' or entry[3]),
+                    ('-' if (entry[0].islower() or entry[0] == '-')
+                     else entry[0]),
+                    (entry[1] if (entry[1].isupper() or entry[1] == '-')
+                     else ''),
+                    ('-' if (entry[3].islower() or entry[3] == '-')
+                     else entry[3]),
                     entry[4:])
 
     # REMOVECHAR
@@ -377,11 +378,11 @@ def make_module(modulename, ncol, optargs=None):
         def removechar(entry, mvfenc):
             """"replace specified characters with '-'"""
             if mvfenc in ('refvar', 'full'):
-                if all([x in optargs[0] or x == '-' for x in entry]):
+                if all([(x in optargs[0] or x == '-') for x in entry]):
                     return ''
-                return ''.join([x in optargs[0] and '-' or x for x in entry])
+                return ''.join(['-' if x in optargs[0] else x for x in entry])
             elif mvfenc == 'invar':
-                return entry not in optargs[0] and entry or ''
+                return entry if entry not in optargs[0] else ''
             elif mvfenc == 'onecov':
                 if entry[2] in optargs[0] or entry[2] == '-':
                     if entry[0] in optargs[0] or entry[0] == '-':
@@ -399,12 +400,12 @@ def make_module(modulename, ncol, optargs=None):
                     else:
                         return "{}-".format(entry[0])
                 return '{}{}+{}{}'.format(
-                    ((entry[0] in optargs[0] or entry[0] == '-') and '-' or
-                     entry[0]),
+                    ('-' if (entry[0] in optargs[0] or entry[0] == '-')
+                     else entry[0]),
                     ((entry[1] not in optargs[0] and entry[1] != '-') and
                      entry[1] or ''),
-                    ((entry[3] in optargs[0] or entry[3] == '-') and
-                     '-' or entry[3]),
+                    ('-' if (entry[3] in optargs[0] or entry[3] == '-') else
+                     entry[3]),
                     entry[4:])
 
     # REQALLCHAR
@@ -571,6 +572,8 @@ def build_actionset(moduleargs, ncol):
             ncol: int number of columns in the base MVF
     """
     actionset = []
+    if moduleargs is None:
+        raise RuntimeError("ERROR: No modules selected")
     for module in moduleargs:
         if ':' in module:
             modargs = module.split(':')
@@ -649,7 +652,7 @@ def main(arguments=None):
         raise RuntimeError("No output file specified with --out")
     # Establish Input MVF
     if args.test is not None:
-        ncol = args.testnchar or len(args.test)
+        ncol = args.test_nchar or len(args.test.split()[1])
     else:
         mvf = MultiVariantFile(args.mvf, 'read')
         ncol = mvf.metadata['ncol']
