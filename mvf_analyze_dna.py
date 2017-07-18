@@ -207,6 +207,7 @@ class PatternCount(AnalysisModule):
             if not current_contig:
                 current_contig = contig[:]
             if contig != current_contig or (
+                    self.params['windowsize'] != -1 and
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = dict([
                     ('contig', current_contig),
@@ -218,7 +219,8 @@ class PatternCount(AnalysisModule):
                     current_position = 0
                     current_contig = contig[:]
                 else:
-                    current_position += self.params['windowsize']
+                    current_position += (0 if self.params['windowsize'] == -1
+                                         else self.params['windowsize'])
             if len(allelesets[0]) == 1:
                 if allelesets[0] in 'ATGC':
                     pattern = 'A' * self.params['nsamples']
@@ -282,6 +284,7 @@ class PatternList(AnalysisModule):
             if not current_contig:
                 current_contig = contig[:]
             if contig != current_contig or (
+                    self.params['windowsize'] != -1 and
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = dict([
                     ('contig', current_contig),
@@ -293,7 +296,8 @@ class PatternList(AnalysisModule):
                     current_position = 0
                     current_contig = contig[:]
                 else:
-                    current_position += self.params['windowsize']
+                    current_position += (0 if self.params['windowsize'] == -1
+                                         else self.params['windowsize'])
             if len(allelesets[0]) == 1:
                 if allelesets[0] in 'ATGC':
                     pattern = 'A' * self.params['nsamples']
@@ -333,6 +337,8 @@ class PatternList(AnalysisModule):
             with open(outfilepath, 'w') as outfile:
                 outfile.write("pattern,count\n")
                 for pattern, pcount in sorted(self.data[k].items()):
+                    if pattern in ['contig', 'position']:
+                        continue
                     outfile.write("{},{}\n".format(pattern, pcount))
         return ''
 
@@ -361,6 +367,7 @@ class BaseCountWindow(AnalysisModule):
             if not current_contig:
                 current_contig = contig[:]
             if contig != current_contig or (
+                    self.params['windowsize'] != -1 and
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = {
                     'contig': current_contig, 'position': current_position}
@@ -376,7 +383,8 @@ class BaseCountWindow(AnalysisModule):
                     current_contig = contig[:]
                     current_position = 0
                 else:
-                    current_position += self.params['windowsize']
+                    current_position += (0 if self.params['windowsize'] == -1
+                                         else self.params['windowsize'])
                 match_counts = dict().fromkeys(labels, 0)
                 total_counts = dict().fromkeys(labels, 0)
                 all_total = 0
@@ -506,6 +514,7 @@ class PairwiseDistanceWindow(AnalysisModule):
             if not current_contig:
                 current_contig = contig[:]
             if contig != current_contig or (
+                    self.params['windows'] != -1 and
                     pos > current_position + self.params['windowsize']):
                 self.data[(current_contig, current_position)] = {
                     'contig': current_contig, 'position': current_position}
@@ -650,7 +659,7 @@ def generate_argparser():
     parser.add_argument("-m", "--mincoverage", type=int,
                         help="mininum sample coverage for site")
     parser.add_argument("-w", "--windowsize", type=int, default=100000,
-                        help="""window size""")
+                        help="""window size, use -1 to use whole contigs""")
     parser.add_argument("--base-match",
                         help=("[BaseCountWindow] string of "
                               "bases to match (i.e. numerator)."))
