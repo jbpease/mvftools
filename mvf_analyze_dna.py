@@ -44,7 +44,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 MODULENAMES = ("BaseCountWindow", "Coverage", "DstatComb",
                "PairwiseDistance", "PairwiseDistanceWindow",
-               "PatternCount")
+               "PatternCount", "PatternList")
 
 MLIB = MvfBioLib()
 
@@ -260,6 +260,80 @@ class PatternCount(AnalysisModule):
                                  for k in self.data])
         for _, _, k in sorted_entries:
             outfile.write_entry(self.data[k])
+        return ''
+
+
+class PatternList(AnalysisModule):
+    """Count biallelic patterns for windows in an MVF file
+       and return a list of site patterns
+    """
+
+    def analyze(self, mvf):
+        """Analyze Entries for PatternList Module
+        """
+        labels = mvf.get_sample_labels()
+        self.params['labels'] = labels[:]
+        current_contig = None
+        current_position = 0
+        sitepatterns = {}
+        samples = [labels.index(x) for x in self.params['samples']]
+        self.params['nsamples'] = len(samples)
+        for contig, pos, allelesets in mvf:
+            if not current_contig:
+                current_contig = contig[:]
+            if contig != current_contig or (
+                    pos > current_position + self.params['windowsize']):
+                self.data[(current_contig, current_position)] = dict([
+                    ('contig', current_contig),
+                    ('position', current_position)])
+                self.data[(current_contig, current_position)].update(
+                     sitepatterns)
+                sitepatterns = {}
+                if contig != current_contig:
+                    current_position = 0
+                    current_contig = contig[:]
+                else:
+                    current_position += self.params['windowsize']
+            if len(allelesets[0]) == 1:
+                if allelesets[0] in 'ATGC':
+                    pattern = 'A' * self.params['nsamples']
+                else:
+                    continue
+            elif allelesets[0][1] == '+':
+                continue
+            else:
+                alleles = mvf.decode(allelesets[0])
+                alleles = [alleles[x] for x in samples]
+                if any(x in alleles for x in 'X-RYKMWS'):
+                    continue
+                if len(set(alleles)) > 2:
+                    continue
+                pattern = ''.join(['A' if x == alleles[-1] else 'B'
+                                   for x in alleles[:-1]]) + 'A'
+            sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
+        if sitepatterns:
+            self.data[(current_contig, current_position)] = dict([
+                ('contig', current_contig),
+                ('position', current_position)])
+            self.data[(current_contig, current_position)].update(
+                 sitepatterns)
+
+        self.write()
+        return ''
+
+    def write(self):
+        """Write Output
+        """
+        sorted_entries = sorted([(self.data[k]['contig'],
+                                  self.data[k]['position'], k)
+                                 for k in self.data])
+        for contig, pos, k in sorted_entries:
+            outfilepath = "{}-{}-{}.counts".format(
+                self.params['out'], contig, pos)
+            with open(outfilepath, 'w') as outfile:
+                outfile.write("pattern,count\n")
+                for pattern, pcount in sorted(self.data[k].items()):
+                    outfile.write("{},{}\n".format(pattern, pcount))
         return ''
 
 
@@ -586,7 +660,7 @@ def generate_argparser():
     parser.add_argument("--morehelp", action="store_true",
                         help="get additional information on modules")
     parser.add_argument("--version", action="version",
-                        version="2017-06-24",
+                        version="2017-07-18",
                         help="display version information")
     return parser
 
@@ -616,6 +690,8 @@ def main(arguments=None):
         module = PairwiseDistanceWindow(params=vars(args))
     elif args.module == "PatternCount":
         module = PatternCount(params=vars(args))
+    elif args.module == "PatternList":
+        module = PatternList(params=vars(args))
     # RUN MODULE
     module.analyze(mvf)
     print("Finished in {} seconds.".format(time() - time0))
