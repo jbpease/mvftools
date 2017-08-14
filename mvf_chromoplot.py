@@ -312,7 +312,7 @@ class Chromoplot(object):
                         'gap', 12, 6, 10]] +
                     [leftcount, rightcount, total_ab, dval, pval] +
                     [(round(float(window_codes.get(x, 0))/total_ab, 3)
-                      if total_ab > 0 else 0) for x in [6, 10, 12]] +
+                      if total_ab > 0 else 0) for x in [12, 10, 6]] +
                     [d_order]
                     ])))
         return ''
@@ -484,7 +484,7 @@ def generate_argparser():
                         help=("PNG image (default) "
                               "or graph via matplotlib (experimental)"))
     parser.add_argument("-v", "--version", action="version",
-                        version="2017-06-24",
+                        version="2017-08-14",
                         help="display version information")
     return parser
 
