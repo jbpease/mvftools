@@ -94,7 +94,7 @@ def generate_argparser():
     parser.add_argument("--overwrite", action="store_true",
                         help="USE WITH CAUTION: force overwrite of outputs")
     parser.add_argument("--version", action="version",
-                        version="2017-06-24",
+                        version="2017-09-05",
                         help="display version information")
     return parser
 
@@ -127,15 +127,25 @@ def main(arguments=None):
     for ifasta, fastapath in enumerate(args.fasta):
         print("Processing {}".format(fastapath))
         for header, seq in fasta_iter(fastapath):
-            header = [str(x) for x in re.split(args.field_sep, header)]
-            if args.contig_by_file:
+            if args.field_sep is None:
+                header = header[:]
+            if args.field_sep != '' and args.field_sep is not None:
+                header = [str(x) for x in re.split(args.field_sep, header)]
+            if args.contig_by_file is True:
                 contig = os.path.basename(fastapath[:])
-                sample = header[args.samplefield or 0]
-            elif (len(header) < max(3, args.contig_field or 0,
-                                    args.samplefield or 0) or
+                if args.sample_field is None:
+                    sample = header[:]
+                else:
+                    sample = header[args.sample_field]
+            elif (len(header) < max(args.contig_field if
+                                    args.contig_field
+                                    is not None else 0,
+                                    args.sample_field if
+                                    args.sample_field is not None else
+                                    0) or
                   args.contig_field is None or args.sample_field is None):
                 contig = "UNK{}".format(current_contig)
-                sample = header[0]
+                sample = header[:]
             elif args.manual_coord:
                 contig = args.manual_coord[ifasta][0]
             else:
@@ -175,7 +185,7 @@ def main(arguments=None):
         for pos in range(mvf.metadata['contigs'][cind]['length']):
             mvf_alleles = encode_mvfstring(
                 ''.join(samp not in fasta[contig] and '-' or
-                        pos > fasta[contig][samp][0] and '-' or
+                        pos >= fasta[contig][samp][0] and '-' or
                         fasta[contig][samp][1][pos]
                         for samp in fsamples))
             if mvf_alleles:
