@@ -13,7 +13,7 @@ MVF Format
   #s Ppaniscus
   #s Ggorilla 
   #s Mmusculus
-  #c 1 Chromosome1 length=248956422
+  #c 1 label=Chromosome1 length=248956422
   #n Note: This is an example file showing data formatting 
   1:100 A
   1:101 A

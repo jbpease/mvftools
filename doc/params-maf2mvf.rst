@@ -40,21 +40,21 @@ Parameters
 
 
 
+``-s/--sample-tags/--sampletags`` (required)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
+
+**Type:** None; **Default:** None
+
+
+
 ``--overwrite``
 ^^^^^^^^^^^^^^^
 
 **Description:** None
 
 **Type:** boolean flag
-
-
-
-``-s/--sample-tags/--sampletags``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
-
-**Type:** None; **Default:** None
 
 
 

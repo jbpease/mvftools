@@ -20,7 +20,7 @@ module
 
 **Type:** None; **Default:** None
 
-**Choices:** ('BaseCountWindow', 'Coverage', 'DstatComb', 'PairwiseDistance', 'PairwiseDistanceWindow', 'PatternCount')
+**Choices:** ('BaseCountWindow', 'Coverage', 'DstatComb', 'PairwiseDistance', 'PairwiseDistanceWindow', 'PatternCount', 'PatternList')
 
 
 ``-h/--help``
@@ -107,7 +107,7 @@ module
 ``-w/--windowsize``
 ^^^^^^^^^^^^^^^^^^^
 
-**Description:** window size
+**Description:** window size, use -1 to use whole contigs
 
 **Type:** integer; **Default:** 100000
 

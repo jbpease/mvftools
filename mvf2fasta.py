@@ -103,9 +103,10 @@ def generate_argparser():
     parser.add_argument("-o", "--out", type=os.path.abspath,
                         help="target FASTA file", required=True)
     parser.add_argument("-r", "--regions", nargs='*', required=True,
-                        help=("One or more space-separated arguments "
-                              "formatted as contigid,start,stop "
-                              "coordinates are (inclusive)"))
+                        help=("A file path to a plain-text file with"
+                              "one region per line formatted as"
+                              "formatted as: contigid,start,stop"
+                              "(coordinates are inclusive)"))
     parser.add_argument("-l", "--labeltype", choices=('long', 'short'),
                         default='long',
                         help=("Long labels with all metadata or short ids"))
@@ -120,7 +121,7 @@ def generate_argparser():
     parser.add_argument("--quiet", action="store_true", default=True,
                         help="suppress screen output")
     parser.add_argument("--version", action="version",
-                        version="2017-06-24",
+                        version="2017-09-26",
                         help="display version information")
     return parser
 

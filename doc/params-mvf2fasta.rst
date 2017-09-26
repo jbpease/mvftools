@@ -42,7 +42,7 @@ Parameters
 ``-r/--regions`` (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** One or more space-separated arguments formatted as contigid,start,stop coordinates are (inclusive)
+**Description:** A file path to a plain-text file withone region per line formatted asformatted as: contigid,start,stop(coordinates are inclusive)
 
 **Type:** None; **Default:** None
 

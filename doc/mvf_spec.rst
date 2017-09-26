@@ -20,7 +20,7 @@ General Features
 ----------------
 MVF is primarily intended for site-wise analyses in phylogenomics and population genomics. MVF is formatted to contain one aligned site per line, but contains only allelic information, therefore MVF most closely mimics VCF files in formatting, but resembles MAF format in informational content,  Additionally, MVF uses special formatting to lower file sizes and speed up filtering and analysis.  MVF can readily be adapted from other common sequence formats including VCF, FSATA, and MAF.  MVF is also designed to be able to accommodate readily store other information for phylogenomic projects, including tree topologies and sample metadata.
 
-Native Gzip reat/write
+Native Gzip read/write
 ----------------------
 
 MVF is designed to work natively with GZIP compression and uses a formatting that attempts to strike a balance between fast filtering, easy visual inspection, while using character patterns that create a good Gzip compression ratio. As long as any input or output file path ends with exactly ".gz", all MVF scripts will natively read/write to gzip-compressed files.
@@ -58,6 +58,7 @@ and optionally:
 Sample information
 ------------------
 Sample information (columns) header lines are specified by:
+
 * line starts with ``#s`` ("s" for sample) with no leading spaces
 * LABEL (must be unique, no spaces)
 * an arbitrary number of metadata fields in key=value format ('label' not allowed as key)
@@ -68,6 +69,7 @@ Contig information
 ------------------
 
 Contig information header lines are specified by:
+
 * line starts with ``#c`` ("c" for contig)
 * CONTIG_ID (must be unique, alpha-numeric strong recommended, must not contain ``*:;,@!+`` or spaces)
 * ``label=[NAME]`` (recommended by not required to be unique, no spaces allowed)
@@ -78,6 +80,7 @@ Contig information header lines are specified by:
 Tree information
 ----------------
 Tree information may (optionally) be specified in header lines by:
+
 * line starts with ``#t`` ("t" for tree/topology)
 * ``TREE_ID=[###]` (must be unique, alpha-numeric)
 * ``TOPOLOGY=[tree_String]`` in Newick/Phylip/parenthetical format (must end with ';')
@@ -87,6 +90,7 @@ To take full advantage of MVF tree storage, use the same sample labels as in the
 Notes
 -----
 General project notes may (optionally) be specified in the header lines by:
+
 * line starts with ``#n`` ("n" for notes)
 * Text is unstructured and is not necessarily formatted as metadata
 	
@@ -98,8 +102,8 @@ Example Header
   #s SAMPLE1 meta0=somethingele meta1=1 ...
   #s SAMPLE2 meta0=somesome meta1=0 ...
   ...
-  #c 0 name=CONTIG0 length=100 ref=1 meta0=somevalue ...
-  #c 1 name=CONTIG1 length=200 ref=0 meta0=someother ...
+  #c 0 label=CONTIG0 length=100 ref=1 meta0=somevalue ...
+  #c 1 label=CONTIG1 length=200 ref=0 meta0=someother ...
   ...
   #t 0 ((SAMPLE0,SAMPLE1),SAMPLE2); model=GTRGAMMA software=RAxML
   #t 1 ((SAMPLE2,SAMPLE0),SAMPLE1); model=GTRGAMMA software=RAxML partition=chrom1
@@ -113,8 +117,8 @@ Entry Specification
 .. note:: all examples show an MVF entry with REF and four samples
 
 Entries are structured as two space-separated columns:
-::
-  ID:POSITION	ALLELES [ALLELES ALLELES ...]
+
+``ID:POSITION	ALLELES [ALLELES ALLELES ...]``
 
   * ``ID:POSITION`` = chromosomal id matching the first element of a contig in the ``#c`` header element
   * ``POSITION`` = 1-based position on the contig with matching ``CONTIG_ID``

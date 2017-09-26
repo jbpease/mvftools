@@ -7,9 +7,22 @@
 
 \usepackage[utf8]{inputenc}
 \ifdefined\DeclareUnicodeCharacter
- \ifdefined\DeclareUnicodeCharacterAsOptional\else
+ \ifdefined\DeclareUnicodeCharacterAsOptional
+  \DeclareUnicodeCharacter{"00A0}{\nobreakspace}
+  \DeclareUnicodeCharacter{"2500}{\sphinxunichar{2500}}
+  \DeclareUnicodeCharacter{"2502}{\sphinxunichar{2502}}
+  \DeclareUnicodeCharacter{"2514}{\sphinxunichar{2514}}
+  \DeclareUnicodeCharacter{"251C}{\sphinxunichar{251C}}
+  \DeclareUnicodeCharacter{"2572}{\textbackslash}
+ \else
   \DeclareUnicodeCharacter{00A0}{\nobreakspace}
-\fi\fi
+  \DeclareUnicodeCharacter{2500}{\sphinxunichar{2500}}
+  \DeclareUnicodeCharacter{2502}{\sphinxunichar{2502}}
+  \DeclareUnicodeCharacter{2514}{\sphinxunichar{2514}}
+  \DeclareUnicodeCharacter{251C}{\sphinxunichar{251C}}
+  \DeclareUnicodeCharacter{2572}{\textbackslash}
+ \fi
+\fi
 \usepackage{cmap}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amstext}
@@ -32,6 +45,9 @@
 \addto\captionsenglish{\renewcommand{\tablename}{Table}}
 \addto\captionsenglish{\renewcommand{\literalblockname}{Listing}}
 
+\addto\captionsenglish{\renewcommand{\literalblockcontinuedname}{continued from previous page}}
+\addto\captionsenglish{\renewcommand{\literalblockcontinuesname}{continues on next page}}
+
 \addto\extrasenglish{\def\pageautorefname{page}}
 
 \setcounter{tocdepth}{1}
@@ -39,7 +55,7 @@
 
 
 \title{MVFtools Documentation}
-\date{Jun 24, 2017}
+\date{Sep 26, 2017}
 \release{2017-06-24}
 \author{James B. Pease, Ben K. Rosenzweig}
 \newcommand{\sphinxlogo}{\sphinxincludegraphics{logo.png}\par}
@@ -55,7 +71,7 @@
 
 
 \chapter{Getting Started}
-\label{\detokenize{intro:intro}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}\label{\detokenize{intro::doc}}\label{\detokenize{intro:getting-started}}
+\label{\detokenize{intro:intro}}\label{\detokenize{intro::doc}}\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}
 
 \section{What is MVFtools?}
 \label{\detokenize{intro:what-is-mvftools}}
@@ -160,8 +176,8 @@ Dot masking, multi-line header, adoption of “X” in place of “N” for nucl
 MVF is primarily intended for site-wise analyses in phylogenomics and population genomics. MVF is formatted to contain one aligned site per line, but contains only allelic information, therefore MVF most closely mimics VCF files in formatting, but resembles MAF format in informational content,  Additionally, MVF uses special formatting to lower file sizes and speed up filtering and analysis.  MVF can readily be adapted from other common sequence formats including VCF, FSATA, and MAF.  MVF is also designed to be able to accommodate readily store other information for phylogenomic projects, including tree topologies and sample metadata.
 
 
-\subsection{Native Gzip reat/write}
-\label{\detokenize{mvf_spec:native-gzip-reat-write}}
+\subsection{Native Gzip read/write}
+\label{\detokenize{mvf_spec:native-gzip-read-write}}
 MVF is designed to work natively with GZIP compression and uses a formatting that attempts to strike a balance between fast filtering, easy visual inspection, while using character patterns that create a good Gzip compression ratio. As long as any input or output file path ends with exactly “.gz”, all MVF scripts will natively read/write to gzip-compressed files.
 
 
@@ -224,9 +240,17 @@ an arbitrary number of metadata fields in key=value format (‘mvftype’ and �
 \subsection{Sample information}
 \label{\detokenize{mvf_spec:sample-information}}
 Sample information (columns) header lines are specified by:
-* line starts with \sphinxcode{\#s} (“s” for sample) with no leading spaces
-* LABEL (must be unique, no spaces)
-* an arbitrary number of metadata fields in key=value format (‘label’ not allowed as key)
+\begin{itemize}
+\item {} 
+line starts with \sphinxcode{\#s} (“s” for sample) with no leading spaces
+
+\item {} 
+LABEL (must be unique, no spaces)
+
+\item {} 
+an arbitrary number of metadata fields in key=value format (‘label’ not allowed as key)
+
+\end{itemize}
 
 The first entry should be the reference sequence (if aligned to reference) or can be any sequence in the case of non-reference-aligned de novo alignment).
 
@@ -234,29 +258,60 @@ The first entry should be the reference sequence (if aligned to reference) or ca
 \subsection{Contig information}
 \label{\detokenize{mvf_spec:contig-information}}
 Contig information header lines are specified by:
-* line starts with \sphinxcode{\#c} (“c” for contig)
-* CONTIG\_ID (must be unique, alpha-numeric strong recommended, must not contain \sphinxcode{*:;,@!+} or spaces)
-* \sphinxcode{label={[}NAME{]}} (recommended by not required to be unique, no spaces allowed)
-* \sphinxcode{len={[}LENGTH{]}} (integer \textgreater{} 0, or zero for unknown)
-* \sphinxcode{ref={[}0/1{]}}, indicates if contig is reference-based (=1) or not (=0)
-* an arbitrary number of metadata fields in key=value format (“label”, “len”, and “ref” not allowed as key)
+\begin{itemize}
+\item {} 
+line starts with \sphinxcode{\#c} (“c” for contig)
+
+\item {} 
+CONTIG\_ID (must be unique, alpha-numeric strong recommended, must not contain \sphinxcode{*:;,@!+} or spaces)
+
+\item {} 
+\sphinxcode{label={[}NAME{]}} (recommended by not required to be unique, no spaces allowed)
+
+\item {} 
+\sphinxcode{len={[}LENGTH{]}} (integer \textgreater{} 0, or zero for unknown)
+
+\item {} 
+\sphinxcode{ref={[}0/1{]}}, indicates if contig is reference-based (=1) or not (=0)
+
+\item {} 
+an arbitrary number of metadata fields in key=value format (“label”, “len”, and “ref” not allowed as key)
+
+\end{itemize}
 
 
 \subsection{Tree information}
 \label{\detokenize{mvf_spec:tree-information}}
 Tree information may (optionally) be specified in header lines by:
-* line starts with \sphinxcode{\#t} (“t” for tree/topology)
-* \sphinxcode{TREE\_ID={[}\#\#\#{]}{}` (must be unique, alpha-numeric)
-* {}`{}`TOPOLOGY={[}tree\_String{]}} in Newick/Phylip/parenthetical format (must end with ‘;’)
-* an arbitrary number of metadata fields in key=value format
+\begin{itemize}
+\item {} 
+line starts with \sphinxcode{\#t} (“t” for tree/topology)
+
+\item {} 
+{\color{red}\bfseries{}{}`{}`}TREE\_ID={[}\#\#\#{]}{}` (must be unique, alpha-numeric)
+
+\item {} 
+\sphinxcode{TOPOLOGY={[}tree\_String{]}} in Newick/Phylip/parenthetical format (must end with ‘;’)
+
+\item {} 
+an arbitrary number of metadata fields in key=value format
+
+\end{itemize}
+
 To take full advantage of MVF tree storage, use the same sample labels as in the \sphinxcode{\#s} header lines
 
 
 \subsection{Notes}
 \label{\detokenize{mvf_spec:notes}}
 General project notes may (optionally) be specified in the header lines by:
-* line starts with \sphinxcode{\#n} (“n” for notes)
-* Text is unstructured and is not necessarily formatted as metadata
+\begin{itemize}
+\item {} 
+line starts with \sphinxcode{\#n} (“n” for notes)
+
+\item {} 
+Text is unstructured and is not necessarily formatted as metadata
+
+\end{itemize}
 
 
 \subsection{Example Header}
@@ -267,8 +322,8 @@ General project notes may (optionally) be specified in the header lines by:
 \#s SAMPLE1 meta0=somethingele meta1=1 …
 \#s SAMPLE2 meta0=somesome meta1=0 …
 …
-\#c 0 name=CONTIG0 length=100 ref=1 meta0=somevalue …
-\#c 1 name=CONTIG1 length=200 ref=0 meta0=someother …
+\#c 0 label=CONTIG0 length=100 ref=1 meta0=somevalue …
+\#c 1 label=CONTIG1 length=200 ref=0 meta0=someother …
 …
 \#t 0 ((SAMPLE0,SAMPLE1),SAMPLE2); model=GTRGAMMA software=RAxML
 \#t 1 ((SAMPLE2,SAMPLE0),SAMPLE1); model=GTRGAMMA software=RAxML partition=chrom1
@@ -286,13 +341,18 @@ all examples show an MVF entry with REF and four samples
 
 Entries are structured as two space-separated columns:
 
-\begin{sphinxVerbatim}[commandchars=\\\{\}]
-ID:POSITION   ALLELES [ALLELES ALLELES ...]
+\sphinxcode{ID:POSITION   ALLELES {[}ALLELES ALLELES ...{]}}
+\begin{itemize}
+\item {} 
+\sphinxcode{ID:POSITION} = chromosomal id matching the first element of a contig in the \sphinxcode{\#c} header element
 
-* {}`{}`ID:POSITION{}`{}` = chromosomal id matching the first element of a contig in the {}`{}`\PYGZsh{}c{}`{}` header element
-* {}`{}`POSITION{}`{}` = 1\PYGZhy{}based position on the contig with matching {}`{}`CONTIG\PYGZus{}ID{}`{}`
-* {}`{}`ALLELES{}`{}` = one or more records of alleles at reference\PYGZhy{}based location specified by {}`{}`ID:POSITION{}`{}` and matching the formatting below
-\end{sphinxVerbatim}
+\item {} 
+\sphinxcode{POSITION} = 1-based position on the contig with matching \sphinxcode{CONTIG\_ID}
+
+\item {} 
+\sphinxcode{ALLELES} = one or more records of alleles at reference-based location specified by \sphinxcode{ID:POSITION} and matching the formatting below
+
+\end{itemize}
 
 
 \subsection{For mvftype=codon}
@@ -424,7 +484,7 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 
 \chapter{Examples of the same data in MVF Format and other formats}
-\label{\detokenize{mvf_example::doc}}\label{\detokenize{mvf_example:examples-of-the-same-data-in-mvf-format-and-other-formats}}
+\label{\detokenize{mvf_example:examples-of-the-same-data-in-mvf-format-and-other-formats}}\label{\detokenize{mvf_example::doc}}
 
 \section{MVF Format}
 \label{\detokenize{mvf_example:mvf-format}}
@@ -435,7 +495,7 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 \PYG{c+c1}{\PYGZsh{}s Ppaniscus}
 \PYG{c+c1}{\PYGZsh{}s Ggorilla}
 \PYG{c+c1}{\PYGZsh{}s Mmusculus}
-\PYG{c+c1}{\PYGZsh{}c 1 Chromosome1 length=248956422}
+\PYG{c+c1}{\PYGZsh{}c 1 label=Chromosome1 length=248956422}
 \PYG{c+c1}{\PYGZsh{}n Note: This is an example file showing data formatting}
 \PYG{l+m+mi}{1}\PYG{p}{:}\PYG{l+m+mi}{100} \PYG{n}{A}
 \PYG{l+m+mi}{1}\PYG{p}{:}\PYG{l+m+mi}{101} \PYG{n}{A}
@@ -521,7 +581,7 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 
 \chapter{Program Parameter Descriptions}
-\label{\detokenize{prog_desc::doc}}\label{\detokenize{prog_desc:program-parameter-descriptions}}
+\label{\detokenize{prog_desc:program-parameter-descriptions}}\label{\detokenize{prog_desc::doc}}
 
 \section{fasta2mvf}
 \label{\detokenize{prog_desc:fasta2mvf}}
@@ -676,18 +736,18 @@ use the \textendash{}morehelp option for additional module information.
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
+\subsubsection{\sphinxstyleliteralintitle{-s/-{-}sample-tags/-{-}sampletags} (required)}
+\label{\detokenize{prog_desc:s-sample-tags-sampletags-required}}
+\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
 \subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
 \label{\detokenize{prog_desc:id5}}
 \sphinxstylestrong{Description:} None
 
 \sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-s/-{-}sample-tags/-{-}sampletags}}
-\label{\detokenize{prog_desc:s-sample-tags-sampletags}}
-\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-B/-{-}line-buffer/-{-}linebuffer}}
@@ -817,7 +877,7 @@ This program takes an MVF file and converts the data to a FASTA file
 
 \subsubsection{\sphinxstyleliteralintitle{-r/-{-}regions} (required)}
 \label{\detokenize{prog_desc:r-regions-required}}
-\sphinxstylestrong{Description:} One or more space-separated arguments formatted as contigid,start,stop coordinates are (inclusive)
+\sphinxstylestrong{Description:} A file path to a plain-text file withone region per line formatted asformatted as: contigid,start,stop(coordinates are inclusive)
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
@@ -1171,7 +1231,7 @@ use the \textendash{}morehelp option for additional module information.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
-\sphinxstylestrong{Choices:} (‘BaseCountWindow’, ‘Coverage’, ‘DstatComb’, ‘PairwiseDistance’, ‘PairwiseDistanceWindow’, ‘PatternCount’)
+\sphinxstylestrong{Choices:} (‘BaseCountWindow’, ‘Coverage’, ‘DstatComb’, ‘PairwiseDistance’, ‘PairwiseDistanceWindow’, ‘PatternCount’, ‘PatternList’)
 
 
 \subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
@@ -1239,7 +1299,7 @@ use the \textendash{}morehelp option for additional module information.
 
 \subsubsection{\sphinxstyleliteralintitle{-w/-{-}windowsize}}
 \label{\detokenize{prog_desc:id44}}
-\sphinxstylestrong{Description:} window size
+\sphinxstylestrong{Description:} window size, use -1 to use whole contigs
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
@@ -2058,7 +2118,7 @@ Coming soon.
 
 
 \chapter{Version History}
-\label{\detokenize{version::doc}}\label{\detokenize{version:version-history}}
+\label{\detokenize{version:version-history}}\label{\detokenize{version::doc}}
 \sphinxstylestrong{2017-06-25}
 
 \sphinxstyleemphasis{Major Upgrade}: Full manual documentation added, standardization and cleanup of paramaters and upgrades and bugfixes throughout.

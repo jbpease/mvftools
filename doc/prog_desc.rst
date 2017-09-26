@@ -193,21 +193,21 @@ Parameters
 
 
 
+``-s/--sample-tags/--sampletags`` (required)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
+
+**Type:** None; **Default:** None
+
+
+
 ``--overwrite``
 ^^^^^^^^^^^^^^^
 
 **Description:** None
 
 **Type:** boolean flag
-
-
-
-``-s/--sample-tags/--sampletags``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
-
-**Type:** None; **Default:** None
 
 
 
@@ -370,7 +370,7 @@ Parameters
 ``-r/--regions`` (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** One or more space-separated arguments formatted as contigid,start,stop coordinates are (inclusive)
+**Description:** A file path to a plain-text file withone region per line formatted asformatted as: contigid,start,stop(coordinates are inclusive)
 
 **Type:** None; **Default:** None
 
@@ -809,7 +809,7 @@ module
 
 **Type:** None; **Default:** None
 
-**Choices:** ('BaseCountWindow', 'Coverage', 'DstatComb', 'PairwiseDistance', 'PairwiseDistanceWindow', 'PatternCount')
+**Choices:** ('BaseCountWindow', 'Coverage', 'DstatComb', 'PairwiseDistance', 'PairwiseDistanceWindow', 'PatternCount', 'PatternList')
 
 
 ``-h/--help``
@@ -896,7 +896,7 @@ module
 ``-w/--windowsize``
 ^^^^^^^^^^^^^^^^^^^
 
-**Description:** window size
+**Description:** window size, use -1 to use whole contigs
 
 **Type:** integer; **Default:** 100000
 

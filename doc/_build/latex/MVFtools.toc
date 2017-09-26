@@ -14,7 +14,7 @@
 \contentsline {subsection}{\numberline {2.1.2}v1.2}{3}{subsection.2.1.2}
 \contentsline {section}{\numberline {2.2}MVF General Notes and Usage}{3}{section.2.2}
 \contentsline {subsection}{\numberline {2.2.1}General Features}{3}{subsection.2.2.1}
-\contentsline {subsection}{\numberline {2.2.2}Native Gzip reat/write}{3}{subsection.2.2.2}
+\contentsline {subsection}{\numberline {2.2.2}Native Gzip read/write}{3}{subsection.2.2.2}
 \contentsline {subsection}{\numberline {2.2.3}General Notes on Filtering}{4}{subsection.2.2.3}
 \contentsline {section}{\numberline {2.3}Header Specification}{4}{section.2.3}
 \contentsline {subsection}{\numberline {2.3.1}MVF declaration line}{4}{subsection.2.3.1}
@@ -23,18 +23,18 @@
 \contentsline {subsection}{\numberline {2.3.4}Tree information}{5}{subsection.2.3.4}
 \contentsline {subsection}{\numberline {2.3.5}Notes}{5}{subsection.2.3.5}
 \contentsline {subsection}{\numberline {2.3.6}Example Header}{5}{subsection.2.3.6}
-\contentsline {section}{\numberline {2.4}Entry Specification}{5}{section.2.4}
+\contentsline {section}{\numberline {2.4}Entry Specification}{6}{section.2.4}
 \contentsline {subsection}{\numberline {2.4.1}For mvftype=codon}{6}{subsection.2.4.1}
 \contentsline {subsection}{\numberline {2.4.2}Allele formatting}{6}{subsection.2.4.2}
 \contentsline {subsection}{\numberline {2.4.3}Special cases}{6}{subsection.2.4.3}
 \contentsline {subsection}{\numberline {2.4.4}Invariant sites}{6}{subsection.2.4.4}
-\contentsline {subsection}{\numberline {2.4.5}Monoallelic non-reference samples}{6}{subsection.2.4.5}
-\contentsline {subsection}{\numberline {2.4.6}Single-variant sites}{6}{subsection.2.4.6}
+\contentsline {subsection}{\numberline {2.4.5}Monoallelic non-reference samples}{7}{subsection.2.4.5}
+\contentsline {subsection}{\numberline {2.4.6}Single-variant sites}{7}{subsection.2.4.6}
 \contentsline {subsection}{\numberline {2.4.7}Non-reference aligned sites}{7}{subsection.2.4.7}
 \contentsline {section}{\numberline {2.5}Character encoding}{7}{section.2.5}
 \contentsline {subsection}{\numberline {2.5.1}Nucleotide Notation}{7}{subsection.2.5.1}
-\contentsline {subsection}{\numberline {2.5.2}Amino Acid Notation}{7}{subsection.2.5.2}
-\contentsline {subsection}{\numberline {2.5.3}Use of \sphinxstyleliteralintitle {X} for ambiguous nucleotides and amino acids}{7}{subsection.2.5.3}
+\contentsline {subsection}{\numberline {2.5.2}Amino Acid Notation}{8}{subsection.2.5.2}
+\contentsline {subsection}{\numberline {2.5.3}Use of \sphinxstyleliteralintitle {X} for ambiguous nucleotides and amino acids}{8}{subsection.2.5.3}
 \contentsline {chapter}{\numberline {3}Examples of the same data in MVF Format and other formats}{9}{chapter.3}
 \contentsline {section}{\numberline {3.1}MVF Format}{9}{section.3.1}
 \contentsline {section}{\numberline {3.2}FASTA Format}{9}{section.3.2}
@@ -64,8 +64,8 @@
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{15}{subsubsection*.18}
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-i/-{-}maf} (required)}{15}{subsubsection*.19}
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-o/-{-}out} (required)}{16}{subsubsection*.20}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{16}{subsubsection*.21}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-s/-{-}sample-tags/-{-}sampletags}}{16}{subsubsection*.22}
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {-s/-{-}sample-tags/-{-}sampletags} (required)}{16}{subsubsection*.21}
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{16}{subsubsection*.22}
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-B/-{-}line-buffer/-{-}linebuffer}}{16}{subsubsection*.23}
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-M/-{-}mvf-ref-label/-{-}mvfreflabel}}{16}{subsubsection*.24}
 \contentsline {subsubsection}{\sphinxstyleliteralintitle {-R/-{-}ref-tag/-{-}reftag}}{16}{subsubsection*.25}
