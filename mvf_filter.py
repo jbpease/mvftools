@@ -507,11 +507,13 @@ def make_module(modulename, ncol, optargs=None):
             elif mvfenc == 'invar':
                 return False
             elif mvfenc == 'onecov':
-                return (entry[0].upper() != entry[2].upper() and
-                        entry[0] not in 'NX-' and entry[2] not in 'NX-')
+                return (entry[0].upper() != entry[2].upper() if
+                        entry[0] not in 'NX-' and entry[2] not in 'NX-' else
+                        False)
             elif mvfenc == 'onevar':
-                return (entry[0].upper() == entry[1].upper() and
-                        entry[2] in 'NX-')
+                return (len(set([entry[0], entry[1], entry[2]])) > 1 if
+                        entry[2] not in 'NX-' and entry[1] not in 'NX-' and
+                        entry[0] not in 'NX-' else False)
             elif mvfenc == 'refvar':
                 return True
 
@@ -632,7 +634,7 @@ def generate_argparser():
     parser.add_argument("-q", "--quiet", action="store_true",
                         help="suppress progress meter")
     parser.add_argument("-v", "--version", action="version",
-                        version="2017-06-24",
+                        version="2017-10-11",
                         help="display version information")
     return parser
 
