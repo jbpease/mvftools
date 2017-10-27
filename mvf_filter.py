@@ -634,7 +634,7 @@ def generate_argparser():
     parser.add_argument("-q", "--quiet", action="store_true",
                         help="suppress progress meter")
     parser.add_argument("-v", "--version", action="version",
-                        version="2017-10-11",
+                        version="2017-10-27",
                         help="display version information")
     return parser
 
@@ -736,10 +736,10 @@ def main(arguments=None):
         if args.labels:
             labels = outmvf.metadata['labels'][:]
         else:
-            labels = outmvf.metadata['samples'].keys()[:]
+            labels = [x for x in outmvf.metadata['samples']]
         for actionname, actiontype, actionfunc, actionarg in actionset:
             if actionname == 'columns':
-                labels = [labels[x] for x in actionarg]
+                labels = [labels[x] for x in actionarg[0]]
             elif actionname in ('collapsepriority', 'collapsemerge'):
                 labels = [labels[x] for x in range(len(labels))
                           if x not in actionarg[0][1:]]

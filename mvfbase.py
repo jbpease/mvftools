@@ -4,6 +4,7 @@ mvfbase - mvf base functions and classes
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
+VERSION 2017-10-27
 """
 
 import os
@@ -102,6 +103,8 @@ class MultiVariantFile(object):
         self.metadata['labels'] = []
         self.metadata['samples'] = {}
         self.metadata['contigs'] = {}
+        self.metadata['trees'] = []
+        self.metadata['notes'] = []
         if filemode not in ('read', 'r', 'rb', 'write', 'w', 'wb'):
             raise RuntimeError("Invalid filemode {}".format(filemode))
         self.filemode = filemode
@@ -183,6 +186,10 @@ class MultiVariantFile(object):
                                 interpret_param(elem[1]))
                         else:
                             self.metadata['contigs'][contigid][elem] = True
+                elif entry[0].startswith("#t"):
+                    self.metadata['trees'].append(line[2:].strip())
+                elif entry[0].startswith("#n"):
+                    self.metadata['notes'].append(line[2:].strip())
                 else:
                     raise ValueError
             except ValueError:
@@ -396,6 +403,8 @@ class MultiVariantFile(object):
             ' '.join(["{}={}".format(k, v) for k, v in (
                 sorted(cdata.items())) if k not in ['length', 'label']]))
             for cid, cdata in (sorted(contigs))])
+        header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
+        header.extend(["#n {}".format(x) for x in self.metadata["notes"]])
         return '\n'.join(header) + '\n'
 
     def decode(self, alleles):
