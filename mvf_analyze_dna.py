@@ -331,6 +331,7 @@ class PatternList(AnalysisModule):
         sorted_entries = sorted([(self.data[k]['contig'],
                                   self.data[k]['position'], k)
                                  for k in self.data])
+        total_counts = {}
         for contig, pos, k in sorted_entries:
             outfilepath = "{}-{}-{}.counts".format(
                 self.params['out'], contig, pos)
@@ -340,6 +341,16 @@ class PatternList(AnalysisModule):
                     if pattern in ['contig', 'position']:
                         continue
                     outfile.write("{},{}\n".format(pattern, pcount))
+                    total_counts[pattern] = (
+                        total_counts.get(pattern, 0) + pcount)
+        outfilepath = "{}-TOTAL.counts".format(
+            self.params['out'])
+        with open(outfilepath, 'w') as outfile:
+            outfile.write("pattern,count\n")
+            for pattern, pcount in sorted(total_counts.items()):
+                if pattern in ['contig', 'position']:
+                    continue
+                outfile.write("{},{}\n".format(pattern, pcount))
         return ''
 
 

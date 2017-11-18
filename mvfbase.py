@@ -4,7 +4,7 @@ mvfbase - mvf base functions and classes
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-VERSION 2017-10-27
+VERSION 2017-11-17
 """
 
 import os
@@ -390,7 +390,7 @@ class MultiVariantFile(object):
                 "{}={}".format(k, v) for (k, v) in sorted(
                     self.metadata.items())
                 if k not in ('contigs', 'samples', 'flavor', 'version',
-                             'isgzip', 'labels')]))]
+                             'isgzip', 'labels', 'trees', 'notes')]))]
         header.extend(["#s {} {}".format(
             self.metadata['samples'][x]['label'],
             ' '.join(["{}={}".format(k, v) for (k, v) in (
@@ -403,8 +403,10 @@ class MultiVariantFile(object):
             ' '.join(["{}={}".format(k, v) for k, v in (
                 sorted(cdata.items())) if k not in ['length', 'label']]))
             for cid, cdata in (sorted(contigs))])
-        header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
-        header.extend(["#n {}".format(x) for x in self.metadata["notes"]])
+        if len(self.metadata["trees"]) > 0:
+            header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
+        if len(self.metadata["notes"]) > 0:
+            header.extend(["#n {}".format(x) for x in self.metadata["notes"]])
         return '\n'.join(header) + '\n'
 
     def decode(self, alleles):
