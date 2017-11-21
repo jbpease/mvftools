@@ -101,8 +101,7 @@ def make_module(modulename, ncol, optargs=None):
                     return False
                 if any(grp0 & grp1 for grp0, grp1 in
                        combinations(allele_groups, 2)):
-                    return False
-                return True
+                    return True
             else:
                 return False
 
@@ -268,11 +267,11 @@ def make_module(modulename, ncol, optargs=None):
                     'X' if entry[2].islower() else entry[2],
                     entry[3:])
             elif mvfenc == 'onevar':
-                return "{}{}+{}{}".format(
+                return "{}{}{}{}".format(
                     'X' if entry[0].islower() else entry[0],
                     'X' if entry[1].islower() else entry[1],
                     'X' if entry[3].islower() else entry[2],
-                    entry[4:])
+                    entry[3:])
 
     # MINCOVERAGE
     elif modulename == "mincoverage":
