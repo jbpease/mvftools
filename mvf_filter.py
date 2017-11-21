@@ -781,7 +781,7 @@ def main(arguments=None):
                     linefail = True
             elif actiontype == 'location':
                 if not actionfunc([chrom, pos]):
-                    linefail = True
+                    linefail = False
             if linefail:
                 break
         if linefail is False:
