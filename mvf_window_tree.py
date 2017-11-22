@@ -554,7 +554,7 @@ def main(arguments=None):
     os.chdir(args.tempdir)
     # SETUP PARAMS
     main_labels = mvf.get_sample_labels(sample_cols)
-    if args.hapmode in ['randomboth', 'majorminor']:
+    if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
               'rootwith': args.rootwith or [],
@@ -567,7 +567,7 @@ def main(arguments=None):
               'model': args.raxml_model,
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
-              'hapmode': args.hapmode,
+              'choose_allele': args.choose_allele,
               'tempdir': args.tempdir,
               'tempprefix': args.tempprefix}
     # WINDOW START INTERATION
@@ -609,8 +609,8 @@ def main(arguments=None):
                 "windowsize": args.windowsize,
                 "labels": main_labels[:]})
         # ADD ALLELES
-        if args.hapmode is not 'none':
-            allelesets[0] = hapsplit(allelesets[0], args.hapmode)
+        if args.choose_allele is not 'none':
+            allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
         window.append_alleles(allelesets[0], mindepth=args.mindepth)
     # LAST LOOP
     if window:

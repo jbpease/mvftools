@@ -94,14 +94,12 @@ def make_module(modulename, ncol, optargs=None):
             """Only retain sites where all members of the specific
                group contain alleles
             """
+            print(entry, mvfenc)
             if mvfenc == 'full':
                 allele_groups = [set([entry[x] for x in y]) -
                                  set('X-') for y in optargs]
                 if not all(allele_groups):
                     return False
-                if any(grp0 & grp1 for grp0, grp1 in
-                       combinations(allele_groups, 2)):
-                    return True
             else:
                 return False
 
@@ -427,6 +425,7 @@ def make_module(modulename, ncol, optargs=None):
 
         def reqcontig(entry):
             """return sites in ID,START,STOP (inclusive)"""
+            print(int(entry[0]), optargs[0], int(entry[0]) in optargs[0])
             return entry[0] in optargs[0]
 
     # REQINFORMATIVE
