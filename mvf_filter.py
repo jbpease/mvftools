@@ -98,10 +98,8 @@ def make_module(modulename, ncol, optargs=None):
             if mvfenc == 'full':
                 allele_groups = [set([entry[x] for x in y]) -
                                  set('X-') for y in optargs]
-                print(allele_groups)
                 if not all(allele_groups):
                     return False
-                return True
             else:
                 return False
 
@@ -267,11 +265,11 @@ def make_module(modulename, ncol, optargs=None):
                     'X' if entry[2].islower() else entry[2],
                     entry[3:])
             elif mvfenc == 'onevar':
-                return "{}{}+{}{}".format(
+                return "{}{}{}{}".format(
                     'X' if entry[0].islower() else entry[0],
                     'X' if entry[1].islower() else entry[1],
                     'X' if entry[3].islower() else entry[2],
-                    entry[4:])
+                    entry[3:])
 
     # MINCOVERAGE
     elif modulename == "mincoverage":
@@ -782,7 +780,7 @@ def main(arguments=None):
                     linefail = True
             elif actiontype == 'location':
                 if not actionfunc([chrom, pos]):
-                    linefail = True
+                    linefail = False
             if linefail:
                 break
         if linefail is False:
