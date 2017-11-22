@@ -94,7 +94,6 @@ def make_module(modulename, ncol, optargs=None):
             """Only retain sites where all members of the specific
                group contain alleles
             """
-            print(entry, mvfenc)
             if mvfenc == 'full':
                 allele_groups = [set([entry[x] for x in y]) -
                                  set('X-') for y in optargs]
