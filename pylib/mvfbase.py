@@ -48,6 +48,11 @@ def is_int(num):
         return False
 
 
+def zerodiv(a, b):
+    if b == 0:
+        return 0
+
+
 def interpret_param(string):
     """Check if value is a bool, then int, then float, or returns string"""
     if string.lower() in ['true', 't', 'yes']:

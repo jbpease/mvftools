@@ -5,14 +5,10 @@ This program analyzes a DNA MVF alignment using the modules specified below,
 use the --morehelp option for additional module information.
 """
 
-import os
-import sys
-import argparse
 from random import randint
 from itertools import combinations
-from mvfbase import MultiVariantFile, AnalysisModule, OutputFile
-from mvfbiolib import MvfBioLib
-from time import time
+from pylib.mvfbase import MultiVariantFile, AnalysisModule, OutputFile, zerodiv
+from pylib.mvfbiolib import MvfBioLib
 
 _LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
@@ -41,44 +37,31 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
-MODULENAMES = ("BaseCountWindow", "Coverage", "DstatComb",
-               "PairwiseDistance", "PairwiseDistanceWindow",
-               "PatternCount", "PatternList")
-
 MLIB = MvfBioLib()
 
 
-class Coverage(AnalysisModule):
-    """Calculate coverage stats for each sample column
-    """
-
-    def analyze(self, mvf):
-        """Analyze Entries for Coverage Module
-        """
-
-        labels = mvf.get_sample_labels()
-        for contig, _, allelesets in mvf.iterentries(
-                contigs=self.params['contigs'], subset=self.params['samples'],
-                decode=True):
-            if contig not in self.data:
-                self.data[contig] = dict.fromkeys(labels, 0)
-                self.data[contig]['contig'] = contig
-            for j, base in enumerate(allelesets[0]):
-                self.data[contig][labels[j]] += int(
-                    base not in 'Xx-')
-            self.labels = labels
-        self.write()
-        return ''
-
-    def write(self):
-        """Write Output
-        """
-        outfile = OutputFile(path=self.params['out'],
-                             headers=(["contig"] + self.labels))
-        for contig in self.data:
-            outfile.write_entry(self.data[contig])
-        return ''
+def calcsamplecoverage(args):
+    """Counts the total number of non-gap/ambiguous characters for
+      each sample.
+      """
+    mvf = MultiVariantFile(args.mvf, 'read')
+    labels = mvf.get_sample_labels()
+    data = []
+    for contig, _, allelesets in mvf.iterentries(
+            contigs=args.contigs, subset=args.samples,
+            decode=True):
+        if contig not in data:
+            data[contig] = dict.fromkeys(labels, 0)
+            data[contig]['contig'] = contig
+        for j, base in enumerate(allelesets[0]):
+            data[contig][labels[j]] += int(
+                base not in 'Xx-')
+        labels = labels
+    outfile = OutputFile(path=args.out,
+                         headers=(["contig"] + labels))
+    for contig in data:
+        outfile.write_entry(data[contig])
+    return ''
 
 
 class PositionDepth(AnalysisModule):
@@ -187,82 +170,71 @@ class DstatComb(AnalysisModule):
         return ''
 
 
-class PatternCount(AnalysisModule):
+def patterncount(args):
     """Count biallelic patterns spatially along
        chromosomes (e.g,, for use in DFOIL or Dstats
        http://www.github.com/jbpease/dfoil)
     """
-
-    def analyze(self, mvf):
-        """Analyze Entries for PatternCount Module
-        """
-        labels = mvf.get_sample_labels()
-        self.params['labels'] = labels[:]
-        current_contig = None
-        current_position = 0
-        sitepatterns = {}
-        samples = [labels.index(x) for x in self.params['samples']]
-        self.params['nsamples'] = len(samples)
-        for contig, pos, allelesets in mvf:
-            if not current_contig:
-                current_contig = contig[:]
-            if contig != current_contig or (
-                    self.params['windowsize'] != -1 and
-                    pos > current_position + self.params['windowsize']):
-                self.data[(current_contig, current_position)] = dict([
-                    ('contig', current_contig),
-                    ('position', current_position)])
-                self.data[(current_contig, current_position)].update(
-                     sitepatterns)
-                sitepatterns = {}
-                if contig != current_contig:
-                    current_position = 0
-                    current_contig = contig[:]
-                else:
-                    current_position += (0 if self.params['windowsize'] == -1
-                                         else self.params['windowsize'])
-            if len(allelesets[0]) == 1:
-                if allelesets[0] in 'ATGC':
-                    pattern = 'A' * self.params['nsamples']
-                else:
-                    continue
-            elif allelesets[0][1] == '+':
-                continue
-            else:
-                alleles = mvf.decode(allelesets[0])
-                alleles = [alleles[x] for x in samples]
-                if any(x in alleles for x in 'X-RYKMWS'):
-                    continue
-                if len(set(alleles)) > 2:
-                    continue
-                pattern = ''.join(['A' if x == alleles[-1] else 'B'
-                                   for x in alleles[:-1]]) + 'A'
-            sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
-        if sitepatterns:
+    mvf = MultiVariantFile(args.mvf, 'read')
+    labels = mvf.get_sample_labels()
+    current_contig = None
+    current_position = 0
+    sitepatterns = {}
+    samples = [labels.index(x) for x in args.samples]
+    nsamples = len(samples)
+    for contig, pos, allelesets in mvf:
+        if not current_contig:
+            current_contig = contig[:]
+        if contig != current_contig or (
+                args.windowsize != -1 and
+                pos > current_position + self.params['windowsize']):
             self.data[(current_contig, current_position)] = dict([
                 ('contig', current_contig),
                 ('position', current_position)])
             self.data[(current_contig, current_position)].update(
                  sitepatterns)
-
-        self.write()
-        return ''
-
-    def write(self):
-        """Write Output
-        """
-        headers = ['contig', 'position']
-        headers.extend(
-            [MLIB.abpattern(x, self.params['nsamples'])
-             for x in range(0, 2 ** self.params['nsamples'], 2)])
-        outfile = OutputFile(path=self.params['out'],
-                             headers=headers)
-        sorted_entries = sorted([(self.data[k]['contig'],
-                                  self.data[k]['position'], k)
-                                 for k in self.data])
-        for _, _, k in sorted_entries:
-            outfile.write_entry(self.data[k])
-        return ''
+            sitepatterns = {}
+            if contig != current_contig:
+                current_position = 0
+                current_contig = contig[:]
+            else:
+                current_position += (0 if self.params['windowsize'] == -1
+                                     else self.params['windowsize'])
+        if len(allelesets[0]) == 1:
+            if allelesets[0] in 'ATGC':
+                pattern = 'A' * self.params['nsamples']
+            else:
+                continue
+        elif allelesets[0][1] == '+':
+            continue
+        else:
+            alleles = mvf.decode(allelesets[0])
+            alleles = [alleles[x] for x in samples]
+            if any(x in alleles for x in 'X-RYKMWS'):
+                continue
+            if len(set(alleles)) > 2:
+                continue
+            pattern = ''.join(['A' if x == alleles[-1] else 'B'
+                               for x in alleles[:-1]]) + 'A'
+        sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
+    if sitepatterns:
+        data[(current_contig, current_position)] = dict([
+            ('contig', current_contig),
+            ('position', current_position)])
+        self.data[(current_contig, current_position)].update(
+             sitepatterns)
+    headers = ['contig', 'position']
+    headers.extend(
+        [MLIB.abpattern(x, self.params['nsamples'])
+         for x in range(0, 2 ** self.params['nsamples'], 2)])
+    outfile = OutputFile(path=self.params['out'],
+                         headers=headers)
+    sorted_entries = sorted([(data[k]['contig'],
+                              data[k]['position'], k)
+                             for k in self.data])
+    for _, _, k in sorted_entries:
+        outfile.write_entry(data[k])
+    return ''
 
 
 class PatternList(AnalysisModule):
@@ -444,50 +416,50 @@ class BaseCountWindow(AnalysisModule):
         return ''
 
 
-class PairwiseDistance(AnalysisModule):
-    """Calculated pairwise distances among samples"""
-
-    def analyze(self, mvf):
-        """Analyze for PairwiseDistance module"""
-        self.params['labels'] = mvf.get_sample_labels()[:]
-        ncol = mvf.metadata['ncol']
-        base_matches = dict([(tuple(x), {})
-                            for x in combinations(range(ncol), 2)])
-        all_match = {}
-        for _, _, allelesets in mvf:
-            alleles = allelesets[0]
-            if len(alleles) == 1:
-                all_match[alleles + alleles] = (
-                    all_match.get(alleles + alleles, 0) + 1)
+def parwisedistance(mvf):
+    """Calculated pairwise distances among samples
+    """
+    mvf = MultiVariantFile(args.mvf, 'read')
+    data = {}
+    labels = mvf.get_sample_labels()[:]
+    ncol = mvf.metadata['ncol']
+    base_matches = dict([(tuple(x), {})
+                        for x in combinations(range(ncol), 2)])
+    all_match = {}
+    for _, _, allelesets in mvf:
+        alleles = allelesets[0]
+        if len(alleles) == 1:
+            all_match[alleles + alleles] = (
+                all_match.get(alleles + alleles, 0) + 1)
+            continue
+        if alleles[1] == '+':
+            if 'X' in alleles or '-' in alleles:
                 continue
-            if alleles[1] == '+':
-                if 'X' in alleles or '-' in alleles:
-                    continue
-                samplepair = (0, int(alleles[3:]))
-                basepair = alleles[0] + alleles[2]
-                base_matches[samplepair][basepair] = (
-                    base_matches[samplepair].get(basepair, 0) + 1)
-                continue
-            alleles = mvf.decode(alleles)
-            valid_positions = [i for i, x in enumerate(alleles)
-                               if x not in 'X-']
-            for i, j in combinations(valid_positions, 2):
-                samplepair = (i, j)
-                basepair = alleles[i] + alleles[j]
-                base_matches[samplepair][basepair] = (
-                    base_matches[samplepair].get(basepair, 0) + 1)
-        all_diff, all_total = pairwise_distance(all_match)
-        for samplepair in base_matches:
-            ndiff, ntotal = pairwise_distance(base_matches[samplepair])
-            self.data[samplepair] = {
-                'taxa': "{};{}".format(self.params['labels'][samplepair[0]],
-                                       self.params['labels'][samplepair[1]]),
-                'ndiff': ndiff + all_diff,
-                'ntotal': ntotal + all_total,
-                'dist': zerodiv(ndiff + all_diff, ntotal + all_total)}
+            samplepair = (0, int(alleles[3:]))
+            basepair = alleles[0] + alleles[2]
+            base_matches[samplepair][basepair] = (
+                base_matches[samplepair].get(basepair, 0) + 1)
+            continue
+        alleles = mvf.decode(alleles)
+        valid_positions = [i for i, x in enumerate(alleles)
+                           if x not in 'X-']
+        for i, j in combinations(valid_positions, 2):
+            samplepair = (i, j)
+            basepair = alleles[i] + alleles[j]
+            base_matches[samplepair][basepair] = (
+                base_matches[samplepair].get(basepair, 0) + 1)
+    all_diff, all_total = pairwise_distance(all_match)
+    for samplepair in base_matches:
+        ndiff, ntotal = pairwise_distance(base_matches[samplepair])
+        data[samplepair] = {
+            'taxa': "{};{}".format(labels[samplepair[0]],
+                                   labels[samplepair[1]]),
+            'ndiff': ndiff + all_diff,
+            'ntotal': ntotal + all_total,
+            'dist': zerodiv(ndiff + all_diff, ntotal + all_total)}
 
-        self.write()
-        return ''
+    self.write()
+    return ''
 
     def write(self):
         """Write Output"""
@@ -636,90 +608,3 @@ def pairwise_distance(basepairs, strict=False):
             diff += paircount
     return diff, total
 
-
-def zerodiv(a, b):
-    if b == 0:
-        return 0
-    return float(a) / float(b)
-
-
-def modulehelp(modulenames=MODULENAMES):
-    """Prints extra description of modules"""
-    for modulename in modulenames:
-        print("{}: {}".format(modulename, eval(modulename + ".__doc__")))
-    return ''
-
-
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_analyze_dna.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("module", choices=MODULENAMES,
-                        help="analysis module to run")
-    parser.add_argument("-i", "--mvf", type=os.path.abspath,
-                        required=True,
-                        help="Input MVF file.")
-    parser.add_argument("-o", "--out", help="output file", required=True,
-                        type=os.path.abspath)
-    parser.add_argument("-c", "--contigs", nargs='*',
-                        help="limit analyses to these contigs")
-    parser.add_argument("-s", "--samples", nargs='*',
-                        help="limit analyses to these samples")
-    parser.add_argument("-m", "--mincoverage", type=int,
-                        help="mininum sample coverage for site")
-    parser.add_argument("-w", "--windowsize", type=int, default=100000,
-                        help="""window size, use -1 to use whole contigs""")
-    parser.add_argument("--base-match",
-                        help=("[BaseCountWindow] string of "
-                              "bases to match (i.e. numerator)."))
-    parser.add_argument("--base-total",
-                        help=("[BaseCountWindow] string of bases "
-                              "for total (i.e. denominator)."))
-    parser.add_argument("--morehelp", action="store_true",
-                        help="get additional information on modules")
-    parser.add_argument("--version", action="version",
-                        version="2017-07-18",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
-    """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
-    time0 = time()
-    # HELP MENU
-    if args.morehelp:
-        modulehelp(MODULENAMES)
-        sys.exit()
-    # ESTABLISH MVF
-    mvf = MultiVariantFile(args.mvf, 'read')
-    # MODULES
-    if args.module == 'BaseCountWindow':
-        module = BaseCountWindow(params=vars(args))
-    elif args.module == 'Coverage':
-        module = Coverage(params=vars(args))
-    elif args.module == 'DstatComb':
-        module = DstatComb(params=vars(args))
-    elif args.module == 'PairwiseDistance':
-        module = PairwiseDistance(params=vars(args))
-    elif args.module == 'PairwiseDistanceWindow':
-        module = PairwiseDistanceWindow(params=vars(args))
-    elif args.module == "PatternCount":
-        module = PatternCount(params=vars(args))
-    elif args.module == "PatternList":
-        module = PatternList(params=vars(args))
-    # RUN MODULE
-    module.analyze(mvf)
-    print("Finished in {} seconds.".format(time() - time0))
-    return ''
-
-
-if __name__ == "__main__":
-    if "--morehelp" in sys.argv:
-        modulehelp()
-        sys.exit()
-    main()
