@@ -18,6 +18,7 @@ from pylib.mvfargo import MvfArgumentParser
 from pylib.mvfcheck import check_mvf
 from pylib.mvfwindowtree import infer_window_tree
 from pylib.mvftranslate import annotate_mvf, translate_mvf
+from pylib.mvfjoin import mvf_join
 
 _LICENSE = """
 If you use this software please cite:
@@ -621,6 +622,38 @@ class MVFcall(object):
         parser = generate_argparser()
         args = parser.parse_args(self.arguments[1:])
         translate_mvf(args)
+        return ''
+
+    def JoinMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.add_argument(
+                "--mvf", nargs="*", type=os.path.abspath, required=True,
+                help="One or more mvf files.")
+            parser.addarg_out()
+            parser.add_argument(
+                "--new-contigs", "--newcontigs", action="store_true",
+                help=("By default, contigs are matched between files "
+                      "using their text labels in the header. "
+                      "Use this option to turn matching off and treat "
+                      "each file's contigs as distinct."))
+            parser.add_argument(
+                "--newsamples", action="store_true",
+                help=("By default, samples are matched between files "
+                      "using their text labels in the header. "
+                      "Use this option to turn matching off and treat "
+                      "each file's sample columns as distinct."))
+            parser.add_argument(
+                "--main_header_file", "--mainheaderfile",
+                help=("Output file will use same headers as "
+                      "this input file (default=first in list)."))
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        args = parser.parse_args(self.arguments[1:])
+        mvf_join(args)
         return ''
 
 
