@@ -4,13 +4,11 @@
 This program is used to convert a FASTA file into MVF format.
 """
 
-import sys
 import re
 import os
-import argparse
 from random import randint
-from pylib.mvfbase import encode_mvfstring, MultiVariantFile, fasta_iter, is_int
-import argparse
+from pylib.mvfbase import encode_mvfstring, is_int
+from pylib.mvfbase import MultiVariantFile, fasta_iter
 
 
 _LICENSE = """
@@ -39,6 +37,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 
 def parse_regions_arg(regionfilepath, contigs):
     """Parses the regions into coordinates"""
@@ -91,6 +90,7 @@ def parse_regions_arg(regionfilepath, contigs):
         "" if x[2] == -1 else "({})".format(x[3])
         ) for x in fmt_regions])
     return fmt_regions, region_max_coord, regionlabel
+
 
 def mvf2fasta(args):
     """Main method"""
@@ -158,8 +158,6 @@ def mvf2fasta(args):
             filehandler.close()
             os.remove(os.path.join(args.tmpdir, filehandler.name))
     return ''
-
-
 
 
 def fasta2mvf(args):
@@ -265,5 +263,111 @@ def fasta2mvf(args):
     return ''
 
 
-if __name__ == "__main__":
-    main()
+def mvf2phy(args):
+    """Main method"""
+    mvf = MultiVariantFile(args.mvf, 'read')
+    flavor = mvf.metadata['flavor']
+    if (flavor in ("dna", "rna") and args.outdata == "prot") or (
+            flavor == "prot" and args.outdata in ("dna", "rna")):
+        raise RuntimeError(
+            "--outdata {} incompatiable with '{}' flavor mvf".format(
+                args.outdata, flavor))
+    regions = None
+    max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
+    if args.region is not None:
+        regions, max_region_coord = parse_regions_arg(
+            args.region, mvf.metadata['contigs'])
+    sample_cols = mvf.get_sample_indices(args.samples or None)
+    labels = mvf.get_sample_labels(sample_cols)
+    skipcontig = ''
+    tmp_files = dict((fn, open("{}-{}.tmp".format(
+        fn, randint(1000000, 9999999)), 'w+', args.buffer)) for fn in labels)
+    labelwritten = dict.fromkeys(labels, False)
+    curcontigname = None
+    curcontigstart = 1
+    curcontigend = 1
+    if args.partition is True:
+        partprefix = "PROT" if args.outdata == "prot" else "DNA"
+        partitionfile = open("{}.part".format(args.out), 'w')
+    for contig, pos, allelesets in mvf.iterentries(
+            contigs=(mvf.metadata['contigs'] if args.region is None else
+                     [x for x in max_region_coord]),
+            quiet=args.quiet, decode=True):
+        if contig == skipcontig:
+            continue
+        if contig not in max_region_coord:
+            skipcontig = contig[:]
+            continue
+        if curcontigname is None:
+            curcontigname = contig[:]
+        elif contig != curcontigname:
+            if args.partition is True:
+                if curcontigend > curcontigstart:
+                    partitionfile.write("{}, {} = {}-{}\n".format(
+                        partprefix, mvf.get_contig_label(curcontigname),
+                        curcontigstart, curcontigend - 1))
+            curcontigname = contig[:]
+            # reset start as one position after end of last
+            curcontigstart = curcontigend
+            curcontigend = curcontigend + 1
+        for col, label in zip(sample_cols, labels):
+            if not labelwritten[label]:
+                if args.labeltype == 'long':
+                    tmp_files[label].write("{}{}".format(
+                        label[:100], " "*(100 - len(label[:100]))))
+                elif args.labeltype == 'short':
+                    tmp_files[label].write("{}{}".format(
+                        label[:20], " "*(20 - len(label[:20]))))
+                labelwritten[label] = True
+            if flavor == 'dna':
+                tmp_files[label].write(
+                    allelesets[0][col] == 'X' and
+                    'N' or allelesets[0][col])
+                if label == labels[0]:
+                    curcontigend += 1
+            elif ((flavor == 'codon' and args.outdata == 'prot') or (
+                    flavor == 'prot')):
+                tmp_files[label].write(allelesets[0][col])
+                if label == labels[0]:
+                    curcontigend += 1
+            elif flavor == 'codon':
+                codon = ["N" if allelesets[x][col] == 'X' else
+                         allelesets[x][col] for x in (1, 2, 3)]
+                tmp_files[label].write(''.join(codon))
+                if label == labels[0]:
+                    curcontigend += 3
+    first_file = True
+    totalseqlen = 0
+    with open(args.out, 'w') as outfile:
+        for filehandler in tmp_files.values():
+            # read first file to establish sequence length for phylip header
+            if first_file is True:
+                filehandler.seek(0, 0)
+                buff = filehandler.read(args.buffer)
+                while buff != '':
+                    if " " in buff:
+                        totalseqlen += len(buff.strip().split(" ")[-1])
+                    else:
+                        totalseqlen += len(buff.strip())
+                    buff = filehandler.read(args.buffer)
+                outfile.write("{} {}\n".format(len(labels), totalseqlen))
+                first_file = False
+            filehandler.seek(0, 0)
+            buff = filehandler.read(args.buffer)
+            while buff != '':
+                if first_file is True:
+                    outfile.write("{} {}\n".format(
+                        len(labels), len(buff.split()[1])))
+                    first_file = False
+                outfile.write(buff)
+                buff = filehandler.read(args.buffer)
+            outfile.write("\n")
+            filehandler.close()
+            os.remove(os.path.join(args.tmpdir, filehandler.name))
+    if args.partition is True:
+        if curcontigend > curcontigstart:
+            partitionfile.write("{},{},{},{}\n".format(
+                partprefix, mvf.get_contig_label(curcontigname),
+                curcontigstart, curcontigend - 1))
+        partitionfile.close()
+    return ''

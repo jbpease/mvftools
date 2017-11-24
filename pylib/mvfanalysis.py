@@ -8,7 +8,7 @@ James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -35,10 +35,21 @@ from itertools import combinations
 from pylib.mvfbase import MultiVariantFile, OutputFile, zerodiv
 from pylib.mvfbiolib import MvfBioLib
 
-_LICENSE = """
-"""
-
 MLIB = MvfBioLib()
+
+
+def pi_diversity(seq):
+    """Calculate Pi sequence diversity"""
+    seq = ''.join([MLIB.splitbases[x] for x in seq])
+    base_count = [seq.count(x) for x in 'ATGC']
+    total = float(sum(base_count))
+    if not total:
+        return 'nodata'
+    if any(x == total for x in base_count):
+        return 0.0
+    else:
+        return total / (total - 1) * (1 - sum([(x / total)**2
+                                               for x in base_count]))
 
 
 def calc_sample_coverage(args):

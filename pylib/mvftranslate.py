@@ -199,6 +199,32 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None):
     return relabeled_gff_entries, geneids
 
 
+def parse_gff_analysis(gffpath):
+    rxpr3 = re.compile(' \(AHRD.*?\)')
+    coordinates = {}
+    annotations = {}
+    with open(gffpath, '') as gff:
+        for line in gff:
+            arr = line.split("\t")
+            if len(arr) < 6 or line[0] == "#":
+                continue
+            if arr[2] == 'mRNA':
+                gcoord = "{!s}:{!s}..{!s}".format(arr[0], arr[3], arr[4])
+                notes = arr[8].split(';')
+                refid = notes[0][notes[0].find(':') + 1:notes[0].rfind('.')]
+                annot = '.'
+                for x in notes:
+                    if x.startswith("Note="):
+                        annot = x[5:]
+                annotations[refid] = re.sub(rxpr3, '', annot)
+                for (x, y) in (("%3B", ";"), ("%27", "'"), ("%2C", ","),
+                               (" contains Interpro domain(s)  ", " ")):
+                    annotations[refid] = annotations[refid].replace(x, y)
+                coordinates[refid] = gcoord
+    return annotations, coordinates
+
+
+
 def mvf_annotate(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')

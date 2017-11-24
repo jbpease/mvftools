@@ -10,15 +10,15 @@ import os
 import sys
 import argparse
 from time import time
-from pylib.mvffasta import fasta2mvf, mvf2fasta
+from pylib.mvffasphy import fasta2mvf, mvf2fasta, mvf2phy
 from pylib.mvfmaf import maf2mvf
-from pylib.mvfphylip import mvf2phy
 from pylib import mvfanalysis
 from pylib.mvfargo import MvfArgumentParser
 from pylib.mvfcheck import check_mvf
 from pylib.mvfwindowtree import infer_window_tree
 from pylib.mvftranslate import annotate_mvf, translate_mvf
 from pylib.mvfjoin import mvf_join
+from pylib.mvfgroupallele import calc_group_unique_allele_window
 
 _LICENSE = """
 If you use this software please cite:
@@ -442,6 +442,83 @@ class MVFcall(object):
         parser = generate_argparser()
         args = parser.parse_args(self.arguments[1:])
         check_mvf(args)
+        return ''
+
+    def InferGroupSpecificAllele(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_gff()
+            parser.addarg_out()
+            parser.addarg_contigs()
+            parser.addarg_samples()
+            parser.addarg_windowsize()
+            parser.addarg_mincoverage()
+            parser.add_argument(
+                "--allele-groups", "--allelegroups", nargs='*',
+                help=("GROUP1:LABEL,LABEL GROUP2:LABEL,LABEL "))
+            parser.add_argument(
+                "--species-groups", "--speciesgroups", nargs='*')
+            parser.add_argument(
+                "--chi-test", "--chitest",
+                help=("Input two number values for expected "
+                      "Nonsynonymous and Synonymous expected values."))
+            parser.add_argument(
+                "--target", nargs="*",
+                help=("Specify the taxa labels that define the "
+                      "target lineage-specific branch to be tested."))
+            parser.add_argument(
+                "--num-target-species", "--targetspec",
+                type=int, default=1,
+                help=("Specify the minimum number of "
+                      "taxa in the target set "
+                      "that are required to conduct analysis"))
+            parser.add_argument(
+                "--output-align", "--outputalign",
+                help=("Output alignment to this file path in "
+                      "phylip format."))
+            parser.add_argument(
+                "--outgroup",
+                help("Specify sample name with which to root trees."))
+            parser.add_argument(
+                "--uselabels", "--use_labels", action="store_true",
+                help="Use contig labels instead of IDs in output.")
+            parser.add_argument(
+                "--codemlpath", "--codeml-path", default="codeml",
+                type=os.path.abspath,
+                help="Full path for PAML codeml executable.")
+            parser.add_argument(
+                "--raxml-path", "--raxmlpath",
+                type=os.path.abspath, default="raxml",
+                help="Full path to RAxML program executable.")
+            parser.add_argument(
+                "--start-contig", "--startcontig", type=int, default=0,
+                help="Numerical ID for the starting contig.")
+            parser.add_argument(
+                "--end-contig", "--endcontig",
+                type=int, default=100000000,
+                help="Numerical id for the ending contig.")
+            parser.add_argument(
+                "--pamltmp", "--paml-tmp",
+                default="pamltmp", type=os.path.abspath,
+                help="path for temporary folder for PAML output files")
+            parser.add_argument(
+                "--all-sample-trees", "--allsampletrees",
+                action="store_true",
+                help=("Makes trees from all samples instead of "
+                      "only the most complete sequence from "
+                      "each species"))
+            parser.add_argument(
+                "--branchlrt", "--branch-lrt", type=os.path.abspath,
+                help=("Specify the output file for and turn on the "
+                      "RAxML-PAML format LRT test scan for "
+                      "selection on the target branch in addition "
+                      "to the basic patterns scan"))
+            return parser
+        parser = generate_argparser()
+        args = parser.parse_args(self.arguments[1:])
+        calc_group_unique_allele_window(args)
         return ''
 
     def InferWindowTree(self):
