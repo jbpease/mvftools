@@ -3,23 +3,7 @@
 """
 This program makes phylogenies from individual genomic windows of
 a DNA MVF alignment (Requires: BioPython).
-"""
 
-import os
-import sys
-import argparse
-import subprocess
-from random import randint
-from datetime import datetime
-from io import StringIO
-from itertools import combinations
-from Bio import Phylo
-from mvfbase import MultiVariantFile
-from mvfbiolib import MvfBioLib
-MLIB = MvfBioLib()
-
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
@@ -45,6 +29,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import os
+import subprocess
+from random import randint
+from datetime import datetime
+from io import StringIO
+from itertools import combinations
+from Bio import Phylo
+from pylib.mvfbase import MultiVariantFile
+from pylib.mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
 
 
 class WindowData(object):
@@ -454,97 +449,17 @@ def hapsplit(alleles, mode):
     return alleles
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_windows_tree.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", required=True, type=os.path.abspath,
-                        help="Input MVF file.")
-    parser.add_argument("-o", "--out", required=True, type=os.path.abspath,
-                        help="Tree list output text file.")
-    parser.add_argument("-s", "--samples", nargs='*',
-                        help="One or more taxon labels (default=all)")
-    parser.add_argument("-g", "--raxml-outgroups", "--raxml_outgroups",
-                        nargs="*",
-                        help="Outgroups taxon labels to use in RAxML.")
-    parser.add_argument("-r", "--rootwith", nargs='*',
-                        help="Root output trees with these taxa after RAxML.")
-    parser.add_argument("-c", "--contigs", nargs='*',
-                        help="Contig ids to use in analysis (default=all)")
-    parser.add_argument("--outputcontiglabels", action="store_true",
-                        help=("Output will use contig labels instead of id "
-                              "numbers."))
-    parser.add_argument("-e", "--outputempty", action="store_true",
-                        help=("Include entries of windows with no data in "
-                              "output."))
-    parser.add_argument("-A", "--choose_allele", "--hapmode",
-                        default="none", dest="choose_allele",
-                        choices=["none", "randomone", "randomboth",
-                                 "major", "minor", "majorminor"],
-                        help=("Chooses how heterozygous alleles are "
-                              "handled. (none=no splitting (default); "
-                              "randomone=pick one allele randomly "
-                              "(recommended); randomboth=pick two alleles "
-                              "randomly, but keep both; major=pick the "
-                              "more common allele; minor=pick the less "
-                              "common allele; majorminor= pick the major in "
-                              "'a' and minor in 'b'"))
-    parser.add_argument("-w", "--windowsize", type=int, default=10000,
-                        help=("specify genomic region size, "
-                              "or use -1 for whole contig"))
-    parser.add_argument("-M", "--minsites", type=int, default=100,
-                        help="minimum number of sites ")
-    parser.add_argument("-C", "--minseqcoverage", type=float, default=0.1,
-                        help="""proportion of total alignment a sequence
-                                must cover to be retianed [0.1]""")
-    parser.add_argument("-D", "--mindepth", type=int, default=4,
-                        help=("minimum number of alleles per site"))
-    parser.add_argument("-b", "--bootstrap", type=int,
-                        help=("turn on rapid bootstrapping for RAxML and "
-                              "perform specified number of replicates"))
-    parser.add_argument("-m", "--raxml_model", default="GTRGAMMA",
-                        help=("choose RAxML model"))
-    parser.add_argument("-X", "--raxmlpath", default="raxml",
-                        help="RAxML path for manual specification.")
-    parser.add_argument("-R", "--raxmlopts", default="",
-                        help=("specify additional RAxML arguments as a "
-                              "double-quotes encased string"))
-    parser.add_argument("-d", "--duplicateseq", default="dontuse",
-                        choices=["dontuse", "keep", "remove"],
-                        help=("dontuse=remove duplicate sequences prior to "
-                              "RAxML tree inference, then add them to the "
-                              "tree manually as zero-branch-length sister "
-                              "taxa; keep=keep in for RAxML tree inference "
-                              "(may cause errors for RAxML); "
-                              "remove=remove entirely from alignment"))
-    parser.add_argument("--tempdir", default='./raxmltemp',
-                        type=os.path.abspath,
-                        help=("Temporary directory path"))
-    parser.add_argument("--tempprefix", default="mvftree",
-                        help="Temporary file prefix")
-    parser.add_argument("--quiet", action="store_true",
-                        help="suppress screen output")
-    parser.add_argument("--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def infer_window_tree(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
     # ESTABLISH FILE OBJECTS
     args.contigs = args.contigs or []
     mvf = MultiVariantFile(args.mvf, 'read')
-    treefile = OutputFile(args.out,
-                          headers=['contig', 'windowstart', 'windowsize',
-                                   'tree', 'topology', 'topoid',
-                                   # 'templabels', ### USED FOR DEBUGGING ###
-                                   'alignlength', 'aligndepth', 'status'])
+    treefile = OutputFile(
+        args.out,
+        headers=['contig', 'windowstart', 'windowsize', 'tree',
+                 'topology', 'topoid',
+                 # 'templabels', ### USED FOR DEBUGGING ###
+                 'alignlength', 'aligndepth', 'status'])
     topofile = OutputFile(args.out + '.counts',
                           headers=['rank', 'topology', 'count'])
     sample_cols = (None if args.samples is None else
@@ -633,6 +548,3 @@ def main(arguments=None):
     for rank, [value, topo] in enumerate(topo_list):
         topofile.write_entry({'rank': rank, 'count': value, 'topology': topo})
     return ''
-
-if __name__ == "__main__":
-    main()
