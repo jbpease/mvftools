@@ -23,6 +23,15 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--contigs",
             help="Specify comma-separated list of contigs.")
 
+    def addarg_gff(self):
+        self.add_argument("--gff", type=os.path.abspath,
+                          help="Input gff annotation file.")
+
+    def addarg_linebuffer(self):
+        self.add_argument(
+            "--line-buffer", "--linebuffer", type=int, default=100000,
+            help="Number of entries to store in memory at a time.")
+
     def addarg_mincoverage(self):
         self.add_argument(
                 "--mincoverage", type=int,

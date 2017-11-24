@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This program translates a DNA MVF file into a codon or protein MVF file
-using a GFF3 annotation file.
+This program takes a DNA MVF alignment and annotates the output into
+gene boudaries.
 """
 
-import os
-import sys
-import argparse
 import re
 from copy import deepcopy
 from mvfbase import MultiVariantFile
@@ -41,6 +38,7 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+RE_GENEID = re.compile("ID=gene:(.*?);")
 PARENTGENE = re.compile("Parent=mRNA:(.*?);")
 
 
@@ -85,7 +83,28 @@ def translate(seq, firststop=None):
     return aa_seq
 
 
-def parse_gff(gff_file, args):
+def iter_codons(inputbuffer, mvf):
+    print(inputbuffer)
+    for i in range(0, len(inputbuffer), 3):
+        alleles = [inputbuffer[i][1][0],
+                   inputbuffer[i+1][1][0],
+                   inputbuffer[i+2][1][0]]
+        print(alleles)
+        if all(len(x) == 1 for x in alleles):
+            amino_acids = translate(''.join(alleles))[0]
+        else:
+            decoded_alleles = [mvf.decode(x) for x in alleles]
+            print(decoded_alleles)
+            amino_acids = [translate(''.join(x))
+                           for x in zip(*decoded_alleles)]
+            amino_acids = mvf.encode(
+                ''.join([x[0] for x in amino_acids]))
+        yield inputbuffer[i][0], amino_acids, [
+            inputbuffer[i][1][0], inputbuffer[i+1][1][0],
+            inputbuffer[i+2][1][0]]
+
+
+def parse_gff_translate(gff_file, args):
     """Parses a GFF3 file for exon locations
         Arguments:
             gff_file: path to GFF3 file
@@ -133,73 +152,105 @@ def parse_gff(gff_file, args):
     return gff_triplets
 
 
-def iter_codons(inputbuffer, mvf):
-    print(inputbuffer)
-    for i in range(0, len(inputbuffer), 3):
-        alleles = [inputbuffer[i][1][0],
-                   inputbuffer[i+1][1][0],
-                   inputbuffer[i+2][1][0]]
-        print(alleles)
-        if all(len(x) == 1 for x in alleles):
-            amino_acids = translate(''.join(alleles))[0]
-        else:
-            decoded_alleles = [mvf.decode(x) for x in alleles]
-            print(decoded_alleles)
-            amino_acids = [translate(''.join(x))
-                           for x in zip(*decoded_alleles)]
-            amino_acids = mvf.encode(
-                ''.join([x[0] for x in amino_acids]))
-        yield inputbuffer[i][0], amino_acids, [
-            inputbuffer[i][1][0], inputbuffer[i+1][1][0],
-            inputbuffer[i+2][1][0]]
+def parse_gff_annotate(gff_file, contigs, filter_annotation=None):
+    """Parses a GFF3 file for exon locations
+        Arguments:
+            gff_file: path to GFF3 file
+            args: passthrough from main args
+
+        Output: triplets for codon locations
+
+    """
+    gff_entries = {}
+    relabeled_gff_entries = {}
+    geneids = {}
+    geneid = 0
+    with open(gff_file) as gff:
+        for line in gff:
+            if line[0] == '#':
+                continue
+            arr = line.rstrip().split()
+            if arr[2] != 'gene':
+                continue
+            if filter_annotation:
+                if filter_annotation in arr[8]:
+                    continue
+            genename = re.findall(RE_GENEID, arr[8])[0]
+            contig = arr[0]
+            if contig not in gff_entries:
+                gff_entries[contig] = {}
+            coords = [int(arr[3]), int(arr[4])]
+            if genename not in geneids:
+                geneids[geneid] = {'label': genename,
+                                   'length': max(coords) - min(coords)}
+            for j in range(min(coords), max(coords) + 1):
+                gff_entries[contig][j] = geneid
+            geneid += 1
+    for contig in gff_entries:
+        matchlabel = False
+        for contigid in contigs:
+            if contigs[contigid]['label'] == contig:
+                relabeled_gff_entries[contigid] = gff_entries[contig].copy()
+                matchlabel = True
+                break
+        if matchlabel is False:
+            relabeled_gff_entries[contig] = gff_entries[contig].copy()
+    gff_entries = None
+    return relabeled_gff_entries, geneids
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_translate.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", type=os.path.abspath,
-                        help="Input MAF file", required=True)
-    parser.add_argument("-g", "--gff", type=os.path.abspath,
-                        help=("Input GFF3 file. "
-                              "If GFF3 not provided, "
-                              "alignments are assumed to be "
-                              "in-frame coding sequences."))
-    parser.add_argument("-o", "--out", help="Output MVF file", required=True)
-    parser.add_argument("-t" "--outtype", choices=['protein', 'codon'],
-                        default="codon",
-                        help=("protein=single data column "
-                              "of protein alleles; "
-                              "codon=four columns with: "
-                              "protein frame1 frame2 frame3"))
-    parser.add_argument("-F", "--filter-annotation",
-                        help=("skip GFF entries with text "
-                              "matching this in their 'Notes' field"))
-    parser.add_argument("-B", "--line-buffer", "--linebuffer",
-                        type=int, default=100000,
-                        help="number of entries to write in a block")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("--quiet", action="store_true",
-                        help="suppress progress meter")
-    parser.add_argument("--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def mvf_annotate(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
+    mvf = MultiVariantFile(args.mvf, 'read')
+    gff, geneids = parse_gff_annotate(args.gff, mvf.metadata['contigs'])
+    if args.quiet is False:
+        print("gff_processed")
+    outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
+    outmvf.metadata = deepcopy(mvf.metadata)
+    if args.nongenic_mode is False:
+        outmvf.metadata['contigs'] = geneids
+    outmvf.write_data(outmvf.get_header())
+    entrybuffer = []
+    nentry = 0
+    for contigid, pos, allelesets in mvf.iterentries(decode=False):
+        annotated_pos = False
+        if contigid in gff:
+            if pos in gff[contigid]:
+                annotated_pos = True
+            elif args.nongenic_mode is True and args.unmargin > 0:
+                for xpos in range(pos - args.unmargin,
+                                  pos + args.unmargin + 1):
+                    if xpos in gff[contigid]:
+                        annotated_pos = True
+                        break
+        if args.nongenic_mode is False and annotated_pos is True:
+            entrybuffer.append((gff[contigid][pos], pos, allelesets))
+            nentry += 1
+            if nentry == args.linebuffer:
+                outmvf.write_entries(entrybuffer)
+                entrybuffer = []
+                nentry = 0
+        elif args.nongenic_mode is True and annotated_pos is False:
+            entrybuffer.append((contigid, pos, allelesets))
+            nentry += 1
+            if nentry == args.linebuffer:
+                outmvf.write_entries(entrybuffer)
+                entrybuffer = []
+                nentry = 0
+    if entrybuffer:
+        outmvf.write_entries(entrybuffer)
+        entrybuffer = []
+        nentry = 0
+    return ''
+
+
+def translate_mvf(args):
+    """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
     if not mvf.metadata['flavor'] == 'dna':
         raise RuntimeError("MVF must be flavor=dna to translate")
     if args.gff:
-        gff = parse_gff(args.gff, args)
+        gff = parse_gff_translate(args.gff, args)
         if not args.quiet:
             print("gff_processed")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
@@ -309,7 +360,3 @@ def main(arguments=None):
         entrybuffer = []
         nentry = 0
     return ''
-
-
-if __name__ == "__main__":
-    main()

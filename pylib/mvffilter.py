@@ -5,12 +5,8 @@ This program filters an MVF alignment using the modules specified below,
 use the --morehelp option for additional module information.
 """
 
-import os
 import sys
-import argparse
 from copy import deepcopy
-from itertools import combinations
-from time import time
 from mvfbase import MultiVariantFile, encode_mvfstring
 from mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
@@ -605,46 +601,8 @@ def build_actionset(moduleargs, ncol):
     return actionset
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_filter.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", type=os.path.abspath,
-                        help="Input MVF file.")
-    parser.add_argument("-o", "--out", type=os.path.abspath,
-                        help="Output MVF file")
-    parser.add_argument("-a", "--actions", nargs='*',
-                        help=("set of actions:args to perform,"
-                              " note these are done in order as listed"))
-    parser.add_argument("-l", "--labels", action="store_true",
-                        help="use sample labels instead of indices")
-    parser.add_argument("--test", help="manually input a line for testing")
-    parser.add_argument("--test-nchar", type=int,
-                        help="total number of samples for test string")
-    parser.add_argument("--morehelp", action="store_true",
-                        help="prints full module list and descriptions")
-    parser.add_argument("-B", "--linebuffer", type=int, default=100000,
-                        help="number of lines to write at once to MVF")
-    parser.add_argument("-V", "--verbose", action="store_true",
-                        help="report every line (for debugging)")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("-q", "--quiet", action="store_true",
-                        help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="version",
-                        version="2017-10-27",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def filter_mvf(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
-    time0 = time()
     if args.morehelp is True:
         modulehelp()
         sys.exit()
@@ -805,10 +763,4 @@ def main(arguments=None):
     if linebuffer:
         outmvf.write_entries(linebuffer)
         linebuffer = []
-    if args.quiet is False:
-        print("Completed in {} seconds".format(time() - time0))
     return ''
-
-
-if __name__ == "__main__":
-    main()

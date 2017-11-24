@@ -17,6 +17,7 @@ from pylib import mvfanalysis
 from pylib.mvfargo import MvfArgumentParser
 from pylib.mvfcheck import check_mvf
 from pylib.mvfwindowtree import infer_window_tree
+from pylib.mvftranslate import annotate_mvf, translate_mvf
 
 _LICENSE = """
 If you use this software please cite:
@@ -50,6 +51,7 @@ class MVFcall(object):
         parser = argparse.ArgumentParser(
             prog="mvftools.py",
             usage="""Choose from the following commands:
+            AnnotateMVF
             CalcCountCharacterWindows
             CalcDstatCombinations
             CalcPairwiseDistances
@@ -63,8 +65,10 @@ class MVFcall(object):
             ConvertMVFtoFASTA
             ConvertMVFtoPhylip
             ConvertVCFtoMVF
+            FilterMVF
             InferWindowTree
             PlotChromoplot
+            TranslateMVF
             """,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
             epilog=_LICENSE)
@@ -179,9 +183,7 @@ class MVFcall(object):
                 "--allelesfrom", default=None,
                 help="""get additional alignment columns
                 from INFO fields (:-separated)""")
-            parser.add_argument(
-                "--linebuffer", type=int, default=100000,
-                help="number of lines to hold in read/write buffer")
+            parser.addarg_linebuffer()
             parser.add_argument(
                 "--no_autoindex", action="store_true",
                 help="do not automatically index contigs from the VCF")
@@ -282,10 +284,7 @@ class MVFcall(object):
                       "NEW (or TAG if NEW not specified) "
                       "NEW and TAG must each be unique."))
 
-            parser.add_argument(
-                "--line-buffer", "--linebuffer",
-                type=int, default=100000,
-                help="number of lines to hold in read/write buffer")
+            parser.addarg_linebuffer()
             parser.add_overwrite()
             return parser
         parser = generate_argparser()
@@ -526,6 +525,102 @@ class MVFcall(object):
         parser = generate_argparser()
         args = parser.parse_args(self.arguments[1:])
         infer_window_tree(args)
+        return ''
+
+    def FilterMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.add_argument("--mvf", type=os.path.abspath,
+                                help="Input MVF file.")
+            parser.add_argument("--out", type=os.path.abspath,
+                                help="Output MVF file")
+            parser.add_argument(
+                "--actions", nargs='*',
+                help=("set of actions:args to perform, "
+                      "note these are done in order as listed"))
+            parser.add_argument(
+                "--labels", action="store_true",
+                help="use sample labels instead of indices")
+            parser.add_argument(
+                "--test", help="manually input a line for testing")
+            parser.add_argument(
+                "--test-nchar", type=int,
+                help="total number of samples for test string")
+            parser.add_argument(
+                "--morehelp", action="store_true",
+                help="prints full module list and descriptions")
+            parser.addarg_linebuffer()
+            parser.add_argument(
+                "--verbose", action="store_true",
+                help="report every line (for debugging)")
+            parser.add_argarg_overwrite()
+            return parser
+
+        parser = generate_argparser()
+        args = parser.parse_args(self.arguments[1:])
+        check_mvf(args)
+        return ''
+
+    def AnnotateMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_gff()
+            parser.add_argument(
+                "--filter-annotation", "--filterannotation",
+                help=("Skip entries in the GFF file that "
+                      "contain this string in their 'Notes'"))
+            parser.add_argument(
+                "--nongenic-mode", "--nongenicmode",
+                action="store_true",
+                help=("Instead of returning annotated genes, "
+                      "return the non-genic regions without "
+                      "without changing contigs or coordinates"))
+            parser.add_argument(
+                "--nongenic-margin", "--nongenicmargin",
+                type=int, default=0,
+                help=("for --unnanotated-mode, only retain "
+                      "positions that are this number of bp away "
+                      "from an annotated region boundary"))
+            parser.addarg_linebuffer()
+            return parser
+
+        parser = generate_argparser()
+        args = parser.parse_args(self.arguments[1:])
+        annotate_mvf(args)
+        return ''
+
+    def TranslateMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.add_argument(
+                "--gff", type=os.path.abspath,
+                help=("Input GFF3 file. If GFF3 not provided, "
+                      "alignments are assumed to be "
+                      "in-frame coding sequences."))
+            parser.add_argument(
+                "--outtype", choices=['protein', 'codon'],
+                default="codon",
+                help=("protein=single data column "
+                      "of protein alleles; "
+                      "codon=four columns with: "
+                      "protein frame1 frame2 frame3"))
+            parser.add_argument(
+                "--filter-annotation", "--filterannotation",
+                help=("skip GFF entries with text "
+                      "matching this in their 'Notes' field"))
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        args = parser.parse_args(self.arguments[1:])
+        translate_mvf(args)
         return ''
 
 
