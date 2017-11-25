@@ -32,7 +32,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 from random import randint
 from itertools import combinations
-from pylib.mvfbase import MultiVariantFile, OutputFile, zerodiv
+from pylib.mvfbase import MultiVariantFile, OutputFile, zerodiv, same_window
 from pylib.mvfbiolib import MvfBioLib
 
 MLIB = MvfBioLib()
@@ -334,56 +334,7 @@ def calc_count_char_window(args):
     return ''
 
 
-def calc_pairwise_distances_all(args):
-    """Calculated pairwise distances among samples
-    """
-    mvf = MultiVariantFile(args.mvf, 'read')
-    data = {}
-    labels = mvf.get_sample_labels()[:]
-    ncol = mvf.metadata['ncol']
-    base_matches = dict([(tuple(x), {})
-                        for x in combinations(range(ncol), 2)])
-    all_match = {}
-    for _, _, allelesets in mvf:
-        alleles = allelesets[0]
-        if len(alleles) == 1:
-            all_match[alleles + alleles] = (
-                all_match.get(alleles + alleles, 0) + 1)
-            continue
-        if alleles[1] == '+':
-            if 'X' in alleles or '-' in alleles:
-                continue
-            samplepair = (0, int(alleles[3:]))
-            basepair = alleles[0] + alleles[2]
-            base_matches[samplepair][basepair] = (
-                base_matches[samplepair].get(basepair, 0) + 1)
-            continue
-        alleles = mvf.decode(alleles)
-        valid_positions = [i for i, x in enumerate(alleles)
-                           if x not in 'X-']
-        for i, j in combinations(valid_positions, 2):
-            samplepair = (i, j)
-            basepair = alleles[i] + alleles[j]
-            base_matches[samplepair][basepair] = (
-                base_matches[samplepair].get(basepair, 0) + 1)
-    all_diff, all_total = pairwise_distance(all_match)
-    for samplepair in base_matches:
-        ndiff, ntotal = pairwise_distance(base_matches[samplepair])
-        data[samplepair] = {
-            'taxa': "{};{}".format(labels[samplepair[0]],
-                                   labels[samplepair[1]]),
-            'ndiff': ndiff + all_diff,
-            'ntotal': ntotal + all_total,
-            'dist': zerodiv(ndiff + all_diff, ntotal + all_total)}
-    headers = ['taxa', 'ndiff', 'ntotal', 'dist']
-    outfile = OutputFile(path=args.out,
-                         headers=headers)
-    for entry in data.values():
-        outfile.write_entry(entry)
-    return ''
-
-
-def calc_pairwise_distances_window(args):
+def calc_pairwise_distances(args):
     """Count the pairwise nucleotide distance between
        combinations of samples in a window
     """
@@ -392,26 +343,38 @@ def calc_pairwise_distances_window(args):
     labels = mvf.get_sample_labels()
     current_contig = None
     current_position = 0
-    data_in_buffer = 0
+    data_in_buffer = False
     ncol = mvf.metadata['ncol']
     sample_pairs = [tuple(x) for x in combinations(range(ncol), 2)]
     base_matches = dict([(x, {}) for x in sample_pairs])
     all_match = {}
     for contig, pos, allelesets in mvf:
+        # Check Minimum Site Coverage
         if args.mincoverage is not None:
             if (sum([int(x not in 'Xx-') for x in allelesets[0]]) <
                     args.mincoverage):
                 continue
-        if not current_contig:
+        # Establish first contig
+        if current_contig is None:
             current_contig = contig[:]
-        if contig != current_contig or (
-                args.windowsize not in [0, -1] and
-                pos > current_position + args.windowsize):
+            while pos > current_position + args.windowsize - 1:
+                current_position += args.windowsize
+        # Check if windows are specified.
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
-            all_diff, all_total = pairwise_distance(all_match)
+            if mvf.metadata['flavor'] == 'dna':
+                all_diff, all_total = pairwise_distance_nuc(all_match)
+            elif mvf.metadata['flavor'] == 'prot':
+                all_diff, all_total = pairwise_distance_prot(all_match)
             for samplepair in base_matches:
-                ndiff, ntotal = pairwise_distance(base_matches[samplepair])
+                if mvf.metadata['flavor'] == 'dna':
+                    ndiff, ntotal = pairwise_distance_nuc(
+                        base_matches[samplepair])
+                elif mvf.metadata['flavor'] == 'prot':
+                    ndiff, ntotal = pairwise_distance_prot(
+                        base_matches[samplepair])
                 taxa = "{};{}".format(labels[samplepair[0]],
                                       labels[samplepair[1]])
                 data[(current_contig, current_position)].update({
@@ -422,44 +385,59 @@ def calc_pairwise_distances_window(args):
             if contig != current_contig:
                 current_contig = contig[:]
                 current_position = 0
+                while pos > current_position + args.windowsize - 1:
+                    current_position += args.windowsize
             else:
                 current_position += args.windowsize
             base_matches = dict([(x, {}) for x in sample_pairs])
             all_match = {}
-            data_in_buffer = 0
-        else:
-            alleles = allelesets[0]
-            if len(alleles) == 1:
-                all_match["{}{}".format(alleles, alleles)] = (
-                    all_match.get("{}{}".format(alleles, alleles),
-                                  0) + 1)
-                data_in_buffer = 1
+            data_in_buffer = False
+        alleles = allelesets[0]
+        if len(alleles) == 1:
+            all_match["{}{}".format(alleles, alleles)] = (
+                all_match.get("{}{}".format(alleles, alleles),
+                              0) + 1)
+            data_in_buffer = True
+            continue
+        if alleles[1] == '+':
+            if 'X' in alleles or '-' in alleles:
                 continue
-            if alleles[1] == '+':
-                if 'X' in alleles or '-' in alleles:
-                    continue
-                samplepair = (0, int(alleles[3:]))
-                basepair = "{}{}".format(alleles[0], alleles[2])
-                base_matches[samplepair][basepair] = (
-                    base_matches[samplepair].get(basepair, 0) + 1)
-                data_in_buffer = 1
-                continue
-            alleles = mvf.decode(alleles)
-            valid_positions = [i for i, x in enumerate(alleles)
-                               if x not in 'X-']
-            for i, j in combinations(valid_positions, 2):
-                samplepair = (i, j)
-                basepair = "{}{}".format(alleles[i], alleles[j])
-                base_matches[samplepair][basepair] = (
-                    base_matches[samplepair].get(basepair, 0) + 1)
-            data_in_buffer = 1
-    if data_in_buffer:
+            samplepair = (0, int(alleles[3:]))
+            basepair = "{}{}".format(alleles[0], alleles[2])
+            base_matches[samplepair][basepair] = (
+                base_matches[samplepair].get(basepair, 0) + 1)
+            data_in_buffer = True
+            continue
+        alleles = mvf.decode(alleles)
+        valid_positions = [i for i, x in enumerate(alleles)
+                           if x not in 'X-']
+        for i, j in combinations(valid_positions, 2):
+            samplepair = (i, j)
+            basepair = "{}{}".format(alleles[i], alleles[j])
+            base_matches[samplepair][basepair] = (
+                base_matches[samplepair].get(basepair, 0) + 1)
+        data_in_buffer = True
+    if data_in_buffer is True:
+        # Check whether, windows, contigs, or total
+        if args.windowsize == 0:
+            current_contig = 'TOTAL'
+            current_position = 0
+        elif args.windowsize == -1:
+            current_position = 0
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
-        all_diff, all_total = pairwise_distance(all_match)
+        if mvf.metadata['flavor'] == 'dna':
+            all_diff, all_total = pairwise_distance_nuc(all_match)
+        elif mvf.metadata['flavor'] == 'prot':
+            all_diff, all_total = pairwise_distance_prot(all_match)
         for samplepair in base_matches:
-            ndiff, ntotal = pairwise_distance(base_matches[samplepair])
-            taxa = "{};{}".format(labels[samplepair[0]], labels[samplepair[1]])
+            if mvf.metadata['flavor'] == 'dna':
+                ndiff, ntotal = pairwise_distance_nuc(base_matches[samplepair])
+            elif mvf.metadata['flavor'] == 'prot':
+                ndiff, ntotal = pairwise_distance_prot(
+                    base_matches[samplepair])
+            taxa = "{};{}".format(labels[samplepair[0]],
+                                  labels[samplepair[1]])
             data[(current_contig, current_position)].update({
                 '{};ndiff'.format(taxa): ndiff + all_diff,
                 '{};ntotal'.format(taxa): ntotal + all_total,
@@ -480,7 +458,7 @@ def calc_pairwise_distances_window(args):
     return ''
 
 
-def pairwise_distance(basepairs, strict=False):
+def pairwise_distance_nuc(basepairs, strict=False):
     """Calculates pairwise distances between two sequences
         strict = only use ATGC if True,
         choose random heterozygous base if False.
@@ -492,7 +470,6 @@ def pairwise_distance(basepairs, strict=False):
         if base0 not in MLIB.validchars['dna+ambig'] or (
                 base1 not in MLIB.validchars['dna+ambig']):
             continue
-        total += paircount
         if base0 in MLIB.validchars['dnaambig2']:
             if strict is True:
                 continue
@@ -503,4 +480,23 @@ def pairwise_distance(basepairs, strict=False):
             base1 = MLIB.splitbases[base1][randint(0, 1)]
         if base0 != base1:
             diff += paircount
+        total += paircount
+    return diff, total
+
+
+def pairwise_distance_prot(basepairs):
+    """Calculates pairwise distances between two sequences
+        strict = only use ACDEFGHIKLMNPQRSTVXY if True,
+        choose random heterozygous base if False.
+    """
+    total = 0
+    diff = 0
+    for pairbases, paircount in basepairs.items():
+        base0, base1 = pairbases[0], pairbases[1]
+        if base0 not in MLIB.validchars['amino'] or (
+                base1 not in MLIB.validchars['amino']):
+            continue
+        if base0 != base1:
+            diff += paircount
+        total += paircount
     return diff, total

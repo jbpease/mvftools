@@ -33,8 +33,8 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 from itertools import combinations
 from pylib.mvfbase import MultiVariantFile, OutputFile, Counter
 from pylib.mvfbiolib import MvfBioLib
-from mvfpaml import paml_branchsite
-from mvftranslate import parse_gff_analysis
+from pylib.mvfpaml import paml_branchsite
+from pylib.mvftranslate import parse_gff_analysis
 
 MLIB = MvfBioLib()
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This program takes a DNA MVF alignment and annotates the output into
@@ -7,8 +6,8 @@ gene boudaries.
 
 import re
 from copy import deepcopy
-from mvfbase import MultiVariantFile
-from mvfbiolib import MvfBioLib
+from pylib.mvfbase import MultiVariantFile
+from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
 
 _LICENSE = """
@@ -224,8 +223,7 @@ def parse_gff_analysis(gffpath):
     return annotations, coordinates
 
 
-
-def mvf_annotate(args):
+def annotate_mvf(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
     gff, geneids = parse_gff_annotate(args.gff, mvf.metadata['contigs'])

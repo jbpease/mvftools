@@ -19,6 +19,7 @@ from pylib.mvfwindowtree import infer_window_tree
 from pylib.mvftranslate import annotate_mvf, translate_mvf
 from pylib.mvfjoin import mvf_join
 from pylib.mvfgroupallele import calc_group_unique_allele_window
+from pylib.mvffilter import filter_mvf
 
 _LICENSE = """
 If you use this software please cite:
@@ -415,7 +416,7 @@ class MVFcall(object):
             return parser
         parser = generate_argparser()
         args = parser.parse_args(self.arguments[1:])
-        mvfanalysis.calc_pairwise_distances_window(args)
+        mvfanalysis.calc_pairwise_distances(args)
         return ''
 
     def CalcPatternCount(self):
@@ -609,10 +610,8 @@ class MVFcall(object):
 
         def generate_argparser():
             parser = MvfArgumentParser()
-            parser.add_argument("--mvf", type=os.path.abspath,
-                                help="Input MVF file.")
-            parser.add_argument("--out", type=os.path.abspath,
-                                help="Output MVF file")
+            parser.addarg_mvf()
+            parser.addarg_out()
             parser.add_argument(
                 "--actions", nargs='*',
                 help=("set of actions:args to perform, "
@@ -632,12 +631,12 @@ class MVFcall(object):
             parser.add_argument(
                 "--verbose", action="store_true",
                 help="report every line (for debugging)")
-            parser.add_argarg_overwrite()
+            parser.addarg_overwrite()
             return parser
 
         parser = generate_argparser()
         args = parser.parse_args(self.arguments[1:])
-        check_mvf(args)
+        filter_mvf(args)
         return ''
 
     def AnnotateMVF(self):

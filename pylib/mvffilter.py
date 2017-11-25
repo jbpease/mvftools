@@ -7,8 +7,8 @@ use the --morehelp option for additional module information.
 
 import sys
 from copy import deepcopy
-from mvfbase import MultiVariantFile, encode_mvfstring
-from mvfbiolib import MvfBioLib
+from pylib.mvfbase import MultiVariantFile, encode_mvfstring
+from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
 
 _LICENSE = """
@@ -423,62 +423,6 @@ def make_module(modulename, ncol, optargs=None):
 
         def reqcontig(entry):
             """return sites in ID,START,STOP (inclusive)"""
-            print(int(entry[0]), optargs[0], int(entry[0]) in optargs[0])
-            return entry[0] in optargs[0]
-
-    # REQINFORMATIVE
-    elif modulename == 'reqinformative':
-        moduletype = 'filter'
-
-        def reqinformative(entry, mvfenc):
-            """only retain informative sites (2+ alleles in 2+ samples)"""
-            if mvfenc == 'full':
-                return len([x for x in set(entry.upper())
-                            if entry.upper().count(x) > 1 and
-                            x not in 'NX-']) > 1
-            return False
-
-    # REQINVARIANT
-    elif modulename == 'reqinvariant':
-        moduletype = 'filter'
-
-        def reqinvariant(entry, mvfenc):
-            """only retain invariant sites"""
-            if mvfenc in ('full', 'onevar', 'refvar'):
-                return False
-            elif mvfenc == 'invar':
-                return True
-            elif mvfenc == 'onecov':
-                return entry[0].upper() == entry[2].upper()
-
-    # REQREGION
-    elif modulename == "reqregion":
-        moduletype = 'location'
-
-        def reqregion(entry):
-            """return sites in ID,START,STOP (inclusive)"""
-            return (entry[0] == optargs[0][0] and
-                    optargs[0][1] <= entry[1] <= optargs[0][2])
-
-    # REQONECHAR
-    elif modulename == "reqonechar":
-        moduletype = 'filter'
-
-        def reqonechar(entry, mvfenc):
-            """require one of the specified characters appear in entry
-            """
-            if mvfenc in ('full', 'invar', 'refvar'):
-                return any([x in entry for x in optargs[0]])
-            elif mvfenc == 'onecov':
-                return any([x in (entry[0], entry[2]) for x in optargs[0]])
-            elif mvfenc == 'onevar':
-                return any([x in (entry[0], entry[1], entry[3])
-                            for x in optargs[0]])
-
-    # REQSAMPLE
-    elif modulename == "reqsample":
-        moduletype = 'filter'
-
         def reqsample(entry, mvfenc):
             """require specific samples to be present
             """
@@ -575,23 +519,23 @@ def build_actionset(moduleargs, ncol):
     for module in moduleargs:
         if ':' in module:
             modargs = module.split(':')
+            print("Z", modargs)
             if modargs[0] not in MODULENAMES:
                 raise RuntimeError("Module {} not found".format(modargs[0]))
             for i in range(1, len(modargs)):
                 modargs[i] = (',' in modargs[i] and modargs[i].split(',') or
                               [modargs[i]])
-            print(modargs)
-            if modargs[0] == 'region':
-                modargs[0][1] = int(modargs[0][1])
-                modargs[0][2] = int(modargs[0][2])
+            if modargs[0] == 'reqregion':
+                modargs[1] = int(modargs[1])
+                modargs[2] = int(modargs[2])
             elif modargs[0] == 'mincoverage':
                 if int(modargs[1][0]) > ncol:
                     raise RuntimeError()
-            for i in range(1, len(modargs)):
-                try:
-                    modargs[i] = [int(x) for x in modargs[i]]
-                except ValueError:
-                    continue
+            # for i in range(1, len(modargs)):
+            #    try:
+            #        modargs[i] = [int(x) for x in modargs[i]]
+            #    except ValueError:
+            #        continue
             actionset.append(make_module(modargs[0],
                              ncol, optargs=modargs[1:]))
         else:
@@ -754,7 +698,7 @@ def filter_mvf(args):
             linebuffer.append((chrom, pos, (alleles,)))
             if args.verbose:
                 sys.stdout.write("{}\n".format(alleles))
-            if nbuffer == args.linebuffer:
+            if nbuffer == args.line_buffer:
                 outmvf.write_entries(linebuffer)
                 linebuffer = []
                 nbuffer = 0

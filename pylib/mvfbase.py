@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-mvfbase - mvf base functions and classes
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-VERSION 2017-11-17
-"""
 
-import os
-import sys
-import gzip
-from itertools import groupby
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -35,6 +26,11 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+import sys
+import gzip
+from itertools import groupby
+
 
 # ==== Math Functions ====
 
@@ -51,6 +47,8 @@ def is_int(num):
 def zerodiv(a, b):
     if b == 0:
         return 0
+    else:
+        return a/b
 
 
 def interpret_param(string):
@@ -83,6 +81,22 @@ def fasta_iter(fasta_name):
         header = next(header)[1:].strip()
         seq = "".join(s.strip() for s in next(faiter))
         yield header, seq
+
+
+def same_window(coords1, coords2, windowsize):
+    """ coords1/coords1 = a tuple or list with (contig, position)
+        windowsize = the windowsize, 0=whole file (always True), -1 contigs
+    """
+    if windowsize == 0:
+        return True
+    elif windowsize > 0:
+        if coords1[0] != coords2[0]:
+            return False
+        elif coords2[1] > coords1[1] + windowsize:
+            return False
+        return True
+    else:
+        return coords1[0] == coords2[0]
 
 
 # MVF Class Object
