@@ -23,7 +23,7 @@ from pylib.mvffilter import filter_mvf
 
 _LICENSE = """
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -50,17 +50,16 @@ class MVFcall(object):
     def __init__(self, arguments=None):
         """Main method for vcf2mvf"""
         self.arguments = arguments if arguments is not None else sys.argv[1:]
+        self.selfdoc = False
         parser = argparse.ArgumentParser(
             prog="mvftools.py",
             usage="""Choose from the following commands:
             AnnotateMVF
-            CalcCountCharacterWindows
+            CalcCharacterCount
             CalcDstatCombinations
             CalcPairwiseDistances
-            CalcPairwiseDistancesWindow
-            CalcSampleCoverage
-            CalcDstatCombinations
             CalcPatternCount
+            CalcSampleCoverage
             CheckMVF
             ConvertFasta2MVF
             ConvertMAF2MVF
@@ -344,7 +343,7 @@ class MVFcall(object):
         vcf2mvf(args)
         return ''
 
-    def CalcCountCharacterWindows(self):
+    def CalcCharacterCount(self):
 
         def generate_argparser():
             parser = MvfArgumentParser()
@@ -365,7 +364,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
-        mvfanalysis.calc_count_char_window(args)
+        mvfanalysis.calc_character_count(args)
         return ''
 
     def CalcDstatCombinations(self):
@@ -390,6 +389,7 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
+            parser.addarg_samples()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
             return parser
@@ -406,6 +406,7 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
+            parser.addarg_samples()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
             return parser
@@ -764,6 +765,7 @@ class MVFcall(object):
         args = parser.parse_args(self.arguments[1:])
         translate_mvf(args)
         return ''
+
 
 if __name__ == "__main__":
     time0 = time()

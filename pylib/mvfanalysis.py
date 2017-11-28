@@ -38,6 +38,13 @@ from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
 
 
+def check_mincoverage(val, alleles):
+    if val is not None:
+        if sum([int(x not in 'Xx-') for x in alleles]) < val:
+            return False
+    return True
+
+
 def pi_diversity(seq):
     """Calculate Pi sequence diversity"""
     seq = ''.join([MLIB.splitbases[x] for x in seq])
@@ -170,14 +177,22 @@ def calc_pattern_count(args):
     current_contig = None
     current_position = 0
     sitepatterns = {}
-    samples = [labels.index(x) for x in args.samples]
+    samples = ([labels.index(x) for x in args.samples]
+               if args.samples is not None
+               else range(len(labels)))
     nsamples = len(samples)
     for contig, pos, allelesets in mvf:
-        if not current_contig:
+        # Check Minimum Site Coverage
+        if check_mincoverage(args.mincoverage, allelesets[0]) is False:
+            continue
+        # Establish first contig
+        if current_contig is None:
             current_contig = contig[:]
-        if contig != current_contig or (
-                args.windowsize != -1 and
-                pos > current_position + args.windowsize):
+            while pos > current_position + args.windowsize - 1:
+                current_position += args.windowsize
+        # Check if windows are specified.
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = dict([
                 ('contig', current_contig),
                 ('position', current_position)])
@@ -250,7 +265,7 @@ def calc_pattern_count(args):
     return ''
 
 
-def calc_count_char_window(args):
+def calc_character_count(args):
     """Count the number of and relative rate of certain bases
        spatially along chromosomes
     """
@@ -265,15 +280,17 @@ def calc_count_char_window(args):
     all_total = 0
     data_in_buffer = 0
     for contig, pos, allelesets in mvf:
-        if args.mincoverage:
-            if (sum([int(x not in 'Xx-') for x in allelesets[0]]) <
-                    args.mincoverage):
-                continue
-        if not current_contig:
+        # Check Minimum Site Coverage
+        if check_mincoverage(args.mincoverage, allelesets[0]) is False:
+            continue
+        # Establish first contig
+        if current_contig is None:
             current_contig = contig[:]
-        if contig != current_contig or (
-                args.windowsize != -1 and
-                pos > current_position + args.windowsize):
+            while pos > current_position + args.windowsize - 1:
+                current_position += args.windowsize
+        # Check if windows are specified.
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
             for k in match_counts:
@@ -350,10 +367,8 @@ def calc_pairwise_distances(args):
     all_match = {}
     for contig, pos, allelesets in mvf:
         # Check Minimum Site Coverage
-        if args.mincoverage is not None:
-            if (sum([int(x not in 'Xx-') for x in allelesets[0]]) <
-                    args.mincoverage):
-                continue
+        if check_mincoverage(args.mincoverage, allelesets[0]) is False:
+            continue
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
