@@ -46,6 +46,8 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class MVFcall(object):
+    """Main MVF Invocation Class
+    """
 
     def __init__(self, arguments=None):
         """Main method for vcf2mvf"""
@@ -85,7 +87,12 @@ class MVFcall(object):
         getattr(self, args.command)()
 
     def AnnotateMVF(self):
+        """Annotates a chromosomal MVF file with new contig
+           boundaries based on genes/features from a GFF file.
+        """
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -116,8 +123,11 @@ class MVFcall(object):
         return ''
 
     def ConvertFasta2MVF(self):
+        """Converts a FastA file to MVF format"""
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.add_argument(
                 "--fasta", nargs='*', required=True,
@@ -181,7 +191,12 @@ class MVFcall(object):
         return ''
 
     def ConvertMAF2MVF(self):
+        """Converts a MAF file to a MVF file
+        """
+
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.add_argument("--maf", help="input MAF file",
                                 required=True, type=os.path.abspath,)
@@ -210,7 +225,12 @@ class MVFcall(object):
         return ''
 
     def ConvertMVF2Fasta(self):
+        """Converts an MVF file to a FastA file
+        """
+
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.add_argument("--out", type=os.path.abspath,
@@ -239,7 +259,11 @@ class MVFcall(object):
         return ''
 
     def ConvertMVF2Phylip(self):
+        """Converts an MVF file to a Phylip file
+        """
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.add_argument("--out", type=os.path.abspath,
@@ -274,8 +298,12 @@ class MVFcall(object):
         return ''
 
     def ConvertVCF2MVF(self):
+        """Converts a VCF file to an MVF file
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.add_argument(
                 "--vcf", type=os.path.abspath,
@@ -344,8 +372,13 @@ class MVFcall(object):
         return ''
 
     def CalcCharacterCount(self):
+        """Calculates the count of different character types
+           in an MVF file
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -368,8 +401,13 @@ class MVFcall(object):
         return ''
 
     def CalcDstatCombinations(self):
+        """Calculates all D-statistics for all combinations of
+           specified taxa in an MVF file.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -384,8 +422,13 @@ class MVFcall(object):
         return ''
 
     def CalcPairwiseDistances(self):
+        """Calculates pairwise sequence distances for combinations of
+           specified taxa in an MVF file.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -401,8 +444,13 @@ class MVFcall(object):
         return ''
 
     def CalcPatternCount(self):
+        """Counts biallelic site pattersn (AB-patterns) for
+           specified combinations of taxa in an MVF file.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -418,8 +466,13 @@ class MVFcall(object):
         return ''
 
     def CalcSampleCoverage(self):
+        """Counts sample coverage for specified combinations
+           of taxa in an MVF file.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -434,8 +487,12 @@ class MVFcall(object):
         return ''
 
     def CheckMVF(self):
+        """Checks an MVF file for errors.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             return parser
@@ -448,8 +505,12 @@ class MVFcall(object):
         return ''
 
     def FilterMVF(self):
+        """Filter an MVF file using various parameters.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -482,8 +543,12 @@ class MVFcall(object):
         return ''
 
     def InferGroupSpecificAllele(self):
+        """Infer Group-specific alleles using PAML.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_gff()
@@ -561,7 +626,13 @@ class MVFcall(object):
         return ''
 
     def InferWindowTree(self):
+        """Infer phylogenies for various windows or contigs in an
+           MVF file.
+        """
+
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -647,8 +718,12 @@ class MVFcall(object):
         return ''
 
     def JoinMVF(self):
+        """Combine one or more MVF files.
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.add_argument(
                 "--mvf", nargs="*", type=os.path.abspath, required=True,
@@ -681,9 +756,14 @@ class MVFcall(object):
         return ''
 
     def PlotChromoplot(self):
-        from pylib.mvfchromoplot import chromoplot, Pallette
+        """Plot a Chromoplot from an MVF file for all combinations
+           of the specified samples.
+        """
+        from pylib.mvfchromoplot import plot_chromoplot, Pallette
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             pallette = Pallette()
             parser = MvfArgumentParser()
             parser.add_argument("--outprefix",
@@ -731,12 +811,16 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
-        chromoplot(args)
+        plot_chromoplot(args)
         return ''
 
     def TranslateMVF(self):
+        """Translate a DNA MVF to a protein or codon MVF
+        """
 
         def generate_argparser():
+            """Generate argparse parser
+            """
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
@@ -768,6 +852,6 @@ class MVFcall(object):
 
 
 if __name__ == "__main__":
-    time0 = time()
+    TIME0 = time()
     MVFcall()
-    print("Total time: ", time() - time0)
+    print("Total time: ", time() - TIME0, "seconds.")

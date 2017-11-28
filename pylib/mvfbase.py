@@ -44,11 +44,10 @@ def is_int(num):
         return False
 
 
-def zerodiv(a, b):
-    if b == 0:
-        return 0
-    else:
-        return a/b
+def zerodiv(numer, denom):
+    """Divide but return zero if denominator is zero
+    """
+    return 0 if denom == 0 else numer/denom
 
 
 def interpret_param(string):
@@ -292,7 +291,7 @@ class MultiVariantFile(object):
         filehandler.seek(self.entrystart)
         for line in filehandler:
             if line.strip() == '':
-                    continue
+                continue
             try:
                 arr = line.rstrip().split()
                 loc = arr[0].split(':')
@@ -305,7 +304,7 @@ class MultiVariantFile(object):
 
     def iterentries(self, decode=True, contigs=None, no_invariant=False,
                     no_gap=False, no_ambig=False, no_nonref=False,
-                    onlyalleles=False, quiet=False, subset=None):
+                    onlyalleles=False, subset=None, quiet=False):
         """
         Fully-optioned iterator for MVF entries with filtering
         Returns (str(chrom), int(pos), list(allele entries))
@@ -414,14 +413,14 @@ class MultiVariantFile(object):
             self.metadata['samples'][x]['label'],
             ' '.join(["{}={}".format(k, v) for (k, v) in (
                 sorted(self.metadata['samples'][x].items())) if k != 'label']))
-            for x in range(len(self.metadata['samples']))])
+                       for x in range(len(self.metadata['samples']))])
         contigs = [(int(k) if is_int(k) else k, v)
                    for (k, v) in self.metadata['contigs'].items()]
         header.extend(["#c {} label={} length={} {}".format(
             cid, cdata['label'], cdata['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
                 sorted(cdata.items())) if k not in ['length', 'label']]))
-            for cid, cdata in (sorted(contigs))])
+                       for cid, cdata in sorted(contigs)])
         if len(self.metadata["trees"]) > 0:
             header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
         if len(self.metadata["notes"]) > 0:
@@ -487,10 +486,9 @@ class MultiVariantFile(object):
                 encoded: entries have been pre-encoded (default=True)
         """
         self.write_data('\n'.join(["{}:{} {}".format(
-            entry[0], entry[1], (
-                ' '.join([x if encoded else encode_mvfstring(x)
-                          for x in entry[2]])))
-                for entry in entries]) + '\n')
+            entry[0], entry[1], ' '.join([
+                x if encoded else encode_mvfstring(x) for x in entry[2]]))
+                                   for entry in entries]) + '\n')
         return ''
 
 

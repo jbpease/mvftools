@@ -34,8 +34,8 @@ class MvfArgumentParser(argparse.ArgumentParser):
 
     def addarg_mincoverage(self):
         self.add_argument(
-                "--mincoverage", type=int,
-                help="Mininum sample coverage for sites.")
+            "--mincoverage", type=int,
+            help="Mininum sample coverage for sites.")
 
     def addarg_mvf(self):
         self.add_argument(
@@ -89,10 +89,10 @@ def int_range_action(min_value, max_value):
             if min_value != '-Inf':
                 if values < min_value:
                     parser.error("Minimum value for {0} is {1}".format(
-                                 option_string, min_value))
+                        option_string, min_value))
             if max_value != 'Inf':
                 if values > max_value:
                     parser.error("Maximum value for {0} is {1}".format(
-                                 option_string, max_value))
+                        option_string, max_value))
             setattr(namespace, self.dest, values)
     return IntRangeAction

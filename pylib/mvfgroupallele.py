@@ -126,10 +126,10 @@ def calc_group_unique_allele_window(args):
     if args.gff is not None:
         annotations, coordinates = (parse_gff_analysis(args.gff))
     if args.allele_groups is not None:
-        args.allele_groups = procarg_allelegroups(args.allele_groups)
+        args.allele_groups = procarg_allelegroups(mvf, args.allele_groups)
     if args.species_groups is not None:
         args.species_groups = procarg_speciesgroups(
-            args.species_groups)
+            mvf, args.species_groups)
     fieldtags = [
         'likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a', 'bgdnds2b',
         'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b', 'dndstree',
@@ -137,10 +137,10 @@ def calc_group_unique_allele_window(args):
     with open(args.branch_lrt, 'w') as branchlrt:
         genealign = []
         branchlrt.write("\t".join(
-           ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
-           ["null.{}".format(x) for x in fieldtags] +
-           ["test.{}".format(x) for x in fieldtags] +
-           ['tree']) + "\n")
+            ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
+            ["null.{}".format(x) for x in fieldtags] +
+            ["test.{}".format(x) for x in fieldtags] +
+            ['tree']) + "\n")
     groups = args.allele_groups.values()
     speciesgroups = args.species_groups.values()
     allsets = set([])
@@ -179,7 +179,7 @@ def calc_group_unique_allele_window(args):
             data[xkey].update([
                 ('ns_ratio', (float(data[xkey].get(
                     'nonsynonymous_changes', 0)) / (
-                    data[xkey].get('synonymous_changes', 1.0)))),
+                        data[xkey].get('synonymous_changes', 1.0)))),
                 ('annotation',
                  annotations.get(data[xkey]['contig'], '.')),
                 ('coordinates',
@@ -209,11 +209,10 @@ def calc_group_unique_allele_window(args):
                             data[xkey]['contig'],
                             len(genealign),
                             len(genealign[0]) * 3,
-                            lrtscore] +
-                            [pamlnull.get(y, -1) for y in fieldtags] +
-                            [pamltest.get(y, -1) for y in fieldtags] +
-                            [str(tree).rstrip()]]
-                            ) + "\n")
+                            lrtscore] + [
+                                pamlnull.get(y, -1) for y in fieldtags] + [
+                                    pamltest.get(y, -1) for y in fieldtags] + [
+                                        str(tree).rstrip()]]) + "\n")
             genealign = None
             totals.add('genes_total')
             if counts.get('total_codons', 0) > 0:
@@ -238,8 +237,8 @@ def calc_group_unique_allele_window(args):
                     outputalign = [[''.join(codons)]
                                    for x in range(mvf.metadata['ncol'])]
                 else:
-                    for ialign in range(len(outputalign)):
-                        outputalign[ialign].append(''.join(codons))
+                    for ialign, xalign in enumerate(outputalign):
+                        xalign.append(''.join(codons))
             if args.branch_lrt is not None:
                 if not genealign:
                     genealign = [[''.join(codons)]
@@ -266,7 +265,7 @@ def calc_group_unique_allele_window(args):
         if any(codons[x] in MLIB.stop_codons for x in allsets):
             continue
         if any(any(x != species_groups[0][0] for x in y)
-                for y in species_groups):
+               for y in species_groups):
             totals.add('total_nsyn_codons')
             counts.add('total_nsyn_codons')
         totals.add('total_codons')
@@ -303,7 +302,7 @@ def calc_group_unique_allele_window(args):
             protein_groups = [set(
                 [MLIB.codon_tables['full'][''.join(x)]
                  for x in codon_groups[i]])
-                 for i in range(len(codon_groups))]
+                              for i in range(len(codon_groups))]
             if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                    combinations(protein_groups, 2)):
                 nonsyn_change = True
@@ -336,7 +335,7 @@ def calc_group_unique_allele_window(args):
         (data[k]['ns_ratio'], k)
         for k in data
         if data[k].get('nonsynonymous_changes', 0) > 0],
-        reverse=True)
+                            reverse=True)
     for _, k in sorted_entries:
         outfile.write_entry(data[k])
     with open(args.out + '.total', 'w') as totalfile:

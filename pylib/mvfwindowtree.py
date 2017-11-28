@@ -422,7 +422,7 @@ def hapsplit(alleles, mode):
         return (alleles if mode in ['major', 'minor', 'randomone'] else
                 ''.join([base*2 for base in alleles]))
     elif mode in ['major', 'minor', 'majorminor']:
-        hapleles = ''.join([MLIB.hapsplit[x] for x in alleles])
+        hapleles = ''.join([MLIB.hapsplit(x, mode=mode) for x in alleles])
         counts = sorted([(hapleles.count(x), x) for x in set(hapleles)],
                         reverse=True)
         order = [x[1] for x in counts]
@@ -430,7 +430,7 @@ def hapsplit(alleles, mode):
         for base in alleles:
             if base in 'RYMKWS':
                 newalleles.extend([
-                    x for x in order if x in MLIB.hapsplit[base]])
+                    x for x in order if x in MLIB.hapsplit(base, mode=mode)])
             else:
                 newalleles.extend([base, base])
         if mode is 'major':
@@ -440,12 +440,9 @@ def hapsplit(alleles, mode):
         elif mode is 'majorminor':
             alleles = ''.join([x for x in newalleles])
     elif mode is 'randomone':
-        alleles = ''.join([MLIB.hapsplit[x][randint(0, 1)] for x in alleles])
+        alleles = ''.join([MLIB.hapsplit(x, mode=mode) for x in alleles])
     elif mode is 'randomboth':
-        randx = randint(0, 1)
-        alleles = ''.join([
-            MLIB.hapsplit[x][randx] + MLIB.hapsplit[x][1 - randx]
-            for x in alleles])
+        alleles = ''.join([MLIB.hapsplit(x, mode=mode) for x in alleles])
     return alleles
 
 

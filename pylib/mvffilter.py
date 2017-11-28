@@ -423,6 +423,12 @@ def make_module(modulename, ncol, optargs=None):
 
         def reqcontig(entry):
             """return sites in ID,START,STOP (inclusive)"""
+
+
+
+
+
+
         def reqsample(entry, mvfenc):
             """require specific samples to be present
             """

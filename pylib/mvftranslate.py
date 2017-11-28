@@ -2,21 +2,13 @@
 """
 This program takes a DNA MVF alignment and annotates the output into
 gene boudaries.
-"""
 
-import re
-from copy import deepcopy
-from pylib.mvfbase import MultiVariantFile
-from pylib.mvfbiolib import MvfBioLib
-MLIB = MvfBioLib()
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -36,6 +28,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import re
+from copy import deepcopy
+from pylib.mvfbase import MultiVariantFile
+from pylib.mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
 
 RE_GENEID = re.compile("ID=gene:(.*?);")
 PARENTGENE = re.compile("Parent=mRNA:(.*?);")
@@ -83,12 +81,13 @@ def translate(seq, firststop=None):
 
 
 def iter_codons(inputbuffer, mvf):
-    print(inputbuffer)
+    """Iterate through codons
+    """
+
     for i in range(0, len(inputbuffer), 3):
         alleles = [inputbuffer[i][1][0],
                    inputbuffer[i+1][1][0],
                    inputbuffer[i+2][1][0]]
-        print(alleles)
         if all(len(x) == 1 for x in alleles):
             amino_acids = translate(''.join(alleles))[0]
         else:
@@ -199,10 +198,11 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None):
 
 
 def parse_gff_analysis(gffpath):
-    rxpr3 = re.compile(' \(AHRD.*?\)')
+    """Parse GFF function used for the analsis script"""
+    rxpr3 = re.compile(r' \(AHRD.*?\)')
     coordinates = {}
     annotations = {}
-    with open(gffpath, '') as gff:
+    with open(gffpath, 'r') as gff:
         for line in gff:
             arr = line.split("\t")
             if len(arr) < 6 or line[0] == "#":
@@ -212,13 +212,15 @@ def parse_gff_analysis(gffpath):
                 notes = arr[8].split(';')
                 refid = notes[0][notes[0].find(':') + 1:notes[0].rfind('.')]
                 annot = '.'
-                for x in notes:
-                    if x.startswith("Note="):
-                        annot = x[5:]
+                for elem in notes:
+                    if elem.startswith("Note="):
+                        annot = elem[5:]
                 annotations[refid] = re.sub(rxpr3, '', annot)
-                for (x, y) in (("%3B", ";"), ("%27", "'"), ("%2C", ","),
-                               (" contains Interpro domain(s)  ", " ")):
-                    annotations[refid] = annotations[refid].replace(x, y)
+                for (hexchar, asciichar) in (
+                        ("%3B", ";"), ("%27", "'"), ("%2C", ","),
+                        (" contains Interpro domain(s)  ", " ")):
+                    annotations[refid] = annotations[refid].replace(
+                        hexchar, asciichar)
                 coordinates[refid] = gcoord
     return annotations, coordinates
 
@@ -271,7 +273,7 @@ def annotate_mvf(args):
 def translate_mvf(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if not mvf.metadata['flavor'] == 'dna':
+    if mvf.metadata['flavor'] != 'dna':
         raise RuntimeError("MVF must be flavor=dna to translate")
     if args.gff:
         gff = parse_gff_translate(args.gff, args)
@@ -292,8 +294,8 @@ def translate_mvf(args):
             if contigid == current_contig:
                 inputbuffer.append((pos, allelesets))
             else:
-                for coord, amino_acids, alleles in iter_codons(
-                            inputbuffer, mvf):
+                for _, amino_acids, alleles in iter_codons(
+                        inputbuffer, mvf):
                     if all([x in '-X' for x in amino_acids]):
                         continue
                     if args.outtype == 'protein':
@@ -312,8 +314,8 @@ def translate_mvf(args):
                 inputbuffer = [(pos, allelesets)]
                 current_contig = contigid[:]
         if inputbuffer:
-            for coord, amino_acids, alleles in iter_codons(
-                        inputbuffer, mvf):
+            for _, amino_acids, alleles in iter_codons(
+                    inputbuffer, mvf):
                 if all([x in '-X' for x in amino_acids]):
                     continue
                 if args.outtype == 'protein':

@@ -7,10 +7,8 @@ http://www.github.org/jbpease/mvftools
 """
 
 import os
-import sys
 import gzip
 import re
-from time import time
 from math import log10
 from pylib.mvfbase import encode_mvfstring, MultiVariantFile, is_int
 from pylib.mvfbiolib import MvfBioLib
@@ -129,7 +127,7 @@ class VariantCallFile(object):
                         max(self.metadata['contigs'][
                             contigndx[contig]]['length'],
                             coord))
-            except Exception as e:
+            except Exception as exception:
                 continue
         return ''
 
@@ -237,7 +235,7 @@ class VariantCallFile(object):
             sample_depth = int(sample['DP'])
             if sample_depth == 0:
                 return ('-', 0, 0)
-        except Exception as e:
+        except Exception as exception:
             sample_depth = -1
         # Fixed sites
         if all(sample.get(x, -1) in (-1, '.')
@@ -401,7 +399,7 @@ def vcf2mvf(args=None):
                     mvf.write_entries(mvfentries, encoded=True)
                     mvfentries = []
                     nentry = 0
-        except:
+        except Exception as exception:
             print("ERROR", vcfrecord)
     if mvfentries:
         mvf.write_entries(mvfentries)

@@ -126,8 +126,8 @@ method = 0
 fix_blength = 2
 """
 
-REGEX_NP1 = re.compile("np:\s(.*?)\)")
-REGEX_LNL = re.compile("\):\s*(.*?)\s*\+")
+REGEX_NP1 = re.compile(r"np:\s(.*?)\)")
+REGEX_LNL = re.compile(r"\):\s*(.*?)\s*\+")
 
 
 def paml_pwcalc_dnds(seqs, pamltmp='pamltmp', codemlpath="codeml"):
@@ -174,7 +174,7 @@ def parse_branchsite(filepath=None, errorstate='ok'):
              'bgdnds2b': -1,
              'dndstree': '.',
              'errorstate': 'ok',
-             }
+            }
     if errorstate != 'ok':
         entry['errorstate'] = errorstate
         return entry
@@ -265,7 +265,7 @@ def paml_branchsite(seqs, labels, pamltmp="pamltmp",
         proc.communicate()
         tree = Phylo.read('RAxML_bestTree.' + pamltmp, 'newick')
         treestr = tree.__format__("newick")
-    except:
+    except Exception as exception:
         cleanup(pamltmp)
         return (parse_branchsite(errorstate="raxmlfail"),
                 parse_branchsite(errorstate="raxmlfail"), '.')
@@ -287,33 +287,32 @@ def paml_branchsite(seqs, labels, pamltmp="pamltmp",
         Phylo.write(tree, seqpath + '.tree.nwk', 'newick')
         treestr = tree.__format__("newick")
         print(tree.__format__('newick'))
-    except:
+    except Exception as exception:
         cleanup(pamltmp)
         return (parse_branchsite(errorstate="treeproc"),
                 parse_branchsite(errorstate="treeproc"), treestr)
 #    try:
-    if 1:
-        with open(ctlpath, 'w') as ctlfile:
-            ctlfile.write(BSNULLCTLFILE.replace(
-                "INPUTPATH", seqpath).replace("OUTPUTPATH", outpath).replace(
+    with open(ctlpath, 'w') as ctlfile:
+        ctlfile.write(BSNULLCTLFILE.replace(
+            "INPUTPATH", seqpath).replace("OUTPUTPATH", outpath).replace(
                 "TREEPATH", seqpath + '.tree.nwk'))
-        subcmd = [codemlpath, ctlpath]
-        proc = subprocess.Popen(' '.join(subcmd), shell=True, stdout=logfile,
-                                stderr=logfile)
-        proc.communicate()
-        pamlnull = parse_branchsite(outpath)
-        print("pamlnull done ({})".format(pamlnull))
-        with open(ctlpath + '.b', 'w') as ctlfile:
-            ctlfile.write(BSTESTCTLFILE.replace(
-                "INPUTPATH", seqpath).replace(
+    subcmd = [codemlpath, ctlpath]
+    proc = subprocess.Popen(' '.join(subcmd), shell=True, stdout=logfile,
+                            stderr=logfile)
+    proc.communicate()
+    pamlnull = parse_branchsite(outpath)
+    print("pamlnull done ({})".format(pamlnull))
+    with open(ctlpath + '.b', 'w') as ctlfile:
+        ctlfile.write(BSTESTCTLFILE.replace(
+            "INPUTPATH", seqpath).replace(
                 "OUTPUTPATH", outpath + '.b').replace(
-                "TREEPATH", seqpath + '.tree.nwk'))
-        subcmd = [codemlpath, ctlpath + '.b']
-        proc = subprocess.Popen(' '.join(subcmd), shell=True, stdout=logfile,
-                                stderr=logfile)
-        proc.communicate()
-        pamltest = parse_branchsite(outpath + '.b')
-        print("pamltest done ({})".format(pamltest))
+                    "TREEPATH", seqpath + '.tree.nwk'))
+    subcmd = [codemlpath, ctlpath + '.b']
+    proc = subprocess.Popen(' '.join(subcmd), shell=True, stdout=logfile,
+                            stderr=logfile)
+    proc.communicate()
+    pamltest = parse_branchsite(outpath + '.b')
+    print("pamltest done ({})".format(pamltest))
 #    except:
 #        cleanup(pamltmp)
 #        return (parse_branchsite(errorstate='pamlfail'),
@@ -324,13 +323,15 @@ def paml_branchsite(seqs, labels, pamltmp="pamltmp",
 
 
 def cleanup(pamltmp):
+    """Remove temporary RAXML and PAML files
+    """
     for filename in [x.format(pamltmp) for x in (
             'RAxML_info.{}', 'RAxML_parsimonyTree.{}',
-            'RAxML_bestTree.{}',  'RAxML_log.{}',
+            'RAxML_bestTree.{}', 'RAxML_log.{}',
             'RAxML_result.{}')]:
         try:
             os.remove(filename)
-        except:
+        except Exception as exception:
             pass
     return ''
 

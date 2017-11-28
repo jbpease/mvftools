@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 """
 This program creates a chromoplot from an MVF alignment.
@@ -6,12 +6,10 @@ A chromoplot shows a genome-wide diagram of different
 evolutionary histories for a given quartet of taxa.
 """
 
-import os
-import sys
-import argparse
 from itertools import combinations
-from pylib.mvfbase import MultiVariantFile
 from scipy.stats import chi2
+from pylib.mvfbase import MultiVariantFile
+
 
 _LICENSE = """
 If you use this software please cite:
@@ -341,7 +339,7 @@ class Chromoplot(object):
                  'BBAA', 'ABBA', 'BABA', 'Dleft', 'Dright',
                  'Dsites', 'Dstat', 'Pvalue',
                  'pBBAA', 'pABBA', 'pBABA', 'Dorder'
-                 ])))
+                ])))
             for contig in contigorder:
                 counts = self.counts[contig]
                 total = float(sum([counts.get(x, 0) for x in [
@@ -441,7 +439,7 @@ def write_png(filepath, buf, width, height):
 
 
 
-def chromoplot(args):
+def plot_chromoplot(args):
     """Main method"""
     pallette = Pallette()
     if args.colors is None:
@@ -528,7 +526,3 @@ def chromoplot(args):
             print("Writing log...")
         chromoplot.write_total_log()
     return ''
-
-
-if __name__ == "__main__":
-    main()

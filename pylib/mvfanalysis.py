@@ -39,6 +39,7 @@ MLIB = MvfBioLib()
 
 
 def check_mincoverage(val, alleles):
+    """Check if site has minimum coverage"""
     if val is not None:
         if sum([int(x not in 'Xx-') for x in alleles]) < val:
             return False
@@ -80,8 +81,6 @@ def calc_sample_coverage(args):
                          headers=(["contig"] + labels))
     for contig in data:
         outfile.write_entry(data[contig])
-    return ''
-
     return ''
 
 
@@ -131,14 +130,14 @@ def calc_dstat_combinations(args):
                         '{}:baba'.format(xcontig),
                         '{}:bbaa'.format(xcontig),
                         '{}:D'.format(xcontig)
-                        ])
+                       ])
     outfile = OutputFile(path=args.out, headers=headers)
     for i, j, k in combinations(range(nsamples), 3):
         trio = tuple([i, j, k])
         if trio not in data:
             continue
         entry = dict([('sample{}'.format(i),
-                      samplenames[x][0])
+                       samplenames[x][0])
                       for i, x in enumerate(trio)])
         for contig in contigs:
             if contig not in data[trio]:
@@ -147,7 +146,7 @@ def calc_dstat_combinations(args):
                     '{}:baba'.format(contig),
                     '{}:bbaa'.format(contig),
                     '{}:D'.format(contig)],
-                    '0'))
+                                             '0'))
             else:
                 [abba, baba, bbaa] = data[trio][contig]
                 if abba > baba and abba > bbaa:
@@ -161,7 +160,7 @@ def calc_dstat_combinations(args):
                               ('{}:baba'.format(contig), baba),
                               ('{}:bbaa'.format(contig), bbaa),
                               ('{}:D'.format(contig), dstat)
-                              ])
+                             ])
         outfile.write_entry(entry)
     return ''
 
@@ -197,7 +196,7 @@ def calc_pattern_count(args):
                 ('contig', current_contig),
                 ('position', current_position)])
             data[(current_contig, current_position)].update(
-                 sitepatterns)
+                sitepatterns)
             sitepatterns = {}
             if contig != current_contig:
                 current_position = 0
@@ -227,7 +226,7 @@ def calc_pattern_count(args):
             ('contig', current_contig),
             ('position', current_position)])
         data[(current_contig, current_position)].update(
-             sitepatterns)
+            sitepatterns)
     # WRITE OUTPUT
     headers = ['contig', 'position']
     headers.extend(
@@ -467,7 +466,7 @@ def calc_pairwise_distances(args):
     outfile = OutputFile(path=args.out, headers=headers)
     sorted_entries = sorted([(
         data[k]['contig'], data[k]['position'], k)
-        for k in data])
+                             for k in data])
     for _, _, k in sorted_entries:
         outfile.write_entry(data[k])
     return ''

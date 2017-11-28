@@ -121,7 +121,7 @@ def mvf2fasta(args):
             continue
         inregion = False
         for rcontig, rstart, rstop, _ in regions:
-            if (contig == rcontig):
+            if contig == rcontig:
                 if rstart is None or pos >= rstart:
                     if rstop is None or pos <= rstop:
                         inregion = True
@@ -175,7 +175,7 @@ def fasta2mvf(args):
         assert len(args.manual_coord) == len(args.fasta)
         args.manual_coord = [
             (x.split(':')[0], int(x.split(":")[1].split('..')[0]),
-                int(x.split(':')[1].split('..')[1]))
+             int(x.split(':')[1].split('..')[1]))
             for x in args.manual_coord]
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     fasta = {}
@@ -272,10 +272,9 @@ def mvf2phy(args):
         raise RuntimeError(
             "--outdata {} incompatiable with '{}' flavor mvf".format(
                 args.outdata, flavor))
-    regions = None
     max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
     if args.region is not None:
-        regions, max_region_coord = parse_regions_arg(
+        _, max_region_coord, _ = parse_regions_arg(
             args.region, mvf.metadata['contigs'])
     sample_cols = mvf.get_sample_indices(args.samples or None)
     labels = mvf.get_sample_labels(sample_cols)
@@ -289,7 +288,7 @@ def mvf2phy(args):
     if args.partition is True:
         partprefix = "PROT" if args.outdata == "prot" else "DNA"
         partitionfile = open("{}.part".format(args.out), 'w')
-    for contig, pos, allelesets in mvf.iterentries(
+    for contig, _, allelesets in mvf.iterentries(
             contigs=(mvf.metadata['contigs'] if args.region is None else
                      [x for x in max_region_coord]),
             quiet=args.quiet, decode=True):
