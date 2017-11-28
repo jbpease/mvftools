@@ -1,6 +1,3 @@
-Program Parameter Descriptions
-##############################
-
 .. AnnotateMVF:
 
 AnnotateMVF

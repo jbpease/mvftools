@@ -2,67 +2,71 @@
 Version History
 ===============
 
-**2017-06-25**
+**v.0.5.0**
+
+*2017-11-27 - Major Upgrade*: Change to single-command structure
+
+**v.2017-06-25**
 
 *Major Upgrade*: Full manual documentation added, standardization and cleanup of paramaters and upgrades and bugfixes throughout.
 
-**2017-05-18**
+**v.2017-05-18**
 
 Fixes to VCF conversion for compatibility
 
-**2017-04-10**
+**v.2017-04-10**
 
 Added MVF-to-Phylip output conversion ``mvf2phy``
 
-**2017-03-25**
+**v.2017-03-25**
 
 Multiple bug fixes, merged and removed the development instance
 
-**2016-02-15**
+**v.2016-02-15**
 
 Fix to vcf2mvf for VCF with truncated entries
 
-**2016-10-25**
+**v.2016-10-25**
 
 Efficiency upgrades for mvfbase entry iteration.
 
-**2016-09-10**
+**v.2016-09-10**
 
 Minor fixes to gz reading and MVF chromoplot shading
 
-**2016-08-02**
+**v.2016-08-02**
 
 Python3 conversion, integrate analysis_base
 
-**2016-01-11**
+**v.2016-01-11**
 
 fix for dna ambiguity characters
 
-**2016-01-01**
+**v.2016-01-01**
 
 Python3 compatiblity fix
 
-**2015-12-31**
+**v.2015-12-31**
 
 Header changesand cleanup
 
-**2015-12-15**
+**v.2015-12-15**
 
 Python3 compatibilty fix
 
-**2015-09-04**
+**v.2015-09-04**
 
 Small style fixes
 
-**2015-06-09**
+**v.2015-06-09**
 
 MVF1.2.1 upgrade
 
-**2015-02-26**
+**v.2015-02-26**
 
 Efficiency upgrades for iterators
 
-**2015-02-01**
+**v.2015-02-01**
 
 First Public Release
 

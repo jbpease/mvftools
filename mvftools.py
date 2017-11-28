@@ -62,11 +62,11 @@ class MVFcall(object):
             CalcDstatCombinations
             CalcPatternCount
             CheckMVF
-            ConvertFASTAtoMVF
-            ConvertMAFtoMVF
-            ConvertMVFtoFASTA
-            ConvertMVFtoPhylip
-            ConvertVCFtoMVF
+            ConvertFasta2MVF
+            ConvertMAF2MVF
+            ConvertMVF2Fasta
+            ConvertMVF2Phylip
+            ConvertVCF2MVF
             FilterMVF
             InferWindowTree
             PlotChromoplot
@@ -85,61 +85,199 @@ class MVFcall(object):
             exit(1)
         getattr(self, args.command)()
 
-    def PlotChromoplot(self):
-        from pylib.chromoplot import chromoplot, Pallette
-
+    def AnnotateMVF(self):
         def generate_argparser():
-            pallette = Pallette()
             parser = MvfArgumentParser()
-            parser.add_argument("--outprefix",
-                                help="Output prefix (not required).")
-            parser.add_argument("--samples", nargs='*', required=True,
-                                help="3 or more taxa to use for quartets")
-            parser.add_argument("--outgroup", nargs='*', required=True,
-                                help="1 or more outgroups to use for quartets")
-            parser.addarg_windowsize()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_gff()
             parser.add_argument(
-                "--contigs", nargs='*',
-                help=("Enter the ids of one or more contigs in the "
-                      "order they will appear in the chromoplot. "
-                      "(defaults to all ids in order present in MVF)"))
+                "--filter-annotation", "--filterannotation",
+                help=("Skip entries in the GFF file that "
+                      "contain this string in their 'Notes'"))
             parser.add_argument(
-                "--majority", action="store_true",
-                help=("Plot only 100% shading in the majority track "
-                      " rather than shaded proportions in all tracks."))
+                "--nongenic-mode", "--nongenicmode",
+                action="store_true",
+                help=("Instead of returning annotated genes, "
+                      "return the non-genic regions without "
+                      "without changing contigs or coordinates"))
             parser.add_argument(
-                "--info-track", "--infotrack", action="store_true",
-                help=("Include an additional coverage information "
-                      "track that will show empty, uninformative, "
-                      "and informative loci. (Useful for "
-                      "ranscriptomes/RAD or other reduced sampling."))
-            parser.add_argument(
-                "--empty-mask", "--emptymask", choices=pallette.colornames,
-                default="none",
-                help="Mask empty regions with this color.")
-            parser.add_argument(
-                "--yscale", default=20, type=int,
-                help=("Height (in number of pixels) for each track"))
-            parser.add_argument(
-                "--xscale", default=1, type=int,
-                help="Width (in number of pixels) for each window")
-            parser.add_argument(
-                "--colors", nargs=3, choices=pallette.colornames,
-                help="three colors to use for chromoplot")
-            parser.add_argument(
-                "--plot-type", "--plottype",
-                choices=["graph", "image"], default="image",
-                help=("PNG image (default) or graph via matplotlib "
-                      "(experimental)"))
+                "--nongenic-margin", "--nongenicmargin",
+                type=int, default=0,
+                help=("for --unnanotated-mode, only retain "
+                      "positions that are this number of bp away "
+                      "from an annotated region boundary"))
+            parser.addarg_linebuffer()
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
-        chromoplot(args)
+        annotate_mvf(args)
         return ''
 
-    def ConvertVCFtoMVF(self):
+    def ConvertFasta2MVF(self):
+
         def generate_argparser():
-            parser = MvfArgumentParser(description="VCF conversion")
+            parser = MvfArgumentParser()
+            parser.add_argument(
+                "--fasta", nargs='*', required=True,
+                help="input FASTA file(s)")
+            parser.add_argument(
+                "--out", required=True,
+                help="output MVF file")
+            parser.add_argument(
+                "--flavor", choices=['dna', 'protein'],
+                help="type of file [dna] or protein", default='dna')
+            parser.add_argument(
+                "--contig-ids", "--contigids", nargs='*',
+                help=("manually specify one or more contig ids "
+                      "as ID:NAME"))
+            parser.add_argument(
+                "--sample-replace", "--samplereplace", nargs="*",
+                help=("one or more TAG:NEWLABEL or TAG, items, "
+                      "if TAG found in sample label, replace with "
+                      "NEW (or TAG if NEW not specified) "
+                      "NEW and TAG must each be unique"))
+            parser.add_argument(
+                "--ref-label", "--reflabel", default="REF",
+                help="label for reference sample")
+            parser.add_argument(
+                "--read-buffer", "--readbuffer",
+                type=int, default=100000,
+                help="number of lines to hold in READ buffer")
+            parser.add_argument(
+                "--write-buffer", "--writebuffer",
+                type=int, default=100000,
+                help="number of lines to hold in WRITE buffer")
+            parser.add_argument(
+                "--field-sep", "--fieldsep", nargs='*', default=None,
+                choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA',
+                         'MIXED', 'PIPE', 'AT', 'UNDER', 'DBLUNDER'],
+                help=("FASTA field separator; assumes "
+                      "'>database accession locus' format"))
+            parser.add_argument(
+                "--contig-field", "--contigfield", type=int,
+                help=("When headers are split by --field-sep, "
+                      "the 0-based index of the contig id."))
+            parser.add_argument(
+                "--contig-by-file", "--contigbyfile", action="store_true",
+                help=("Contigs are designated by separate files."))
+            parser.add_argument(
+                "--sample-field", "--samplefield", type=int,
+                help=("when headers are split by --field-sep, "
+                      "the 0-based index of the sample id"))
+            parser.add_argument(
+                "--manual-coord", "--manualcoord", nargs='*',
+                help=("manually specify reference coordinates "
+                      "for each file in the format "
+                      "CONTIGID:START..STOP, ..."))
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        fasta2mvf(args)
+        return ''
+
+    def ConvertMAF2MVF(self):
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.add_argument("--maf", help="input MAF file",
+                                required=True, type=os.path.abspath,)
+            parser.add_argument("--out", help="output MVF file",
+                                type=os.path.abspath, required=True)
+            parser.add_argument("--ref-tag", "--reftag",
+                                help="old reference tag")
+            parser.add_argument(
+                "--mvf-ref-label", "--mvfreflabel", default="REF",
+                help=("new label for reference sample (default='REF')"))
+            parser.add_argument(
+                "--sample-tags", "--sampletags", nargs="*", required=True,
+                help=("one or more TAG:NEWLABEL or TAG, items, "
+                      "if TAG found in sample label, replace with "
+                      "NEW (or TAG if NEW not specified) "
+                      "NEW and TAG must each be unique."))
+
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        maf2mvf(args)
+        return ''
+
+    def ConvertMVF2Fasta(self):
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.add_argument("--out", type=os.path.abspath,
+                                help="Output path of FASTA file.",
+                                required=True)
+            parser.addarg_regions()
+            parser.addarg_samples()
+            parser.add_argument(
+                "--labeltype", choices=('long', 'short'), default='long',
+                help=("Long labels with all metadata or short ids"))
+            parser.add_argument(
+                "--outdata", choices=("dna", "rna", "prot"),
+                help="Output dna, rna or prot data.")
+            parser.add_argument(
+                "--buffer", type=int, default=10,
+                help="size (Mbp) of write buffer for each sample")
+            parser.add_argument(
+                "--tmpdir", default=".",
+                help="directory to write temporary fasta files")
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mvf2fasta(args)
+        return ''
+
+    def ConvertMVF2Phylip(self):
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.add_argument("--out", type=os.path.abspath,
+                                help="Output Phylip file.", required=True)
+            parser.addarg_contigs()
+            parser.addarg_regions()
+            parser.add_argument(
+                "--labeltype", choices=('long', 'short'), default='short',
+                help="Long labels with all metadata or short ids")
+            parser.add_argument(
+                "--outdata", choices=("dna", "rna", "prot"),
+                help="Output dna, rna or prot data.")
+            parser.addarg_samples()
+            parser.add_argument(
+                "--buffer", type=int, default=100000,
+                help="size (bp) of write buffer for each sample")
+            parser.add_argument(
+                "--tmpdir", default=".",
+                help="directory to write temporary fasta files")
+            parser.add_argument(
+                "--partition", action="store_true",
+                help=("Output a CSV partitions file with RAxML"
+                      "formatting for use in partitioned "
+                      "phylogenetic methods."))
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+
+        args = parser.parse_args(self.arguments[1:])
+        mvf2phy(args)
+        return ''
+
+    def ConvertVCF2MVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
             parser.add_argument(
                 "--vcf", type=os.path.abspath,
                 help="VCF input file")
@@ -199,188 +337,11 @@ class MVFcall(object):
             parser.addarg_overwrite()
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
-        from pylib.vcf import vcf2mvf
+        from pylib.mvfvcf import vcf2mvf
         vcf2mvf(args)
-        return ''
-
-    def ConvertFASTAtoMVF(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser(description="fasta conversion")
-            parser.add_argument(
-                "--fasta", nargs='*', required=True,
-                help="input FASTA file(s)")
-            parser.add_argument(
-                "--out", required=True,
-                help="output MVF file")
-            parser.add_argument(
-                "--flavor", choices=['dna', 'protein'],
-                help="type of file [dna] or protein", default='dna')
-            parser.add_argument(
-                "--contig-ids", "--contigids", nargs='*',
-                help=("manually specify one or more contig ids "
-                      "as ID:NAME"))
-            parser.add_argument(
-                "--sample-replace", "--samplereplace", nargs="*",
-                help=("one or more TAG:NEWLABEL or TAG, items, "
-                      "if TAG found in sample label, replace with "
-                      "NEW (or TAG if NEW not specified) "
-                      "NEW and TAG must each be unique"))
-            parser.add_argument(
-                "--ref-label", "--reflabel", default="REF",
-                help="label for reference sample")
-            parser.add_argument(
-                "--read-buffer", "--readbuffer",
-                type=int, default=100000,
-                help="number of lines to hold in READ buffer")
-            parser.add_argument(
-                "--write-buffer", "--writebuffer",
-                type=int, default=100000,
-                help="number of lines to hold in WRITE buffer")
-            parser.add_argument(
-                "--field-sep", "--fieldsep", nargs='*', default=None,
-                choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA',
-                         'MIXED', 'PIPE', 'AT', 'UNDER', 'DBLUNDER'],
-                help=("FASTA field separator; assumes "
-                      "'>database accession locus' format"))
-            parser.add_argument(
-                "--contig-field", "--contigfield", type=int,
-                help=("When headers are split by --field-sep, "
-                      "the 0-based index of the contig id."))
-            parser.add_argument(
-                "--contig-by-file", "--contigbyfile", action="store_true",
-                help=("Contigs are designated by separate files."))
-            parser.add_argument(
-                "--sample-field", "--samplefield", type=int,
-                help=("when headers are split by --field-sep, "
-                      "the 0-based index of the sample id"))
-            parser.add_argument(
-                "--manual-coord", "--manualcoord", nargs='*',
-                help=("manually specify reference coordinates "
-                      "for each file in the format "
-                      "CONTIGID:START..STOP, ..."))
-            parser.addarg_overwrite()
-            return parser
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        fasta2mvf(args)
-        return ''
-
-    def ConvertMAFtoMVF(self):
-        def generate_argparser():
-            parser = MvfArgumentParser("MAF to MVF converter")
-            parser.add_argument("--maf", help="input MAF file",
-                                required=True, type=os.path.abspath,)
-            parser.add_argument("--out", help="output MVF file",
-                                type=os.path.abspath, required=True)
-            parser.add_argument("--ref-tag", "--reftag",
-                                help="old reference tag")
-            parser.add_argument(
-                "--mvf-ref-label", "--mvfreflabel", default="REF",
-                help=("new label for reference sample (default='REF')"))
-            parser.add_argument(
-                "--sample-tags", "--sampletags", nargs="*", required=True,
-                help=("one or more TAG:NEWLABEL or TAG, items, "
-                      "if TAG found in sample label, replace with "
-                      "NEW (or TAG if NEW not specified) "
-                      "NEW and TAG must each be unique."))
-
-            parser.addarg_linebuffer()
-            parser.add_overwrite()
-            return parser
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        maf2mvf(args)
-        return ''
-
-    def ConvertMVFtoFASTA(self):
-        def generate_argparser():
-            parser = MvfArgumentParser(description="MVF to FASTA")
-            parser.addarg_mvf()
-            parser.add_argument("--out", type=os.path.abspath,
-                                help="Output path of FASTA file.",
-                                required=True)
-            parser.addarg_regions()
-            parser.addarg_samples()
-            parser.add_argument(
-                "--labeltype", choices=('long', 'short'), default='long',
-                help=("Long labels with all metadata or short ids"))
-            parser.add_argument(
-                "--outdata", choices=("dna", "rna", "prot"),
-                help="Output dna, rna or prot data.")
-            parser.add_argument(
-                "--buffer", type=int, default=10,
-                help="size (Mbp) of write buffer for each sample")
-            parser.add_argument(
-                "--tmpdir", default=".",
-                help="directory to write temporary fasta files")
-            return parser
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        mvf2fasta(args)
-        return ''
-
-    def MVFtoPhylip(self):
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.add_argument("--out", type=os.path.abspath,
-                                help="Output Phylip file.", required=True)
-            parser.addarg_contigs()
-            parser.addarg_regions()
-            parser.add_argument(
-                "--labeltype", choices=('long', 'short'), default='short',
-                help="Long labels with all metadata or short ids")
-            parser.add_argument(
-                "--outdata", choices=("dna", "rna", "prot"),
-                help="Output dna, rna or prot data.")
-            parser.addarg_samples()
-            parser.add_argument(
-                "--buffer", type=int, default=100000,
-                help="size (bp) of write buffer for each sample")
-            parser.add_argument(
-                "--tmpdir", default=".",
-                help="directory to write temporary fasta files")
-            parser.add_argument(
-                "--partition", action="store_true",
-                help=("Output a CSV partitions file with RAxML"
-                      "formatting for use in partitioned "
-                      "phylogenetic methods."))
-            return parser
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        mvf2phy(args)
-        return ''
-
-    def CalcSampleCoverage(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_contigs()
-            parser.addarg_samples()
-            return parser
-
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        mvfanalysis.calc_sample_coverage(args)
-        return ''
-
-    def CalcDstatCombinations(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_contigs()
-            parser.addarg_samples()
-            return parser
-
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        mvfanalysis.calc_dstat_combinations(args)
         return ''
 
     def CalcCountCharacterWindows(self):
@@ -401,8 +362,26 @@ class MVFcall(object):
                 help="String of bases for total (i.e. denominator).")
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         mvfanalysis.calc_count_char_window(args)
+        return ''
+
+    def CalcDstatCombinations(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_contigs()
+            parser.addarg_samples()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mvfanalysis.calc_dstat_combinations(args)
         return ''
 
     def CalcPairwiseDistances(self):
@@ -415,6 +394,8 @@ class MVFcall(object):
             parser.addarg_mincoverage()
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         mvfanalysis.calc_pairwise_distances(args)
         return ''
@@ -429,8 +410,26 @@ class MVFcall(object):
             parser.addarg_mincoverage()
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         mvfanalysis.calc_pattern_count(args)
+        return ''
+
+    def CalcSampleCoverage(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_contigs()
+            parser.addarg_samples()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mvfanalysis.calc_sample_coverage(args)
         return ''
 
     def CheckMVF(self):
@@ -441,8 +440,44 @@ class MVFcall(object):
             return parser
 
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         check_mvf(args)
+        return ''
+
+    def FilterMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.add_argument(
+                "--actions", nargs='*',
+                help=("set of actions:args to perform, "
+                      "note these are done in order as listed"))
+            parser.add_argument(
+                "--labels", action="store_true",
+                help="use sample labels instead of indices")
+            parser.add_argument(
+                "--test", help="manually input a line for testing")
+            parser.add_argument(
+                "--test-nchar", type=int,
+                help="total number of samples for test string")
+            parser.add_argument(
+                "--morehelp", action="store_true",
+                help="prints full module list and descriptions")
+            parser.addarg_linebuffer()
+            parser.add_argument(
+                "--verbose", action="store_true",
+                help="report every line (for debugging)")
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        filter_mvf(args)
         return ''
 
     def InferGroupSpecificAllele(self):
@@ -481,7 +516,7 @@ class MVFcall(object):
                       "phylip format."))
             parser.add_argument(
                 "--outgroup",
-                help("Specify sample name with which to root trees."))
+                help=("Specify sample name with which to root trees."))
             parser.add_argument(
                 "--uselabels", "--use_labels", action="store_true",
                 help="Use contig labels instead of IDs in output.")
@@ -518,6 +553,8 @@ class MVFcall(object):
                       "to the basic patterns scan"))
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         calc_group_unique_allele_window(args)
         return ''
@@ -602,102 +639,10 @@ class MVFcall(object):
                 help=("Temporary file prefix"))
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         infer_window_tree(args)
-        return ''
-
-    def FilterMVF(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.add_argument(
-                "--actions", nargs='*',
-                help=("set of actions:args to perform, "
-                      "note these are done in order as listed"))
-            parser.add_argument(
-                "--labels", action="store_true",
-                help="use sample labels instead of indices")
-            parser.add_argument(
-                "--test", help="manually input a line for testing")
-            parser.add_argument(
-                "--test-nchar", type=int,
-                help="total number of samples for test string")
-            parser.add_argument(
-                "--morehelp", action="store_true",
-                help="prints full module list and descriptions")
-            parser.addarg_linebuffer()
-            parser.add_argument(
-                "--verbose", action="store_true",
-                help="report every line (for debugging)")
-            parser.addarg_overwrite()
-            return parser
-
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        filter_mvf(args)
-        return ''
-
-    def AnnotateMVF(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_gff()
-            parser.add_argument(
-                "--filter-annotation", "--filterannotation",
-                help=("Skip entries in the GFF file that "
-                      "contain this string in their 'Notes'"))
-            parser.add_argument(
-                "--nongenic-mode", "--nongenicmode",
-                action="store_true",
-                help=("Instead of returning annotated genes, "
-                      "return the non-genic regions without "
-                      "without changing contigs or coordinates"))
-            parser.add_argument(
-                "--nongenic-margin", "--nongenicmargin",
-                type=int, default=0,
-                help=("for --unnanotated-mode, only retain "
-                      "positions that are this number of bp away "
-                      "from an annotated region boundary"))
-            parser.addarg_linebuffer()
-            return parser
-
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        annotate_mvf(args)
-        return ''
-
-    def TranslateMVF(self):
-
-        def generate_argparser():
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.add_argument(
-                "--gff", type=os.path.abspath,
-                help=("Input GFF3 file. If GFF3 not provided, "
-                      "alignments are assumed to be "
-                      "in-frame coding sequences."))
-            parser.add_argument(
-                "--outtype", choices=['protein', 'codon'],
-                default="codon",
-                help=("protein=single data column "
-                      "of protein alleles; "
-                      "codon=four columns with: "
-                      "protein frame1 frame2 frame3"))
-            parser.add_argument(
-                "--filter-annotation", "--filterannotation",
-                help=("skip GFF entries with text "
-                      "matching this in their 'Notes' field"))
-            parser.addarg_linebuffer()
-            parser.addarg_overwrite()
-            return parser
-        parser = generate_argparser()
-        args = parser.parse_args(self.arguments[1:])
-        translate_mvf(args)
         return ''
 
     def JoinMVF(self):
@@ -728,10 +673,97 @@ class MVFcall(object):
             parser.addarg_overwrite()
             return parser
         parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
         args = parser.parse_args(self.arguments[1:])
         mvf_join(args)
         return ''
 
+    def PlotChromoplot(self):
+        from pylib.mvfchromoplot import chromoplot, Pallette
+
+        def generate_argparser():
+            pallette = Pallette()
+            parser = MvfArgumentParser()
+            parser.add_argument("--outprefix",
+                                help="Output prefix (not required).")
+            parser.add_argument("--samples", nargs='*', required=True,
+                                help="3 or more taxa to use for quartets")
+            parser.add_argument("--outgroup", nargs='*', required=True,
+                                help="1 or more outgroups to use for quartets")
+            parser.addarg_windowsize()
+            parser.add_argument(
+                "--contigs", nargs='*',
+                help=("Enter the ids of one or more contigs in the "
+                      "order they will appear in the chromoplot. "
+                      "(defaults to all ids in order present in MVF)"))
+            parser.add_argument(
+                "--majority", action="store_true",
+                help=("Plot only 100% shading in the majority track "
+                      " rather than shaded proportions in all tracks."))
+            parser.add_argument(
+                "--info-track", "--infotrack", action="store_true",
+                help=("Include an additional coverage information "
+                      "track that will show empty, uninformative, "
+                      "and informative loci. (Useful for "
+                      "ranscriptomes/RAD or other reduced sampling."))
+            parser.add_argument(
+                "--empty-mask", "--emptymask", choices=pallette.colornames,
+                default="none",
+                help="Mask empty regions with this color.")
+            parser.add_argument(
+                "--yscale", default=20, type=int,
+                help=("Height (in number of pixels) for each track"))
+            parser.add_argument(
+                "--xscale", default=1, type=int,
+                help="Width (in number of pixels) for each window")
+            parser.add_argument(
+                "--colors", nargs=3, choices=pallette.colornames,
+                help="three colors to use for chromoplot")
+            parser.add_argument(
+                "--plot-type", "--plottype",
+                choices=["graph", "image"], default="image",
+                help=("PNG image (default) or graph via matplotlib "
+                      "(experimental)"))
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        chromoplot(args)
+        return ''
+
+    def TranslateMVF(self):
+
+        def generate_argparser():
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.add_argument(
+                "--gff", type=os.path.abspath,
+                help=("Input GFF3 file. If GFF3 not provided, "
+                      "alignments are assumed to be "
+                      "in-frame coding sequences."))
+            parser.add_argument(
+                "--outtype", choices=['protein', 'codon'],
+                default="codon",
+                help=("protein=single data column "
+                      "of protein alleles; "
+                      "codon=four columns with: "
+                      "protein frame1 frame2 frame3"))
+            parser.add_argument(
+                "--filter-annotation", "--filterannotation",
+                help=("skip GFF entries with text "
+                      "matching this in their 'Notes' field"))
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        translate_mvf(args)
+        return ''
 
 if __name__ == "__main__":
     time0 = time()
