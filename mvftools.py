@@ -69,7 +69,8 @@ class MVFcall(object):
             ConvertMVF2Phylip
             ConvertVCF2MVF
             FilterMVF
-            InferWindowTree
+            InferGroupSpecificAllele
+            InferTree
             PlotChromoplot
             TranslateMVF
             """,
@@ -625,7 +626,7 @@ class MVFcall(object):
         calc_group_unique_allele_window(args)
         return ''
 
-    def InferWindowTree(self):
+    def InferTree(self):
         """Infer phylogenies for various windows or contigs in an
            MVF file.
         """
@@ -673,7 +674,7 @@ class MVFcall(object):
                 "--minsites", type=int, default=100,
                 help="minimum number of sites ")
             parser.add_argument(
-                "--minseqcoverage", type=float, default=0.1,
+                 "--min-seq-coverage", "--minseqcoverage", type=float, default=0.1,
                 help=("proportion of total alignment a sequence"
                       "must cover to be retianed [0.1]"))
             parser.add_argument(
@@ -684,13 +685,13 @@ class MVFcall(object):
                 help=("turn on rapid bootstrapping for RAxML and "
                       "perform specified number of replicates"))
             parser.add_argument(
-                "--raxml_model", default="GTRGAMMA",
+                "--raxml-model", "--raxmlmodel", default="GTRGAMMA",
                 help=("choose RAxML model"))
             parser.add_argument(
                 "--raxml-path", "--raxmlpath", default="raxml",
                 help="RAxML path for manual specification.")
             parser.add_argument(
-                "--raxmlopts", default="",
+                "--raxml-opts", "--raxmlopts", default="",
                 help=("specify additional RAxML arguments as a "
                       "double-quotes encased string"))
             parser.add_argument(

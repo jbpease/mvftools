@@ -460,7 +460,7 @@ def infer_window_tree(args):
     topofile = OutputFile(args.out + '.counts',
                           headers=['rank', 'topology', 'count'])
     sample_cols = (None if args.samples is None else
-                   mvf.get_sample_indices(args.samples))
+                   mvf.get_sample_indices(args.samples.split(",")))
     if not os.path.exists(args.tempdir):
         os.mkdir(args.tempdir)
     os.chdir(args.tempdir)
@@ -469,13 +469,13 @@ def infer_window_tree(args):
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
-              'rootwith': args.rootwith or [],
+              'rootwith': args.root_with or [],
               'minsites': args.minsites,
-              'minseqcoverage': args.minseqcoverage,
+              'minseqcoverage': args.min_seq_coverage,
               'mindepth': args.mindepth,
-              'raxmlpath': args.raxmlpath,
-              'raxmlopts': args.raxmlopts,
-              'duplicateseq': args.duplicateseq,
+              'raxmlpath': args.raxml_path,
+              'raxmlopts': args.raxml_opts,
+              'duplicateseq': args.duplicate_seq,
               'model': args.raxml_model,
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
@@ -513,7 +513,7 @@ def infer_window_tree(args):
             current_contig = contig[:]
             window = None
             window = WindowData(window_params={
-                'contigname': (args.outputcontiglabels and
+                'contigname': (args.output_contig_labels and
                                mvf.get_contig_label(current_contig) or
                                current_contig[:]),
                 "windowstart": ('-1' if args.windowsize == -1
