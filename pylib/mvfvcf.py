@@ -4,16 +4,7 @@
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-"""
 
-import os
-import gzip
-import re
-from math import log10
-from pylib.mvfbase import encode_mvfstring, MultiVariantFile, is_int
-from pylib.mvfbiolib import MvfBioLib
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -35,6 +26,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import os
+import gzip
+import re
+from math import log10
+from pylib.mvfbase import encode_mvfstring, MultiVariantFile, is_int
+from pylib.mvfbiolib import MvfBioLib
 
 MLIB = MvfBioLib()
 
@@ -299,13 +297,14 @@ class VariantCallFile(object):
             allele = 'X'
         return (allele, quality, sample_depth)
 
+
 def vcf2mvf(args=None):
     """Main method for vcf2mvf"""
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.fieldsep]
     # ESTABLISH VCF
-    vcf = VariantCallFile(args.inputfile, indexcontigs=(not args.no_autoindex))
+    vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
