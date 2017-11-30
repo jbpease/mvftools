@@ -339,7 +339,7 @@ class MVFcall(object):
                       "VCFLABEL must match EXACTLY the contig string "
                       "labels in the VCF file"))
             parser.add_argument(
-                "--samplereplace", nargs="*",
+                "--sample-replace", "--samplereplace", nargs="*",
                 help=("one or more TAG:NEWLABEL or TAG, items, "
                       "if TAG found in sample label, replace with "
                       "NEW (or TAG if NEW not specified) "
@@ -348,7 +348,7 @@ class MVFcall(object):
                 "--reflabel", default="REF",
                 help="label for reference sample (default='REF')")
             parser.add_argument(
-                "--allelesfrom", default=None,
+                "--alleles-from", "--allelesfrom", default=None,
                 help="""get additional alignment columns
                 from INFO fields (:-separated)""")
             parser.addarg_linebuffer()
@@ -674,7 +674,8 @@ class MVFcall(object):
                 "--minsites", type=int, default=100,
                 help="minimum number of sites ")
             parser.add_argument(
-                 "--min-seq-coverage", "--minseqcoverage", type=float, default=0.1,
+                "--min-seq-coverage", "--minseqcoverage",
+                type=float, default=0.1,
                 help=("proportion of total alignment a sequence"
                       "must cover to be retianed [0.1]"))
             parser.add_argument(

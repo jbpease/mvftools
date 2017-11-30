@@ -143,9 +143,9 @@ class VariantCallFile(object):
         for line in filehandler:
             nline += 1
             linebuffer.append(line)
-            if nline == args.get('linebuffer', 10000):
+            if nline == args.line_buffer:
                 for xline in linebuffer:
-                    vcfrecord = self._parse_entry(xline, **args)
+                    vcfrecord = self._parse_entry(xline, **vars(args))
                     if vcfrecord == -1:
                         continue
                     yield vcfrecord
@@ -208,10 +208,10 @@ class VariantCallFile(object):
             if kwargs.get("outflavor") in ("dnaqual", 'dnaqual-indel'):
                 record['qscores'].append(chr(min(quality, 40) + 64))
             record['genotypes'].append(allele)
-        if kwargs.get("allelesfrom"):
+        if kwargs.get("alleles_from"):
             info = dict(field.split('=') for field in arr[7].split(';'))
             record['genotypes'].extend(
-                info.get(label, '-') for label in kwargs.get("allelesfrom"))
+                info.get(label, '-') for label in kwargs.get("alleles_from"))
         return record
 
     def _call_allele(self, sample, alleles, **kwargs):
@@ -356,12 +356,12 @@ def vcf2mvf(args=None):
                                        newlabel, xid, xlabel))
     # PROCESS SAMPLE INFO
     samplelabels = [args.reflabel] + vcf.metadata['samples'][:]
-    if args.allelesfrom:
-        args.allelesfrom = args.allelesfrom.split(':')
-        samplelabels += args.allelesfrom
-    if args.samplereplace:
+    if args.alleles_from:
+        args.alleles_from = args.alleles_from.split(':')
+        samplelabels += args.alleles_from
+    if args.sample_replace:
         newsample = [x.split(':') if ':' in tuple(x) else tuple([x, x])
-                     for x in args.samplereplace]
+                     for x in args.sample_replace]
         unmatched = [x for x in enumerate(samplelabels)]
         for old, new in newsample:
             labelmatched = False
@@ -381,25 +381,25 @@ def vcf2mvf(args=None):
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0
-    for vcfrecord in vcf.iterentries(vars(args)):
-        try:
-            mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
-            if args.outflavor in ('dnaqual',):
-                qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
-            if mvf_alleles:
-                mvfentries.append(
-                    (contig_translate.get(vcfrecord['contig'])[0],
-                     vcfrecord['coord'],
-                     ((mvf_alleles, qual_alleles) if
-                      args.outflavor in ('dnaqual',) else
-                      (mvf_alleles,))))
-                nentry += 1
-                if nentry == args.linebuffer:
-                    mvf.write_entries(mvfentries, encoded=True)
-                    mvfentries = []
-                    nentry = 0
-        except Exception as exception:
-            print("ERROR", vcfrecord)
+    for vcfrecord in vcf.iterentries(args):
+        # try:
+        mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
+        if args.outflavor in ('dnaqual',):
+            qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
+        if mvf_alleles:
+            mvfentries.append(
+                (contig_translate.get(vcfrecord['contig'])[0],
+                 vcfrecord['coord'],
+                 ((mvf_alleles, qual_alleles) if
+                  args.outflavor in ('dnaqual',) else
+                  (mvf_alleles,))))
+            nentry += 1
+            if nentry == args.line_buffer:
+                mvf.write_entries(mvfentries, encoded=True)
+                mvfentries = []
+                nentry = 0
+        # except Exception as exception:
+            # print("ERROR", vcfrecord)
     if mvfentries:
         mvf.write_entries(mvfentries)
         mvfentries = []
