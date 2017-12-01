@@ -585,10 +585,10 @@ class MVFcall(object):
                 "--outgroup",
                 help=("Specify sample name with which to root trees."))
             parser.add_argument(
-                "--uselabels", "--use_labels", action="store_true",
+                "--use-labels", "--uselabels", action="store_true",
                 help="Use contig labels instead of IDs in output.")
             parser.add_argument(
-                "--codemlpath", "--codeml-path", default="codeml",
+                "--codeml-path", "--codemlpath", default="codeml",
                 type=os.path.abspath,
                 help="Full path for PAML codeml executable.")
             parser.add_argument(
@@ -613,7 +613,7 @@ class MVFcall(object):
                       "only the most complete sequence from "
                       "each species"))
             parser.add_argument(
-                "--branchlrt", "--branch-lrt", type=os.path.abspath,
+                "--branch-lrt", "--branchlrt", type=os.path.abspath,
                 help=("Specify the output file for and turn on the "
                       "RAxML-PAML format LRT test scan for "
                       "selection on the target branch in addition "

@@ -3,15 +3,7 @@
 """
 This program filters an MVF alignment using the modules specified below,
 use the --morehelp option for additional module information.
-"""
 
-import sys
-from copy import deepcopy
-from pylib.mvfbase import MultiVariantFile, encode_mvfstring
-from pylib.mvfbiolib import MvfBioLib
-MLIB = MvfBioLib()
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
@@ -37,6 +29,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import sys
+from copy import deepcopy
+from pylib.mvfbase import MultiVariantFile, encode_mvfstring
+from pylib.mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
 
 # Note action modules are designed in these types:
 # filter = returns boolean False to filter OUT, True to retain line
@@ -423,11 +421,11 @@ def make_module(modulename, ncol, optargs=None):
 
         def reqcontig(entry):
             """return sites in ID,START,STOP (inclusive)"""
+            return entry[0] in optargs[0]
 
-
-
-
-
+    # SAMPLE
+    elif modulename == 'reqsample':
+        moduletype = 'filter'
 
         def reqsample(entry, mvfenc):
             """require specific samples to be present

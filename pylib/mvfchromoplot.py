@@ -4,14 +4,7 @@
 This program creates a chromoplot from an MVF alignment.
 A chromoplot shows a genome-wide diagram of different
 evolutionary histories for a given quartet of taxa.
-"""
 
-from itertools import combinations
-from scipy.stats import chi2
-from pylib.mvfbase import MultiVariantFile
-
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -33,6 +26,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+from itertools import combinations
+from scipy.stats import chi2
+from pylib.mvfbase import MultiVariantFile
 
 
 class Counter(dict):
@@ -339,7 +336,7 @@ class Chromoplot(object):
                  'BBAA', 'ABBA', 'BABA', 'Dleft', 'Dright',
                  'Dsites', 'Dstat', 'Pvalue',
                  'pBBAA', 'pABBA', 'pBABA', 'Dorder'
-                ])))
+                 ])))
             for contig in contigorder:
                 counts = self.counts[contig]
                 total = float(sum([counts.get(x, 0) for x in [
@@ -435,8 +432,6 @@ def write_png(filepath, buf, width, height):
                                     "!2I5B", width, height, 8, 6, 0, 0, 0)),
                                 png_pack(b'IDAT', zlib.compress(raw_data, 9)),
                                 png_pack(b'IEND', b'')]))
-
-
 
 
 def plot_chromoplot(args):

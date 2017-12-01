@@ -126,23 +126,26 @@ def calc_group_unique_allele_window(args):
     if args.gff is not None:
         annotations, coordinates = (parse_gff_analysis(args.gff))
     if args.allele_groups is not None:
-        args.allele_groups = procarg_allelegroups(mvf, args.allele_groups)
+        args.allele_groups = procarg_allelegroups(
+            args.allele_groups, mvf)
     if args.species_groups is not None:
         args.species_groups = procarg_speciesgroups(
-            mvf, args.species_groups)
+            args.species_groups, mvf)
     fieldtags = [
         'likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a', 'bgdnds2b',
         'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b', 'dndstree',
         'errorstate']
-    with open(args.branch_lrt, 'w') as branchlrt:
-        genealign = []
-        branchlrt.write("\t".join(
-            ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
-            ["null.{}".format(x) for x in fieldtags] +
-            ["test.{}".format(x) for x in fieldtags] +
-            ['tree']) + "\n")
+    if args.branch_lrt is not None:
+        with open(args.branch_lrt, 'w') as branchlrt:
+            genealign = []
+            branchlrt.write("\t".join(
+                ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
+                ["null.{}".format(x) for x in fieldtags] +
+                ["test.{}".format(x) for x in fieldtags] +
+                ['tree']) + "\n")
     groups = args.allele_groups.values()
-    speciesgroups = args.species_groups.values()
+    if args.species_groups is not None:
+        speciesgroups = args.species_groups.values()
     allsets = set([])
     for group in groups:
         allsets.update(group)
