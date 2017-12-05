@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 This program creates a chromoplot from an MVF alignment.
@@ -445,7 +444,7 @@ def plot_chromoplot(args):
     mvf = MultiVariantFile(args.mvf, 'read')
     if args.quiet is False:
         print("Parsing headers...")
-    if args.contigs is None:
+    if args.contigs is not None:
         contignames = args.contigs
     else:
         contignames = [mvf.metadata['contigs'][contigid]['label']
@@ -453,7 +452,7 @@ def plot_chromoplot(args):
         for i, contigname in enumerate(contignames):
             try:
                 contignames[i] = int(contigname)
-            except:
+            except ValueError as exception:
                 pass
         contignames = [str(x) for x in sorted(contignames)]
     if args.quiet is False:
@@ -480,15 +479,15 @@ def plot_chromoplot(args):
         if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet)))
         params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
-                  'outpath': (args.outprefix or '_'.join(quartet)) + ".png",
+                  'outpath': (args.out_prefix or '_'.join(quartet)) + ".png",
                   'labels': quartet,
                   'windowsize': args.windowsize,
                   'majority': args.majority,
-                  'infotrack': args.infotrack,
+                  'infotrack': args.info_track,
                   'yscale': args.yscale,
                   'xscale': args.xscale,
                   'quiet': args.quiet,
-                  'plottype': args.plottype}
+                  'plottype': args.plot_type}
         chromoplot = Chromoplot(params=params, pallette=pallette)
         quartet_indices = mvf.get_sample_indices(labels=quartet)
         current_contig = ''

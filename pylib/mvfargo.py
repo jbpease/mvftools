@@ -15,7 +15,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
                           version="0.8.0",
                           help="Display version information.")
         self.add_argument(
-            "--quiet", action="store_true", default=True,
+            "--quiet", action="store_true",
             help="Suppress screen output.")
 
     def addarg_contigs(self):
