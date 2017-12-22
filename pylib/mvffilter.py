@@ -2,20 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 This program filters an MVF alignment using the modules specified below,
-use the --morehelp option for additional module information.
-"""
+use the --more-help option for additional module information.
 
-import os
-import sys
-import argparse
-from copy import deepcopy
-from itertools import combinations
-from time import time
-from mvfbase import MultiVariantFile, encode_mvfstring
-from mvfbiolib import MvfBioLib
-MLIB = MvfBioLib()
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
@@ -41,6 +29,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import sys
+from copy import deepcopy
+from pylib.mvfbase import MultiVariantFile, encode_mvfstring
+from pylib.mvfbiolib import MvfBioLib
+MLIB = MvfBioLib()
 
 # Note action modules are designed in these types:
 # filter = returns boolean False to filter OUT, True to retain line
@@ -99,6 +93,10 @@ def make_module(modulename, ncol, optargs=None):
                                  set('X-') for y in optargs]
                 if not all(allele_groups):
                     return False
+<<<<<<< HEAD:mvf_filter.py
+=======
+                return True
+>>>>>>> mdev:pylib/mvffilter.py
             else:
                 return False
 
@@ -452,15 +450,6 @@ def make_module(modulename, ncol, optargs=None):
             elif mvfenc == 'onecov':
                 return entry[0].upper() == entry[2].upper()
 
-    # REQREGION
-    elif modulename == "reqregion":
-        moduletype = 'location'
-
-        def reqregion(entry):
-            """return sites in ID,START,STOP (inclusive)"""
-            return (entry[0] == optargs[0][0] and
-                    optargs[0][1] <= entry[1] <= optargs[0][2])
-
     # REQONECHAR
     elif modulename == "reqonechar":
         moduletype = 'filter'
@@ -476,8 +465,17 @@ def make_module(modulename, ncol, optargs=None):
                 return any([x in (entry[0], entry[1], entry[3])
                             for x in optargs[0]])
 
+    # REQREGION
+    elif modulename == "reqregion":
+        moduletype = 'location'
+
+        def reqregion(entry):
+            """return sites in ID,START,STOP (inclusive)"""
+            return (entry[0] == optargs[0][0] and
+                    optargs[0][1] <= entry[1] <= optargs[0][2])
+
     # REQSAMPLE
-    elif modulename == "reqsample":
+    elif modulename == 'reqsample':
         moduletype = 'filter'
 
         def reqsample(entry, mvfenc):
@@ -581,18 +579,21 @@ def build_actionset(moduleargs, ncol):
             for i in range(1, len(modargs)):
                 modargs[i] = (',' in modargs[i] and modargs[i].split(',') or
                               [modargs[i]])
-            print(modargs)
-            if modargs[0] == 'region':
-                modargs[0][1] = int(modargs[0][1])
-                modargs[0][2] = int(modargs[0][2])
+            if modargs[0] == 'reqregion':
+                modargs[1] = int(modargs[1])
+                modargs[2] = int(modargs[2])
             elif modargs[0] == 'mincoverage':
-                if int(modargs[1][0]) > ncol:
-                    raise RuntimeError()
-            for i in range(1, len(modargs)):
-                try:
-                    modargs[i] = [int(x) for x in modargs[i]]
-                except ValueError:
-                    continue
+                modargs[1][0] = int(modargs[1][0])
+                if modargs[1][0] > ncol:
+                    raise RuntimeError((
+                        "ERROR: Minimum columns specified ({}) is "
+                        "greater than number of MVF total columns"
+                        "({}).").format(modargs[1][0], ncol))
+            # for i in range(1, len(modargs)):
+            #    try:
+            #        modargs[i] = [int(x) for x in modargs[i]]
+            #    except ValueError:
+            #        continue
             actionset.append(make_module(modargs[0],
                              ncol, optargs=modargs[1:]))
         else:
@@ -602,47 +603,9 @@ def build_actionset(moduleargs, ncol):
     return actionset
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_filter.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", type=os.path.abspath,
-                        help="Input MVF file.")
-    parser.add_argument("-o", "--out", type=os.path.abspath,
-                        help="Output MVF file")
-    parser.add_argument("-a", "--actions", nargs='*',
-                        help=("set of actions:args to perform,"
-                              " note these are done in order as listed"))
-    parser.add_argument("-l", "--labels", action="store_true",
-                        help="use sample labels instead of indices")
-    parser.add_argument("--test", help="manually input a line for testing")
-    parser.add_argument("--test-nchar", type=int,
-                        help="total number of samples for test string")
-    parser.add_argument("--morehelp", action="store_true",
-                        help="prints full module list and descriptions")
-    parser.add_argument("-B", "--linebuffer", type=int, default=100000,
-                        help="number of lines to write at once to MVF")
-    parser.add_argument("-V", "--verbose", action="store_true",
-                        help="report every line (for debugging)")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("-q", "--quiet", action="store_true",
-                        help="suppress progress meter")
-    parser.add_argument("-v", "--version", action="version",
-                        version="2017-10-27",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def filter_mvf(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
-    time0 = time()
-    if args.morehelp is True:
+    if args.more_help is True:
         modulehelp()
         sys.exit()
     if args.mvf is None and args.test is None:
@@ -793,7 +756,7 @@ def main(arguments=None):
             linebuffer.append((chrom, pos, (alleles,)))
             if args.verbose:
                 sys.stdout.write("{}\n".format(alleles))
-            if nbuffer == args.linebuffer:
+            if nbuffer == args.line_buffer:
                 outmvf.write_entries(linebuffer)
                 linebuffer = []
                 nbuffer = 0
@@ -802,10 +765,4 @@ def main(arguments=None):
     if linebuffer:
         outmvf.write_entries(linebuffer)
         linebuffer = []
-    if args.quiet is False:
-        print("Completed in {} seconds".format(time() - time0))
     return ''
-
-
-if __name__ == "__main__":
-    main()

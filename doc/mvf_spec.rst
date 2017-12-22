@@ -2,14 +2,14 @@
 MVF Format Specification (version 1.2)
 ======================================
 
-Version History
+MVF Standard History
 ===============
 
-v1.1.1
+MVF standard v1.1.1
 ------
 Codons and Proteins accommodated
 
-v1.2
+MVF standard v1.2
 ----
 Dot masking, multi-line header, adoption of "X" in place of "N" for nucleotides, support for non-reference aligned sequences.
 

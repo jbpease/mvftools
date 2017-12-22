@@ -35,6 +35,8 @@ from random import randint
 
 
 class MvfBioLib(object):
+    """MVF Biological Information Library Object
+    """
 
     def __init__(self):
         self.codon_tables = {}
@@ -125,8 +127,7 @@ class MvfBioLib(object):
                 ('CA', 'H'), ('GA', 'D'), ('TA', 'Y'),
                 ('TG', 'C'), ('TT', 'F')]] +
             [('MGA', 'R'), ('MGG', 'R'), ('MGR', 'R'), ('YTA', 'L'),
-             ('YTG', 'L'), ('YTR', 'L'), ('TRA', '*')]
-                 )
+             ('YTG', 'L'), ('YTR', 'L'), ('TRA', '*')])
         self.codon_tables['full'] = self.codon_tables['standard'].copy()
         self.codon_tables['full'].update(self.codon_tables['ambig'])
         return ''
@@ -191,8 +192,7 @@ class MvfBioLib(object):
                       [(nuc + x, nuc) for x in 'acgkmrstwybdhv'
                        for nuc in 'ACGKMRSTWY'] +
                       ambig +
-                      [(x.lower(), y.lower()) for (x, y) in ambig]
-                      )
+                      [(x.lower(), y.lower()) for (x, y) in ambig])
         xtable.update([(x[::-1], y) for (x, y) in xtable.items()])
         return xtable
 
@@ -253,6 +253,8 @@ class MvfBioLib(object):
         return newbase
 
     def abpattern(self, num, digits=0):
+        """Convert a decimal integer to a binary AB pattern
+        """
         return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
 
 

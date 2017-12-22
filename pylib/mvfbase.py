@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-mvfbase - mvf base functions and classes
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
+<<<<<<< HEAD:mvfbase.py
 VERSION 2017-11-17
 """
+=======
+>>>>>>> mdev:pylib/mvfbase.py
 
-import os
-import sys
-import gzip
-from itertools import groupby
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -35,6 +31,11 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+import sys
+import gzip
+from itertools import groupby
+
 
 # ==== Math Functions ====
 
@@ -46,6 +47,12 @@ def is_int(num):
         return False
     except TypeError:
         return False
+
+
+def zerodiv(numer, denom):
+    """Divide but return zero if denominator is zero
+    """
+    return 0 if denom == 0 else numer/denom
 
 
 def interpret_param(string):
@@ -80,6 +87,29 @@ def fasta_iter(fasta_name):
         yield header, seq
 
 
+def same_window(coords1, coords2, windowsize):
+    """ coords1/coords1 = a tuple or list with (contig, position)
+        windowsize = the windowsize, 0=whole file (always True), -1 contigs
+    """
+    if windowsize == 0:
+        return True
+    elif windowsize > 0:
+        if coords1[0] != coords2[0]:
+            return False
+        elif coords2[1] > coords1[1] + windowsize:
+            return False
+        return True
+    else:
+        return coords1[0] == coords2[0]
+
+
+def mixed_sorter(x):
+    if isinstance(x[0], int) is True:
+        return (str(x[0]).zfill(20), x[1])
+    else:
+        return x
+
+
 # MVF Class Object
 
 class MultiVariantFile(object):
@@ -88,10 +118,10 @@ class MultiVariantFile(object):
         path = file path (converted to absolute path)
         filemode = read/write mode
         entrystart: auto-generated file coordinate where entries start
+        flavor: [dna, codon, protein, dnaqual, dnaindel]
         metadata = dict of associated data including (but not limited to):
             contigs: dict[id] = dict(metadata)
             isgzip: boolean if file is gzip-compressed
-            flavor: [dna, codon, protein, dnaqual, dnaindel]
             samples: dict[index] = dict(sample_info)
             ncol: auto-generated int(number of samples)
             labels: auto-generated tuple of sample labels
@@ -99,8 +129,8 @@ class MultiVariantFile(object):
 
     def __init__(self, path, filemode, **kwargs):
         self.path = os.path.abspath(path)
-        self.metadata = {'flavor': 'dna'}
-        self.metadata['labels'] = []
+        self.flavor = 'dna'
+        self.metadata = {'labels': []}
         self.metadata['samples'] = {}
         self.metadata['contigs'] = {}
         self.metadata['trees'] = []
@@ -145,8 +175,7 @@ class MultiVariantFile(object):
                            open(self.path, 'wt'))
             self.metadata['ncol'] = kwargs.get('ncol', 2)
         filehandler.close()
-        self.metadata['flavor'] = (kwargs.get('flavor', False) or
-                                   self.metadata.get('flavor', 'dna'))
+        self.flavor = kwargs['flavor'] if 'flavor' in kwargs else self.flavor
 
     def _process_header(self, headerlines):
         """Processes header lines into metadata
@@ -273,12 +302,12 @@ class MultiVariantFile(object):
         filehandler.seek(self.entrystart)
         for line in filehandler:
             if line.strip() == '':
-                    continue
+                continue
             try:
                 arr = line.rstrip().split()
                 loc = arr[0].split(':')
                 yield (loc[0], int(loc[1]), arr[1:])
-            except:
+            except ValueError as exception:
                 raise RuntimeError(
                     "Error processing MVF at line# {} = {} ".format(
                         linecount, line))
@@ -286,7 +315,7 @@ class MultiVariantFile(object):
 
     def iterentries(self, decode=True, contigs=None, no_invariant=False,
                     no_gap=False, no_ambig=False, no_nonref=False,
-                    onlyalleles=False, quiet=False, subset=None):
+                    onlyalleles=False, subset=None, quiet=False):
         """
         Fully-optioned iterator for MVF entries with filtering
         Returns (str(chrom), int(pos), list(allele entries))
@@ -348,7 +377,7 @@ class MultiVariantFile(object):
                         allelesets = [''.join([alleles[j] for j in subset])
                                       for alleles in [self.decode(x)
                                                       for x in allelesets]]
-                    except:
+                    except IndexError as exception:
                         raise RuntimeError(allelesets)
                 if no_gap:
                     if any(x in allelesets[0] for x in '-@'):
@@ -386,7 +415,7 @@ class MultiVariantFile(object):
         """Returns formatted header string (with final newline)
         """
         header = ["##mvf version=1.2 flavor={} {}".format(
-            self.metadata['flavor'], ' '.join([
+            self.flavor, ' '.join([
                 "{}={}".format(k, v) for (k, v) in sorted(
                     self.metadata.items())
                 if k not in ('contigs', 'samples', 'flavor', 'version',
@@ -395,14 +424,20 @@ class MultiVariantFile(object):
             self.metadata['samples'][x]['label'],
             ' '.join(["{}={}".format(k, v) for (k, v) in (
                 sorted(self.metadata['samples'][x].items())) if k != 'label']))
-            for x in range(len(self.metadata['samples']))])
+                       for x in range(len(self.metadata['samples']))])
         contigs = [(int(k) if is_int(k) else k, v)
                    for (k, v) in self.metadata['contigs'].items()]
         header.extend(["#c {} label={} length={} {}".format(
             cid, cdata['label'], cdata['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
+<<<<<<< HEAD:mvfbase.py
                 sorted(cdata.items())) if k not in ['length', 'label']]))
             for cid, cdata in (sorted(contigs))])
+=======
+                sorted(cdata.items(), key=mixed_sorter))
+                if k not in ['length', 'label']]))
+                       for cid, cdata in sorted(contigs, key=mixed_sorter)])
+>>>>>>> mdev:pylib/mvfbase.py
         if len(self.metadata["trees"]) > 0:
             header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
         if len(self.metadata["notes"]) > 0:
@@ -443,7 +478,7 @@ class MultiVariantFile(object):
             Arguments:
                 alleles: unencoded allele string
         """
-        if self.metadata['flavor'] == 'dna':
+        if self.flavor == 'dna':
             return encode_mvfstring(alleles).replace(
                 'N', 'X').replace('n', 'X')
         else:
@@ -468,10 +503,9 @@ class MultiVariantFile(object):
                 encoded: entries have been pre-encoded (default=True)
         """
         self.write_data('\n'.join(["{}:{} {}".format(
-            entry[0], entry[1], (
-                ' '.join([x if encoded else encode_mvfstring(x)
-                          for x in entry[2]])))
-                for entry in entries]) + '\n')
+            entry[0], entry[1], ' '.join([
+                x if encoded else encode_mvfstring(x) for x in entry[2]]))
+                                   for entry in entries]) + '\n')
         return ''
 
 

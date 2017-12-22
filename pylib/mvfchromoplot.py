@@ -1,19 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This program creates a chromoplot from an MVF alignment.
 A chromoplot shows a genome-wide diagram of different
 evolutionary histories for a given quartet of taxa.
-"""
 
-import os
-import sys
-import argparse
-from itertools import combinations
-from mvfbase import MultiVariantFile
-from scipy.stats import chi2
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -35,6 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+from itertools import combinations
+from scipy.stats import chi2
+from pylib.mvfbase import MultiVariantFile
 
 
 class Counter(dict):
@@ -423,8 +417,6 @@ def write_png(filepath, buf, width, height):
         raw_data = b"".join(bytearray([0]) + buf[span:span + width_byte_4]
                             for span in range(
                                 (height - 1) * width * 4, -1, - width_byte_4))
-        print(len(raw_data))
-        print(width, height, width * height)
 
         def png_pack(png_tag, data):
             """PNG packaging"""
@@ -439,63 +431,10 @@ def write_png(filepath, buf, width, height):
                                 png_pack(b'IEND', b'')]))
 
 
-def generate_argparser():
-    pallette = Pallette()
-    parser = argparse.ArgumentParser(
-        prog="mvf_chromoplot.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", help="Input MVF file.", required=True,
-                        type=os.path.abspath)
-    parser.add_argument("-o", "--outprefix",
-                        help="Output prefix (not required).")
-    parser.add_argument("-s", "--samples", nargs='*', required=True,
-                        help="3 or more taxa to use for quartets")
-    parser.add_argument("-G", "--outgroup", nargs='*', required=True,
-                        help="1 or more outgroups to use for quartets")
-    parser.add_argument("-w", "--windowsize", type=int, default=100000)
-    parser.add_argument("-c", "--contigs", nargs='*',
-                        help=("Enter the ids of one or more contigs in the "
-                              "order they will appear in the chromoplot. "
-                              "(defaults to all ids in order present in MVF)"))
-    parser.add_argument("-M", "--majority", action="store_true",
-                        help=("Plot only 100% shading in the majority track "
-                              " rather than shaded proportions in all "
-                              "tracks."))
-    parser.add_argument("-I", "--infotrack", action="store_true",
-                        help=("Include an additional coverage information "
-                              "track that will show empty, uninformative, "
-                              "and informative loci. (Useful for "
-                              "ranscriptomes/RAD or other reduced sampling."))
-    parser.add_argument("-E", "--emptymask", choices=pallette.colornames,
-                        default="none",
-                        help="Mask empty regions with this color.")
-    parser.add_argument("-y", "--yscale", default=20, type=int,
-                        help="Height (in number of pixels) for each track")
-    parser.add_argument("-x", "--xscale", default=1, type=int,
-                        help="Width (in number of pixels) for each window")
-    parser.add_argument("-C", "--colors", nargs=3, choices=pallette.colornames,
-                        help="three colors to use for chromoplot")
-    parser.add_argument("-q", "--quiet", action="store_true",
-                        help="suppress all output messages")
-    parser.add_argument("-P", "--plottype", choices=["graph", "image"],
-                        default="image",
-                        help=("PNG image (default) "
-                              "or graph via matplotlib (experimental)"))
-    parser.add_argument("-v", "--version", action="version",
-                        version="2017-08-14",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def plot_chromoplot(args):
     """Main method"""
-    arguments = arguments if arguments is not None else sys.argv[1:]
     pallette = Pallette()
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
-    if args.colors is None:
+    if args.colors is not None:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
     if args.quiet is False:
@@ -503,7 +442,7 @@ def main(arguments=None):
     mvf = MultiVariantFile(args.mvf, 'read')
     if args.quiet is False:
         print("Parsing headers...")
-    if args.contigs is None:
+    if args.contigs is not None:
         contignames = args.contigs
     else:
         contignames = [mvf.metadata['contigs'][contigid]['label']
@@ -511,7 +450,7 @@ def main(arguments=None):
         for i, contigname in enumerate(contignames):
             try:
                 contignames[i] = int(contigname)
-            except:
+            except ValueError as exception:
                 pass
         contignames = [str(x) for x in sorted(contignames)]
     if args.quiet is False:
@@ -538,15 +477,15 @@ def main(arguments=None):
         if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet)))
         params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
-                  'outpath': (args.outprefix or '_'.join(quartet)) + ".png",
+                  'outpath': (args.out_prefix or '_'.join(quartet)) + ".png",
                   'labels': quartet,
                   'windowsize': args.windowsize,
                   'majority': args.majority,
-                  'infotrack': args.infotrack,
+                  'infotrack': args.info_track,
                   'yscale': args.yscale,
                   'xscale': args.xscale,
                   'quiet': args.quiet,
-                  'plottype': args.plottype}
+                  'plottype': args.plot_type}
         chromoplot = Chromoplot(params=params, pallette=pallette)
         quartet_indices = mvf.get_sample_indices(labels=quartet)
         current_contig = ''
@@ -579,7 +518,3 @@ def main(arguments=None):
             print("Writing log...")
         chromoplot.write_total_log()
     return ''
-
-
-if __name__ == "__main__":
-    main()

@@ -3,16 +3,7 @@
 """
 This program analyzes a DNA MVF alignment using the modules specified below,
 use the --morehelp option for additional module information.
-"""
 
-import os
-import sys
-import argparse
-import gzip
-import re
-from mvfbase import encode_mvfstring, MultiVariantFile
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
@@ -39,10 +30,16 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
 # TODO: handle multiple contigs in same file - default 's SAMPLE.CONTIG START LENGTH etc...', allow user to specify alternate formats
 # TODO: filter alignment blocks by score (i.e. reject all blocks below score X)
 # TODO: discover sample names without user input (either include an option to guarantee that all samples are represented in all alignment blocks, or do a first-pass over the whole file to find all sample names that will appear.  This second option should be combined with some sort of indexing scheme since it forces us to preprocess the whole file anyway...)
+
+
+import os
+import gzip
+import re
+from pylib.mvfbase import encode_mvfstring, MultiVariantFile
+
 
 RE_CONTIG_NAME = re.compile("ID=(.*?),")
 RE_CONTIG_LENGTH = re.compile("length=(.*?)>")
@@ -105,8 +102,8 @@ class MultiAlignFile(object):
                 while line.strip != '' and line[0] != 'a':
                     if line[0] == 's':
                         (label, start, length,
-                         orientation, total_length, seq) = (
-                            line[1:].strip().split())
+                         _, _, seq) = (
+                             line[1:].strip().split())
                         label = label.split('.')[0]
                         block[label] = seq
                         if label == self.ref:
@@ -118,54 +115,19 @@ class MultiAlignFile(object):
             line = filehandler.readline()
         filehandler.close()
 
-    def reorient(self, seq, orientation, start, length):
-        if orientation == '+':
-            return seq, start
-        elif orientation == '-':
-            return ''.join(self.WatsonCrick[b] for b in seq[::-1]), start
-        else:
-            raise RuntimeError(
-                "Error: orientation {} not recognized".format(orientation))
-        return "", None
+#    def reorient(self, seq, orientation, start, length):
+#        if orientation == '+':
+#            return seq, start
+#        elif orientation == '-':
+#            return ''.join(self.WatsonCrick[b] for b in seq[::-1]), start
+#        else:
+#            raise RuntimeError(
+#                "Error: orientation {} not recognized".format(orientation))
+#        return "", None
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="maf2mvf.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--maf", help="input MAF file",
-                        required=True, type=os.path.abspath,)
-    parser.add_argument("-o", "--out", help="output MVF file",
-                        type=os.path.abspath, required=True)
-    parser.add_argument("-R", "--ref-tag", "--reftag",
-                        help="old reference tag")
-    parser.add_argument("-M", "--mvf-ref-label", "--mvfreflabel",
-                        default="REF",
-                        help=("new label for reference sample "
-                              "(default='REF')"))
-    parser.add_argument("-s", "--sample-tags", "--sampletags", nargs="*",
-                        help=("one or more TAG:NEWLABEL or TAG, items, "
-                              "if TAG found in sample label, replace with "
-                              "NEW (or TAG if NEW not specified) "
-                              "NEW and TAG must each be unique."),
-                        required=True)
-    parser.add_argument("-B", "--line-buffer", "--linebuffer",
-                        type=int, default=100000,
-                        help="number of lines to hold in read/write buffer")
-    parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def maf2mvf(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
     # ESTABLISH MAF
     maf = MultiAlignFile(args)
     # ESTABLISH MVF
@@ -185,9 +147,9 @@ def main(arguments=None):
     mvfentries = []
     nentry = 0
     for pos, length, msa in maf:
-        for s in samplelabels:
-            if s not in msa:
-                msa[s] = '-'*length
+        for sname in samplelabels:
+            if sname not in msa:
+                msa[sname] = '-'*length
         msa['contig'] = 1
         for i in range(length):
             mvf_alleles = encode_mvfstring(
@@ -204,7 +166,3 @@ def main(arguments=None):
     if mvfentries:
         mvf.write_entries(mvfentries)
     return ''
-
-
-if __name__ == "__main__":
-    main()

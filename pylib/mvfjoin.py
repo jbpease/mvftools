@@ -1,21 +1,13 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This program checks an MVF file for inconsistencies or errors
-"""
 
-import os
-import sys
-import argparse
-from mvfbase import MultiVariantFile
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -35,6 +27,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import sys
+from pylib.mvfbase import MultiVariantFile
 
 
 class MvfTransformer(object):
@@ -64,47 +59,8 @@ class MvfTransformer(object):
         return ''
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_join.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("-i", "--mvf", nargs="*", type=os.path.abspath,
-                        help="One or more mvf files.",
-                        required=True)
-    parser.add_argument("-o" "--out", help="Output mvf file.",
-                        required=True, type=os.path.abspath)
-    parser.add_argument("-c", "--newcontigs", action="store_true",
-                        help=("By default, contigs are matched between files "
-                              "using their text labels in the header. "
-                              "Use this option to turn matching off and treat "
-                              "each file's contigs as distinct."))
-    parser.add_argument("-s", "--newsamples", action="store_true",
-                        help=("By default, samples are matched between files "
-                              "using their text labels in the header. "
-                              "Use this option to turn matching off and treat "
-                              "each file's sample columns as distinct."))
-    parser.add_argument("-B", "--linebuffer", type=int, default=100000,
-                        help="number of entries to write in a block")
-    parser.add_argument("-M", "--main_header_file",
-                        help=("Output file will use same headers as "
-                              "this input file (default=first in list)."))
-    parser.add_argument("--overwrite", action="store_true",
-                        help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("--quiet", action="store_true",
-                        help="suppress progress meter")
-    parser.add_argument("--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def mvf_join(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
     if args.main_header_file:
@@ -184,7 +140,3 @@ def main(arguments=None):
         if not args.quiet:
             sys.stderr.write("done\n")
     return ''
-
-
-if __name__ == "__main__":
-    main()

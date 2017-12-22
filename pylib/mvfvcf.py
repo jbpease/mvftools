@@ -4,19 +4,7 @@
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-"""
 
-import os
-import sys
-import argparse
-import gzip
-import re
-from time import time
-from math import log10
-from mvfbase import encode_mvfstring, MultiVariantFile, is_int
-from mvfbiolib import MvfBioLib
-
-_LICENSE = """
 If you use this software please cite:
 Pease JB and BK Rosenzweig. 2016.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
@@ -38,6 +26,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import os
+import gzip
+import re
+from math import log10
+from pylib.mvfbase import encode_mvfstring, MultiVariantFile, is_int
+from pylib.mvfbiolib import MvfBioLib
 
 MLIB = MvfBioLib()
 
@@ -130,7 +125,7 @@ class VariantCallFile(object):
                         max(self.metadata['contigs'][
                             contigndx[contig]]['length'],
                             coord))
-            except Exception as e:
+            except Exception as exception:
                 continue
         return ''
 
@@ -148,9 +143,9 @@ class VariantCallFile(object):
         for line in filehandler:
             nline += 1
             linebuffer.append(line)
-            if nline == args.get('linebuffer', 10000):
+            if nline == args.line_buffer:
                 for xline in linebuffer:
-                    vcfrecord = self._parse_entry(xline, **args)
+                    vcfrecord = self._parse_entry(xline, **vars(args))
                     if vcfrecord == -1:
                         continue
                     yield vcfrecord
@@ -210,13 +205,13 @@ class VariantCallFile(object):
                 self._call_allele(record['samples'][j],
                                   record['alleles'],
                                   **kwargs))
-            if kwargs.get("outflavor") in ("dnaqual", 'dnaqual-indel'):
+            if kwargs.get("out_flavor") in ("dnaqual", 'dnaqual-indel'):
                 record['qscores'].append(chr(min(quality, 40) + 64))
             record['genotypes'].append(allele)
-        if kwargs.get("allelesfrom"):
+        if kwargs.get("alleles_from"):
             info = dict(field.split('=') for field in arr[7].split(';'))
             record['genotypes'].extend(
-                info.get(label, '-') for label in kwargs.get("allelesfrom"))
+                info.get(label, '-') for label in kwargs.get("alleles_from"))
         return record
 
     def _call_allele(self, sample, alleles, **kwargs):
@@ -238,7 +233,7 @@ class VariantCallFile(object):
             sample_depth = int(sample['DP'])
             if sample_depth == 0:
                 return ('-', 0, 0)
-        except Exception as e:
+        except Exception as exception:
             sample_depth = -1
         # Fixed sites
         if all(sample.get(x, -1) in (-1, '.')
@@ -254,7 +249,7 @@ class VariantCallFile(object):
             else:
                 allele = 'X'
         # Low coverage
-        elif -1 < sample_depth < kwargs.get("maskdepth", 1):
+        elif -1 < sample_depth < kwargs.get("mask_depth", 1):
             quality = -1
             allele = 'X'
         # Invariant sites
@@ -271,10 +266,12 @@ class VariantCallFile(object):
             quality = (-1 if sample.get("GQ", -1) == -1 else sample['GQ'])
         elif len(alleles) <= 4:
             if sample.get('PL', -1) == -1 and sample.get('GL', -1) != -1:
-                plvalues = [float(x) for x in sample['GL'].split(',')]
+                plvalues = [float(x) if x != '.' else -1
+                            for x in sample['GL'].split(',')]
             else:
                 # print(sample, alleles)
-                plvalues = [float(x) for x in sample['PL'].split(',')]
+                plvalues = [float(x) if x != '.' else -1
+                            for x in sample['PL'].split(',')]
             if all(0 <= x <= 1 for x in plvalues) and sum([
                     x for x in plvalues]) == 1:
                 plvalues = [x == 0 and 1 or x != 1 and
@@ -285,90 +282,27 @@ class VariantCallFile(object):
             allele = ('X' if imaxpl == -1 else
                       MLIB.joinbases[''.join(
                           [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])])
-            quality = sample['GQ'] if sample['GQ'] != -1 else -1
+            quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
             allele = '!'
             quality = -1
         quality = int(quality) if quality != '.' else 60
-        if -1 < quality < kwargs.get("maskqual", 10):
+        if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
-        elif (-1 < quality < kwargs.get("lowqual", 20) or
-              (-1 < sample_depth < kwargs.get("lowdepth", 3))):
+        elif (-1 < quality < kwargs.get("low_qual", 20) or
+              (-1 < sample_depth < kwargs.get("low_depth", 3))):
             allele = allele.lower()
         if allele in 'NnBbDdHhVvXx':
             allele = 'X'
         return (allele, quality, sample_depth)
 
 
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="vcf2mvf.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("--vcf", help="input VCF file", required=True,
-                        type=os.path.abspath)
-    parser.add_argument("--out", help="output MVF file", required=True)
-    parser.add_argument("--outflavor",
-                        choices=['dna', 'dnaqual', 'dnaqual-indel',
-                                 'dna-indel'], default='dna',
-                        help=("choose output MVF flavor to include "
-                              "quality scores and/or indels"))
-    parser.add_argument("--maskdepth", type=int, default=1,
-                        help="below this read depth mask with N/n")
-    parser.add_argument("--lowdepth", type=int, default=3,
-                        help=("below this read depth coverage, "
-                              "convert to lower case set to 0 to disable"))
-    parser.add_argument("--maskqual", type=int, default=3,
-                        help="""low quality cutoff, bases replaced by N/-
-                             set to 0 to disable""")
-    parser.add_argument("--lowqual", type=int, default=20,
-                        help="""below this quality convert to lower case
-                                set to 0 to disable""")
-    parser.add_argument("--contigids", nargs='*',
-                        help=("""manually specify one or more contig ids
-                                 as ID;VCFLABE;MVFLABEL, note that
-                                 VCFLABEL must match EXACTLY the contig string
-                                 labels in the VCF file"""))
-    parser.add_argument("--samplereplace", nargs="*",
-                        help="""one or more TAG:NEWLABEL or TAG, items,
-                                if TAG found in sample label, replace with
-                                NEW (or TAG if NEW not specified)
-                                NEW and TAG must each be unique""")
-    parser.add_argument("--reflabel", default="REF",
-                        help="label for reference sample (default='REF')")
-    parser.add_argument("--allelesfrom", default=None,
-                        help="""get additional alignment columns
-                                from INFO fields (:-separated)""")
-    parser.add_argument("--linebuffer", type=int, default=100000,
-                        help="number of lines to hold in read/write buffer")
-    parser.add_argument("--no_autoindex", action="store_true",
-                        help="do not automatically index contigs from the VCF")
-    parser.add_argument("--fieldsep", default="TAB",
-                        choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED'],
-                        help="""VCF field separator (default='TAB')""")
-    parser.add_argument("--qual", action="store_true",
-                        help="""Include Phred genotype quality (GQ) scores""")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="USE WITH CAUTION: force overwrite of outputs")
-    parser.add_argument("-v", "--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
-
-
-def main(arguments=None):
+def vcf2mvf(args=None):
     """Main method for vcf2mvf"""
-    arguments = arguments if arguments is not None else sys.argv[1:]
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
-    time0 = time()
-
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
-    args.fieldsep = sepchars[args.fieldsep]
-    args.time0 = time0
+    args.fieldsep = sepchars[args.field_sep]
     # ESTABLISH VCF
     vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
@@ -421,13 +355,13 @@ def main(arguments=None):
                                    "({} {})".format(
                                        newlabel, xid, xlabel))
     # PROCESS SAMPLE INFO
-    samplelabels = [args.reflabel] + vcf.metadata['samples'][:]
-    if args.allelesfrom:
-        args.allelesfrom = args.allelesfrom.split(':')
-        samplelabels += args.allelesfrom
-    if args.samplereplace:
+    samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
+    if args.alleles_from:
+        args.alleles_from = args.alleles_from.split(':')
+        samplelabels += args.alleles_from
+    if args.sample_replace:
         newsample = [x.split(':') if ':' in tuple(x) else tuple([x, x])
-                     for x in args.samplereplace]
+                     for x in args.sample_replace]
         unmatched = [x for x in enumerate(samplelabels)]
         for old, new in newsample:
             labelmatched = False
@@ -447,9 +381,10 @@ def main(arguments=None):
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0
-    for vcfrecord in vcf.iterentries(vars(args)):
+    for vcfrecord in vcf.iterentries(args):
+        # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
-        if args.outflavor in ('dnaqual',):
+        if args.out_flavor in ('dnaqual',):
             qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
         if mvf_alleles:
             mvfentries.append(
@@ -459,16 +394,13 @@ def main(arguments=None):
                   args.outflavor in ('dnaqual',) else
                   (mvf_alleles,))))
             nentry += 1
-            if nentry == args.linebuffer:
+            if nentry == args.line_buffer:
                 mvf.write_entries(mvfentries, encoded=True)
                 mvfentries = []
                 nentry = 0
+        # except Exception as exception:
+            # print("ERROR", vcfrecord)
     if mvfentries:
         mvf.write_entries(mvfentries)
         mvfentries = []
-    print("Total time: ", time() - time0)
     return ''
-
-
-if __name__ == "__main__":
-    main()

@@ -11,7 +11,7 @@ Multisample Variant Format (MVF), is designed for compact storage and efficient 
 
 How do I cite this ?
 ===========================
-Pease JB and BK Rosenzweig. 2016. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. In press. http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+Pease JB and BK Rosenzweig. 2015. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. In press. http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 Please also include the URL <https://www.github.com/jbpease/mvftools> in your methods section where the program is referenced.
 
@@ -27,14 +27,14 @@ Alternatively, you can download MVftools as a .zip file from the github page.
 Requirements
 ------------
 * Python 3.x (2.7 should also work, but 3.x recommended) https://www.python.org/downloads/
-* RAxML 8.x (7.x should also work, but 8.x recommended) https://sco.h-its.org/exelixis/web/software/raxml/index.html
 
 Additional Requirements for Some Modules:
 ------------------------------------
-  *  Scipy: (http://www.scipy.org/)
+  * Scipy: (http://www.scipy.org/)
   * Biopython 1.6+: (http://www.biopython.org/),
   * Numpy (http://www.numpy.org/), 
-  * RAxML (http://sco.h-its.org/exelixis/web/software/raxml/index.html/)
+  * RAxML 8.x (7.x should also work, but 8.x recommended; https://sco.h-its.org/exelixis/web/software/raxml/index.html)
+  * PAML (http://abacus.gene.ucl.ac.uk/software/paml.html)
 
 Preparing your data
 ===================
@@ -42,7 +42,7 @@ Preparing your data
 Sequence Alignment
 ------------------
 
-MVF files can be created from VCF, FASTA, and MAF files using the ``vcf2mvf.py``, ``fasta2mvf.py``, or ``maf2mvf.py`` programs respectively.  Once converted to MVF format, analyses and manipulations can be carried out using the rest of the tools in MVFtools.
+MVF files can be created from VCF, FASTA, and MAF files using the ``ConvertVCF2MVF``, ``ConvertFasta2MVF``, or ``ConvertMAF2MVF`` commands respectively.  Once converted to MVF format, analyses and manipulations can be carried out using the rest of the commands in MVFtools.
 
 
 Basic usage examples
@@ -50,13 +50,13 @@ Basic usage examples
 
 **Case #1: Generate phylogenies from 100kb windows using a VCF data**::
 
-  python3 vcf2mvf.py --vcf DATA.vcf --mvf DATA.mvf
-  python3 mvf_window_tree.py --mvf DATA.mvf --out WINDOWTREES.txt --windowsize 100000
+  python3 mvftools.py ConvertVCF2MVF --vcf DATA.vcf --mvf DATA.mvf
+  python3 mvftools.py InferWindowTree --mvf DATA.mvf --out WINDOWTREES.txt --windowsize 100000
 
 **Case #2: Convert a large FASTA file, then generate window-based counts for DFOIL/D-statistic introgression testing from the first five samples**::
 
-  python3 fasta2mvf.py --fasta DATA.fasta --mvf DATA.mvf
-  python3 mvf_analyze_dna.py PatternCount --mvf DATA.mvf --out PATTERNS.txt --windowsize 100000 --samples 0 1 2 3 4 
+  python3 mvftools.py ConvertFasta2MVF --fasta DATA.fasta --mvf DATA.mvf
+  python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt --windowsize 100000 --samples 0,1,2,3,4
 
 The file is now ready to use as an input file for with dfoil (http://www.github.com/jbpease/dfoil).
 

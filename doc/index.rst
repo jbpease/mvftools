@@ -14,6 +14,7 @@ Welcome to MVftools's documentation!
    mvf_spec
    mvf_example
    prog_desc
+   mvf_filter_modules 
    faq
    version
 

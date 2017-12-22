@@ -1,21 +1,13 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This program checks an MVF file for inconsistencies or errors
-"""
 
-import os
-import sys
-import argparse
-from mvfbase import MultiVariantFile
-
-_LICENSE = """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -36,26 +28,11 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
-def generate_argparser():
-    parser = argparse.ArgumentParser(
-        prog="mvf_check.py",
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog=_LICENSE)
-    parser.add_argument("mvf", type=os.path.abspath,
-                        help="Input MVF file.")
-    parser.add_argument("--version", action="version",
-                        version="2017-06-24",
-                        help="display version information")
-    return parser
+from pylib.mvfbase import MultiVariantFile
 
 
-def main(arguments=None):
+def check_mvf(args):
     """Main method"""
-    arguments = sys.argv[1:] if arguments is None else arguments
-    parser = generate_argparser()
-    args = parser.parse_args(args=arguments)
     mvf = MultiVariantFile(args.mvf, 'read')
     contigs = mvf.metadata['contigs']
     ncol = mvf.metadata['ncol']
@@ -128,7 +105,3 @@ def main(arguments=None):
     elif mvf.metadata['mvftype'] == 'codon':
         print("codon checking coming soon")
     return ''
-
-
-if __name__ == "__main__":
-    main()
