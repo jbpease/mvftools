@@ -25,11 +25,14 @@ allelegroup
 This filter requires that all members of each group contain
 valid alleles.  The groups are specified by a series of colon-separated
 groups of comma-separate columns.
-EXAMPLE ACTION: allelegroup:1,2,3:4,5,6
-EXAMPLE #1 AA-AATA --> *retained* (first and second group both have alleles)
-EXAMPLE #2 A-X-ATA --> *filtered out* (first group does not have valid alleles)
-EXAMPLE #3 AACC--- --> *filtered out* (second group does not have valid alleles)
-a
+
+::
+
+  EXAMPLE ACTION: allelegroup:1,2,3:4,5,6
+  EXAMPLE #1 AA-AATA --> *retained* (first and second group both have alleles)
+  EXAMPLE #2 A-X-ATA --> *filtered out* (first group does not have valid alleles)
+  EXAMPLE #3 AACC--- --> *filtered out* (second group does not have valid alleles)
+
 
 collapsepriority
 ==================
@@ -38,10 +41,13 @@ columns using a priority ranked order. This is useful for collapsing
 low-coverage samples into a single combined sample column.
 The columns  are specified after the colon using comma-separated integers 
 (or text labels with the --labels option).
-EXAMPLE ACTION: collapsepriority:2,3,4 
-EXAMPLE #1 ABCDE --> ABC   (column 3 present, so column 3 used)
-EXAMPLE #2 AB-DE --> ABD   (column 3 is a gap, so column 4 used)
-EXAMPLE #3 ABX-E --> ABE   (column 3 is ambig, 4 is gap, so column 5 used.
+
+::
+
+  EXAMPLE ACTION: collapsepriority:2,3,4 
+  EXAMPLE #1 ABCDE --> ABC   (column 3 present, so column 3 used)
+  EXAMPLE #2 AB-DE --> ABD   (column 3 is a gap, so column 4 used)
+  EXAMPLE #3 ABX-E --> ABE   (column 3 is ambig, 4 is gap, so column 5 used.
 
 
 collapsemerge
@@ -51,37 +57,49 @@ into a single representative allele. This is useful for
 combining haplotypes or population samples. The columns 
 are specified after the colon using comma-separated integers 
 (or text labels with the --labels option).
-EXAMPLE ACTION: collapsemerge:2,3,4
-EXAMPLE #1 AACAA --> AAM (CAA becomes ambiguity code 'M')
-EXAMPLE #2 AACAG --> AAX (CAG would be 'V'. However, X is used since triallelic is not allowed in MVF.
-EXAMPLE #3 AAT-T --> AAT (both non-gap columns are 'T' so T is just used.
+
+::
+
+  EXAMPLE ACTION: collapsemerge:2,3,4
+  EXAMPLE #1 AACAA --> AAM (CAA becomes ambiguity code 'M')
+  EXAMPLE #2 AACAG --> AAX (CAG would be 'V'. However, X is used since triallelic is not allowed in MVF.
+  EXAMPLE #3 AAT-T --> AAT (both non-gap columns are 'T' so T is just used.
 
 columns
 =========
 This transformation returns only the specified columns.
 The columns are specified after the colon using comma-separated integers 
 (or text labels with the --labels option).
-EXAMPLE ACTION: columns:1,3
-EXAMPLE #1 ABCDE --> BD (columns 1 and 3 are returned)
-EXAMPLE #2 A-C-E --> [filtered out] (Since there is no data in columns 1 and 3.
+
+::
+
+  EXAMPLE ACTION: columns:1,3
+  EXAMPLE #1 ABCDE --> BD (columns 1 and 3 are returned)
+  EXAMPLE #2 A-C-E --> [filtered out] (Since there is no data in columns 1 and 3.
 
 maskchar
 =========
 This transformation will replace the specified character(s) with "X".
 Characters to be masked are specified after the column 
 as a comma-separated list of single characters.
-EXAMPLE ACTION: maskchar:K,M
-EXAMPLE #1: AAKA --> AAXA
-EXAMPLE #2: AAMX --> AAXX                                                                                               
+
+::
+  
+  EXAMPLE ACTION: maskchar:K,M
+  EXAMPLE #1: AAKA --> AAXA
+  EXAMPLE #2: AAMX --> AAXX                                                                                               
 
 
 masklower
 ===========
 This transformation will replace all lower case characters with "X".
 This takes no paramters.
-EXAMPLE ACTION: masklower
-EXAMPLE #1: AaTa --> AXTX
-EXAMPLE #2: aaaa --> XXXX
+
+::
+
+  EXAMPLE ACTION: masklower
+  EXAMPLE #1: AaTa --> AXTX
+  EXAMPLE #2: aaaa --> XXXX
  
 mincoverage
 =============
@@ -90,9 +108,12 @@ than the specified cutoff. This is useful before conducting scans
 (such as phylogenetic scans or chromoplots ) that require a minimum 
 number of taxa.  The action is specified by a single integer after 
 the colon. 
-EXAMPLE ACTION: mincoverage:3
-EXAMPLE #1: A--A --> *filtered out* (coverage = 2)
-EXAMPLE #2: AA-A --> *retained* (coverage = 3)
+
+::
+
+  EXAMPLE ACTION: mincoverage:3
+  EXAMPLE #1: A--A --> *filtered out* (coverage = 2)
+  EXAMPLE #2: AA-A --> *retained* (coverage = 3)
 
 "notchar
 =========
@@ -102,17 +123,23 @@ or missing data.  Note that these are *case sensitive* so lower-case
 characters should be entered alongside upper-case when both are 
 filtered.  The action is specified by one or more comma-separated 
 characters after the colon.
-EXAMPLE ACTION: notchar:X,K,M
-EXAMPLE #1: AK-X --> *filtered out* (contains K and X)
-EXAMPLE #2: AA-A --> *retained* (contains none of specific characters)
+
+::
+
+  EXAMPLE ACTION: notchar:X,K,M
+  EXAMPLE #1: AK-X --> *filtered out* (contains K and X)
+  EXAMPLE #2: AA-A --> *retained* (contains none of specific characters)
 
 promotelower
 ==============
 This transformation will change all lower-case characters to upper-case.
 This takes no paramters.
-EXAMPLE ACTION: promotelower
-EXAMPLE #1: AaTa --> AATA
-EXAMPLE #2: aaaa --> AAAA
+
+::
+
+ EXAMPLE ACTION: promotelower
+ EXAMPLE #1: AaTa --> AATA
+ EXAMPLE #2: aaaa --> AAAA
 
 removelower
 =============
@@ -132,6 +159,7 @@ characters to gaps. Characters are *case sensitive*. The action is
 specified by one or more comma-separated characters after the colon.
 
 ::
+
   EXAMPLE ACTION: removechar:a
   EXAMPLE #1: AaTa --> A-T-
   EXAMPLE #2: aaaa --> ----
@@ -144,6 +172,7 @@ characters. Characters are *case sensitive*. The action is
 specified by one or more comma-separated characters after the colon.
 
 ::
+
   EXAMPLE ACTION: reqallchar:A,K
   EXAMPLE #1: AaTa --> *filtered out* (contains "A" but not "K")
   EXAMPLE #2: aKaa --> *filtered out* (contains "K" and "a" but not "A")
@@ -156,6 +185,7 @@ This location filter removes entries not on the specified contig.
 The action is specified by a numerical contig id after the colon.
 
 ::
+
  EXAMPLE ACTION: reqcontig:1
  EXAMPLE #1: 1:100 AAA --> *retained* 
  EXAMPLE #2: 2:110 AAA --> *filtered out*
@@ -169,6 +199,7 @@ at least two alleles (phylogenetically informative sites).
 This action takes no paramters.
 
 ::
+ 
  EXAMPLE ACTION: reqinformative
  EXAMPLE #1: AATA --> *filtered out* (only one "T")
  EXAMPLE #2: ATTA --> *retained* (contains "A" and "T" twice)
@@ -180,7 +211,8 @@ reqinvariant
 This filter removes variant sites (not including gaps or ambiguities)
 This action takes no paramters.
 
- ::
+::
+
   EXAMPLE ACTION: reqinvariant
   EXAMPLE #1: AATA --> *filteredout* 
   EXAMPLE #2: AAAA --> *retained*
@@ -194,7 +226,8 @@ within in the specified bounds.
 The action is specified by a numerical contig id, then start and 
 stop coordinates (inclusive) after the colon.
  
- ::
+::
+  
   EXAMPLE ACTION: reqregion:1,101,110
   EXAMPLE #1: 1:100 AAA --> *filtered out*
   EXAMPLE #2: 1:110 AAA --> *retained* 
@@ -207,7 +240,9 @@ This filter will remove entries that do no contain at least
 one of the of the specified  characters. Characters are 
 *case sensitive*. The action is specified by one or more 
 comma-separated characters after the colon.
- ::
+
+::
+  
   EXAMPLE ACTION: reqonechar:A,K
   EXAMPLE #1: AaTa --> *retained* 
   EXAMPLE #2: CTCC --> *filtered out* 
@@ -220,16 +255,21 @@ reqsample
 This filter requires that the given sample(s) be a non-gap/ambiguous
 allele. The action is specified by one or more
 comma-separated integer column indices after the colon.
-EXAMPLE ACTION: reqample:1,2
-EXAMPLE #1: AAAA --> *retained* 
-EXAMPLE #2: A-AA --> *filtered out* 
-EXAMPLE #3: AA-A --> *filtered out*
+
+::
+  
+  EXAMPLE ACTION: reqample:1,2
+  EXAMPLE #1: AAAA --> *retained* 
+  EXAMPLE #2: A-AA --> *filtered out* 
+  EXAMPLE #3: AA-A --> *filtered out*
 
 reqvariant
 ==========
 This filter removes invariant sites.
 This action takes no paramters.
- ::
+
+::
+  
   EXAMPLE ACTION: reqinvariant
   EXAMPLE #1: AATA --> *retained* 
   EXAMPLE #2: AAAA --> *filtered out*
@@ -241,7 +281,9 @@ reqnonrefsample
 ===============
 This filter removes sites with no non-reference information.
 This action takes no paramters.
- ::
+
+::
+  
   EXAMPLE ACTION: reqnonrefsample
   EXAMPLE #1: AATA --> *retained* 
   EXAMPLE #2: A--A --> *retained*

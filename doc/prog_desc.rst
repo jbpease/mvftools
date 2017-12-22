@@ -390,8 +390,8 @@ Parameters
 
 
 
-``--labeltype``
-^^^^^^^^^^^^^^^
+``--label-type/--labeltype``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Long labels with all metadata or short ids
 
@@ -400,8 +400,8 @@ Parameters
 **Choices:** ('long', 'short')
 
 
-``--outdata``
-^^^^^^^^^^^^^
+``--output-data/--outputdata``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Output dna, rna or prot data.
 
@@ -437,8 +437,8 @@ Parameters
 
 
 
-``--tmpdir``
-^^^^^^^^^^^^
+``--temp_dir/--tempdir``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** directory to write temporary fasta files
 
@@ -502,8 +502,8 @@ Parameters
 
 
 
-``--labeltype``
-^^^^^^^^^^^^^^^
+``--label-type/--labeltype``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Long labels with all metadata or short ids
 
@@ -512,8 +512,8 @@ Parameters
 **Choices:** ('long', 'short')
 
 
-``--outdata``
-^^^^^^^^^^^^^
+``--output-data/--outputdata``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Output dna, rna or prot data.
 
@@ -558,8 +558,8 @@ Parameters
 
 
 
-``--tmpdir``
-^^^^^^^^^^^^
+``--temp_dir/--tempdir``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** directory to write temporary fasta files
 
@@ -596,8 +596,8 @@ Parameters
 
 
 
-``--allelesfrom``
-^^^^^^^^^^^^^^^^^
+``--alleles-from/--allelesfrom``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** get additional alignment columns
                 from INFO fields (:-separated)
@@ -606,8 +606,8 @@ Parameters
 
 
 
-``--contigids``
-^^^^^^^^^^^^^^^
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** manually specify one or more contig ids as ID;VCFLABE;MVFLABEL, note that VCFLABEL must match EXACTLY the contig string labels in the VCF file
 
@@ -615,8 +615,8 @@ Parameters
 
 
 
-``--fieldsep``
-^^^^^^^^^^^^^^
+``--field-sep/--fieldsep``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** VCF field separator (default='TAB')
 
@@ -634,8 +634,8 @@ Parameters
 
 
 
-``--lowdepth``
-^^^^^^^^^^^^^^
+``--low-depth/--lowdepth``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** below this read depth coverage, convert to lower case set to 0 to disable
 
@@ -643,8 +643,8 @@ Parameters
 
 
 
-``--lowqual``
-^^^^^^^^^^^^^
+``--low-qual/--lowqual``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** below this quality convert to lower case set to 0 to disable
 
@@ -652,8 +652,8 @@ Parameters
 
 
 
-``--maskdepth``
-^^^^^^^^^^^^^^^
+``--mask-depth/--maskdepth``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** below this read depth mask with N/n
 
@@ -661,8 +661,8 @@ Parameters
 
 
 
-``--maskqual``
-^^^^^^^^^^^^^^
+``--mask-qual/--maskqual``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** low quality cutoff, bases replaced by N/- set to 0 to disable
 
@@ -670,8 +670,8 @@ Parameters
 
 
 
-``--no_autoindex``
-^^^^^^^^^^^^^^^^^^
+``--no-autoindex/--noautoindex``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** do not automatically index contigs from the VCF
 
@@ -679,8 +679,8 @@ Parameters
 
 
 
-``--outflavor``
-^^^^^^^^^^^^^^^
+``--out-flavor/--outflavor``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** choose output MVF flavor to include quality scores and/or indels
 
@@ -716,8 +716,8 @@ Parameters
 
 
 
-``--reflabel``
-^^^^^^^^^^^^^^
+``--ref-label/--reflabel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** label for reference sample (default='REF')
 
@@ -725,8 +725,8 @@ Parameters
 
 
 
-``--samplereplace``
-^^^^^^^^^^^^^^^^^^^
+``--sample-replace/--samplereplace``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
 
@@ -742,10 +742,10 @@ Parameters
 **Type:** file path; **Default:** None
 
 
-.. CalcCountCharacterWindows:
+.. CalcCharacterCount:
 
-CalcCountCharacterWindows
-=========================
+CalcCharacterCount
+==================
 
 Description
 -----------
@@ -955,6 +955,15 @@ Parameters
 **Type:** boolean flag
 
 
+
+``--samples``
+^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of samples, Leave blank for all samples.
+
+**Type:** None; **Default:** None
+
+
 .. CalcPatternCount:
 
 CalcPatternCount
@@ -1009,6 +1018,15 @@ Parameters
 **Description:** Suppress screen output.
 
 **Type:** boolean flag
+
+
+
+``--samples``
+^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of samples, Leave blank for all samples.
+
+**Type:** None; **Default:** None
 
 
 .. CalcSampleCoverage:
@@ -1180,8 +1198,8 @@ Parameters
 
 
 
-``--morehelp``
-^^^^^^^^^^^^^^
+``--more-help/--morehelp``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** prints full module list and descriptions
 
@@ -1216,8 +1234,8 @@ Parameters
 
 
 
-``--test-nchar``
-^^^^^^^^^^^^^^^^
+``--test-nchar/--textnchar``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** total number of samples for test string
 
@@ -1290,7 +1308,7 @@ Parameters
 
 
 
-``--branchlrt/--branch-lrt``
+``--branch-lrt/--branchlrt``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Specify the output file for and turn on the RAxML-PAML format LRT test scan for selection on the target branch in addition to the basic patterns scan
@@ -1308,7 +1326,7 @@ Parameters
 
 
 
-``--codemlpath/--codeml-path``
+``--codeml-path/--codemlpath``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Full path for PAML codeml executable.
@@ -1380,7 +1398,7 @@ Parameters
 
 
 
-``--pamltmp/--paml-tmp``
+``--paml-tmp/--pamltmp``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** path for temporary folder for PAML output files
@@ -1443,7 +1461,7 @@ Parameters
 
 
 
-``--uselabels/--use_labels``
+``--use-labels/--uselabels``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Use contig labels instead of IDs in output.
@@ -1451,10 +1469,10 @@ Parameters
 **Type:** boolean flag
 
 
-.. InferWindowTree:
+.. InferTree:
 
-InferWindowTree
-===============
+InferTree
+=========
 
 Description
 -----------
@@ -1528,8 +1546,8 @@ Parameters
 **Choices:** ['dontuse', 'keep', 'remove']
 
 
-``--mindepth``
-^^^^^^^^^^^^^^
+``--min-depth/--mindepth``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** minimum number of alleles per site
 
@@ -1537,8 +1555,8 @@ Parameters
 
 
 
-``--minseqcoverage``
-^^^^^^^^^^^^^^^^^^^^
+``--min-seq-coverage/--minseqcoverage``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** proportion of total alignment a sequencemust cover to be retianed [0.1]
 
@@ -1546,8 +1564,8 @@ Parameters
 
 
 
-``--minsites``
-^^^^^^^^^^^^^^
+``--min-sites/--minsites``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** minimum number of sites 
 
@@ -1564,8 +1582,8 @@ Parameters
 
 
 
-``--outputempty``
-^^^^^^^^^^^^^^^^^
+``--output-empty/--outputempty``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Include entries of windows with no data in output.
 
@@ -1579,6 +1597,24 @@ Parameters
 **Description:** Suppress screen output.
 
 **Type:** boolean flag
+
+
+
+``--raxml-model/--raxmlmodel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** choose RAxML model
+
+**Type:** None; **Default:** GTRGAMMA
+
+
+
+``--raxml-opts/--raxmlopts``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** specify additional RAxML arguments as a double-quotes encased string
+
+**Type:** None; **Default:** 
 
 
 
@@ -1600,24 +1636,6 @@ Parameters
 
 
 
-``--raxml_model``
-^^^^^^^^^^^^^^^^^
-
-**Description:** choose RAxML model
-
-**Type:** None; **Default:** GTRGAMMA
-
-
-
-``--raxmlopts``
-^^^^^^^^^^^^^^^
-
-**Description:** specify additional RAxML arguments as a double-quotes encased string
-
-**Type:** None; **Default:** 
-
-
-
 ``--root-with/--rootwith``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1636,8 +1654,8 @@ Parameters
 
 
 
-``--tempdir``
-^^^^^^^^^^^^^
+``--temp-dir/--tempdir``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Temporary directory path
 
@@ -1645,8 +1663,8 @@ Parameters
 
 
 
-``--tempprefix``
-^^^^^^^^^^^^^^^^
+``--temp-prefix/--tempprefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Temporary file prefix
 
@@ -1766,6 +1784,15 @@ Parameters
 
 
 
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
 ``--outgroup`` (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1831,8 +1858,8 @@ Parameters
 
 
 
-``--outprefix``
-^^^^^^^^^^^^^^^
+``--out-prefix/--outprefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** Output prefix (not required).
 
@@ -1942,8 +1969,8 @@ Parameters
 
 
 
-``--outtype``
-^^^^^^^^^^^^^
+``--output-data/--outputdata``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description:** protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3
 
