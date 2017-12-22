@@ -205,7 +205,7 @@ class VariantCallFile(object):
                 self._call_allele(record['samples'][j],
                                   record['alleles'],
                                   **kwargs))
-            if kwargs.get("outflavor") in ("dnaqual", 'dnaqual-indel'):
+            if kwargs.get("out_flavor") in ("dnaqual", 'dnaqual-indel'):
                 record['qscores'].append(chr(min(quality, 40) + 64))
             record['genotypes'].append(allele)
         if kwargs.get("alleles_from"):
@@ -249,7 +249,7 @@ class VariantCallFile(object):
             else:
                 allele = 'X'
         # Low coverage
-        elif -1 < sample_depth < kwargs.get("maskdepth", 1):
+        elif -1 < sample_depth < kwargs.get("mask_depth", 1):
             quality = -1
             allele = 'X'
         # Invariant sites
@@ -288,10 +288,10 @@ class VariantCallFile(object):
             allele = '!'
             quality = -1
         quality = int(quality) if quality != '.' else 60
-        if -1 < quality < kwargs.get("maskqual", 10):
+        if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
-        elif (-1 < quality < kwargs.get("lowqual", 20) or
-              (-1 < sample_depth < kwargs.get("lowdepth", 3))):
+        elif (-1 < quality < kwargs.get("low_qual", 20) or
+              (-1 < sample_depth < kwargs.get("low_depth", 3))):
             allele = allele.lower()
         if allele in 'NnBbDdHhVvXx':
             allele = 'X'
@@ -302,7 +302,7 @@ def vcf2mvf(args=None):
     """Main method for vcf2mvf"""
     sepchars = dict([("TAB", "\t"), ("SPACE", " "), ("DBLSPACE", "  "),
                      ("COMMA", ","), ("MIXED", None)])
-    args.fieldsep = sepchars[args.fieldsep]
+    args.fieldsep = sepchars[args.field_sep]
     # ESTABLISH VCF
     vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
@@ -355,7 +355,7 @@ def vcf2mvf(args=None):
                                    "({} {})".format(
                                        newlabel, xid, xlabel))
     # PROCESS SAMPLE INFO
-    samplelabels = [args.reflabel] + vcf.metadata['samples'][:]
+    samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
     if args.alleles_from:
         args.alleles_from = args.alleles_from.split(':')
         samplelabels += args.alleles_from
@@ -384,7 +384,7 @@ def vcf2mvf(args=None):
     for vcfrecord in vcf.iterentries(args):
         # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
-        if args.outflavor in ('dnaqual',):
+        if args.out_flavor in ('dnaqual',):
             qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
         if mvf_alleles:
             mvfentries.append(

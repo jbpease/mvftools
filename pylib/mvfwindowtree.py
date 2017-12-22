@@ -175,7 +175,7 @@ class WindowData(object):
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
             randint(100000, 999999))
         temp_filepath = os.path.abspath(
-            "{}/{}_temp.phy".format(params['tempdir'], jobname))
+            "{}/{}_temp.phy".format(params['temp_dir'], jobname))
         # Temporarily Shorten Labels for Use in Phylip
         temp_labels = {'encode': {}, 'decode': {}}
         for labellen in (len(x) > 10 for x in self.labels):
@@ -461,18 +461,18 @@ def infer_window_tree(args):
                           headers=['rank', 'topology', 'count'])
     sample_cols = (None if args.samples is None else
                    mvf.get_sample_indices(args.samples.split(",")))
-    if not os.path.exists(args.tempdir):
-        os.mkdir(args.tempdir)
-    os.chdir(args.tempdir)
+    if not os.path.exists(args.temp_dir):
+        os.mkdir(args.temp_dir)
+    os.chdir(args.temp_dir)
     # SETUP PARAMS
     main_labels = mvf.get_sample_labels(sample_cols)
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
               'rootwith': args.root_with or [],
-              'minsites': args.minsites,
+              'minsites': args.min_sites,
               'minseqcoverage': args.min_seq_coverage,
-              'mindepth': args.mindepth,
+              'mindepth': args.min_depth,
               'raxmlpath': args.raxml_path,
               'raxmlopts': args.raxml_opts,
               'duplicateseq': args.duplicate_seq,
@@ -480,8 +480,8 @@ def infer_window_tree(args):
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
               'choose_allele': args.choose_allele,
-              'tempdir': args.tempdir,
-              'tempprefix': args.tempprefix}
+              'tempdir': args.temp_dir,
+              'tempprefix': args.temp_prefix}
     # WINDOW START INTERATION
     verify_raxml(params)
     current_contig = ''
@@ -531,7 +531,7 @@ def infer_window_tree(args):
         if mvf.flavor == 'dna':
             if args.choose_allele is not 'none':
                 allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
-            window_data.append_alleles(allelesets[0], mindepth=args.mindepth)
+            window_data.append_alleles(allelesets[0], mindepth=args.min_depth)
     # LAST LOOP
     if window_data:
         entry = window_data.maketree_raxml(params)

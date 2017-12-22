@@ -95,11 +95,11 @@ def parse_regions_arg(regionfilepath, contigs):
 def mvf2fasta(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if (mvf.flavor in ("dna", "rna") and args.outdata == "prot") or (
-            mvf.flavor == "prot" and args.outdata in ("dna", "rna")):
+    if (mvf.flavor in ("dna", "rna") and args.output_data == "prot") or (
+            mvf.flavor == "prot" and args.output_data in ("dna", "rna")):
         raise RuntimeError(
-            "--outdata {} incompatiable with '{}' flavor mvf".format(
-                args.outdata, mvf.flavor))
+            "--output-data {} incompatiable with '{}' flavor mvf".format(
+                args.output_data, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.metadata['contigs'])
     sample_cols = mvf.get_sample_indices(args.samples or None)
@@ -129,9 +129,9 @@ def mvf2fasta(args):
             continue
         for col, label in zip(sample_cols, labels):
             if not labelwritten[label]:
-                if args.labeltype == 'long':
+                if args.label_type == 'long':
                     xlabel = "{} region={}".format(label, regionlabel)
-                elif args.labeltype == 'short':
+                elif args.label_type == 'short':
                     xlabel = "{}".format(label)
                 tmp_files[label].write(">{}\n".format(xlabel))
                 labelwritten[label] = True
@@ -140,9 +140,9 @@ def mvf2fasta(args):
                     "N" if allelesets[0][col] == 'X'
                     else allelesets[0][col])
             elif mvf.flavor in ('codon', 'prot') and (
-                    args.outdata == 'prot'):
+                    args.output_data == 'prot'):
                 tmp_files[label].write(allelesets[0][col])
-            elif mvf.flavor == 'codon' and args.outdata == 'dna':
+            elif mvf.flavor == 'codon' and args.output_data == 'dna':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
@@ -155,7 +155,7 @@ def mvf2fasta(args):
                 buff = filehandler.read(args.buffer)
             outfile.write("\n")
             filehandler.close()
-            os.remove(os.path.join(args.tmpdir, filehandler.name))
+            os.remove(os.path.join(args.temp_dir, filehandler.name))
     return ''
 
 
@@ -265,11 +265,11 @@ def fasta2mvf(args):
 def mvf2phy(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if (mvf.flavor in ("dna", "rna") and args.outdata == "prot") or (
-            mvf.flavor == "prot" and args.outdata in ("dna", "rna")):
+    if (mvf.flavor in ("dna", "rna") and args.output_data == "prot") or (
+            mvf.flavor == "prot" and args.output_data in ("dna", "rna")):
         raise RuntimeError(
-            "--outdata {} incompatiable with '{}' flavor mvf".format(
-                args.outdata, mvf.flavor))
+            "--outdput-data {} incompatiable with '{}' flavor mvf".format(
+                args.output_data, mvf.flavor))
     max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
     if args.region is not None:
         _, max_region_coord, _ = parse_regions_arg(
@@ -284,7 +284,7 @@ def mvf2phy(args):
     curcontigstart = 1
     curcontigend = 1
     if args.partition is True:
-        partprefix = "PROT" if args.outdata == "prot" else "DNA"
+        partprefix = "PROT" if args.output_data == "prot" else "DNA"
         partitionfile = open("{}.part".format(args.out), 'w')
     for contig, _, allelesets in mvf.iterentries(
             contigs=(mvf.metadata['contigs'] if args.region is None else
@@ -309,10 +309,10 @@ def mvf2phy(args):
             curcontigend = curcontigend + 1
         for col, label in zip(sample_cols, labels):
             if not labelwritten[label]:
-                if args.labeltype == 'long':
+                if args.label_type == 'long':
                     tmp_files[label].write("{}{}".format(
                         label[:100], " "*(100 - len(label[:100]))))
-                elif args.labeltype == 'short':
+                elif args.label_type == 'short':
                     tmp_files[label].write("{}{}".format(
                         label[:20], " "*(20 - len(label[:20]))))
                 labelwritten[label] = True
@@ -322,7 +322,7 @@ def mvf2phy(args):
                     'N' or allelesets[0][col])
                 if label == labels[0]:
                     curcontigend += 1
-            elif ((mvf.flavor == 'codon' and args.outdata == 'prot') or (
+            elif ((mvf.flavor == 'codon' and args.output_data == 'prot') or (
                     mvf.flavor == 'prot')):
                 tmp_files[label].write(allelesets[0][col])
                 if label == labels[0]:
@@ -360,7 +360,7 @@ def mvf2phy(args):
                 buff = filehandler.read(args.buffer)
             outfile.write("\n")
             filehandler.close()
-            os.remove(os.path.join(args.tmpdir, filehandler.name))
+            os.remove(os.path.join(args.temp_dir, filehandler.name))
     if args.partition is True:
         if curcontigend > curcontigstart:
             partitionfile.write("{},{},{},{}\n".format(

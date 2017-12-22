@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This program filters an MVF alignment using the modules specified below,
-use the --morehelp option for additional module information.
+use the --more-help option for additional module information.
 
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
@@ -601,7 +601,7 @@ def build_actionset(moduleargs, ncol):
 
 def filter_mvf(args):
     """Main method"""
-    if args.morehelp is True:
+    if args.more_help is True:
         modulehelp()
         sys.exit()
     if args.mvf is None and args.test is None:

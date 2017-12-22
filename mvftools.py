@@ -240,16 +240,18 @@ class MVFcall(object):
             parser.addarg_regions()
             parser.addarg_samples()
             parser.add_argument(
-                "--labeltype", choices=('long', 'short'), default='long',
+                "--label-type", "--labeltype",
+                choices=('long', 'short'), default='long',
                 help=("Long labels with all metadata or short ids"))
             parser.add_argument(
-                "--outdata", choices=("dna", "rna", "prot"),
+                "--output-data", "--outputdata",
+                choices=("dna", "rna", "prot"),
                 help="Output dna, rna or prot data.")
             parser.add_argument(
                 "--buffer", type=int, default=10,
                 help="size (Mbp) of write buffer for each sample")
             parser.add_argument(
-                "--tmpdir", default=".",
+                "--temp_dir", "--tempdir", default=".",
                 help="directory to write temporary fasta files")
             return parser
         parser = generate_argparser()
@@ -272,17 +274,19 @@ class MVFcall(object):
             parser.addarg_contigs()
             parser.addarg_regions()
             parser.add_argument(
-                "--labeltype", choices=('long', 'short'), default='short',
+                "--label-type", "--labeltype",
+                choices=('long', 'short'), default='short',
                 help="Long labels with all metadata or short ids")
             parser.add_argument(
-                "--outdata", choices=("dna", "rna", "prot"),
+                "--output-data", "--outputdata",
+                choices=("dna", "rna", "prot"),
                 help="Output dna, rna or prot data.")
             parser.addarg_samples()
             parser.add_argument(
                 "--buffer", type=int, default=100000,
                 help="size (bp) of write buffer for each sample")
             parser.add_argument(
-                "--tmpdir", default=".",
+                "--temp_dir", "--tempdir", default=".",
                 help="directory to write temporary fasta files")
             parser.add_argument(
                 "--partition", action="store_true",
@@ -313,27 +317,31 @@ class MVFcall(object):
                 "--out", required=True,
                 help="output MVF file")
             parser.add_argument(
-                "--outflavor", default="dna",
+                "--out-flavor", "--outflavor", default="dna",
                 choices=['dna', 'dnaqual', 'dnaqual-indel', 'dna-indel'],
                 help=("choose output MVF flavor to include "
                       "quality scores and/or indels"))
             parser.add_argument(
-                "--maskdepth", type=int, default=1,
+                "--mask-depth", "--maskdepth",
+                type=int, default=1,
                 help="below this read depth mask with N/n")
             parser.add_argument(
-                "--lowdepth", type=int, default=3,
+                "--low-depth", "--lowdepth",
+                type=int, default=3,
                 help=("below this read depth coverage, "
                       "convert to lower case set to 0 to disable"))
             parser.add_argument(
-                "--maskqual", type=int, default=3,
+                "--mask-qual", "--maskqual",
+                type=int, default=3,
                 help=("low quality cutoff, bases replaced by N/- "
                       "set to 0 to disable"))
             parser.add_argument(
-                "--lowqual", type=int, default=20,
+                "--low-qual", "--lowqual",
+                type=int, default=20,
                 help=("below this quality convert to lower case "
                       "set to 0 to disable"))
             parser.add_argument(
-                "--contigids", nargs='*',
+                "--contig-ids", "--contigids", nargs='*',
                 help=("manually specify one or more contig ids "
                       "as ID;VCFLABE;MVFLABEL, note that "
                       "VCFLABEL must match EXACTLY the contig string "
@@ -345,7 +353,7 @@ class MVFcall(object):
                       "NEW (or TAG if NEW not specified) "
                       "NEW and TAG must each be unique"))
             parser.add_argument(
-                "--reflabel", default="REF",
+                "--ref-label", "--reflabel", default="REF",
                 help="label for reference sample (default='REF')")
             parser.add_argument(
                 "--alleles-from", "--allelesfrom", default=None,
@@ -353,10 +361,10 @@ class MVFcall(object):
                 from INFO fields (:-separated)""")
             parser.addarg_linebuffer()
             parser.add_argument(
-                "--no_autoindex", action="store_true",
+                "--no-autoindex", "--noautoindex", action="store_true",
                 help="do not automatically index contigs from the VCF")
             parser.add_argument(
-                "--fieldsep", default="TAB",
+                "--field-sep", "--fieldsep", default="TAB",
                 choices=['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED'],
                 help="""VCF field separator (default='TAB')""")
             parser.add_argument(
@@ -525,10 +533,10 @@ class MVFcall(object):
             parser.add_argument(
                 "--test", help="manually input a line for testing")
             parser.add_argument(
-                "--test-nchar", type=int,
+                "--test-nchar", "--textnchar", type=int,
                 help="total number of samples for test string")
             parser.add_argument(
-                "--morehelp", action="store_true",
+                "--more-help", "--morehelp", action="store_true",
                 help="prints full module list and descriptions")
             parser.addarg_linebuffer()
             parser.add_argument(
@@ -603,7 +611,7 @@ class MVFcall(object):
                 type=int, default=100000000,
                 help="Numerical id for the ending contig.")
             parser.add_argument(
-                "--pamltmp", "--paml-tmp",
+                "--paml-tmp", "--pamltmp",
                 default="pamltmp", type=os.path.abspath,
                 help="path for temporary folder for PAML output files")
             parser.add_argument(
@@ -654,7 +662,8 @@ class MVFcall(object):
                 help=("Output will use contig labels "
                       "instead of id numbers."))
             parser.add_argument(
-                "--outputempty", action="store_true",
+                "--output-empty", "--outputempty",
+                action="store_true",
                 help=("Include entries of windows "
                       "with no data in output."))
             parser.add_argument(
@@ -671,7 +680,7 @@ class MVFcall(object):
                       "common allele; majorminor= pick the major in "
                       "'a' and minor in 'b'"))
             parser.add_argument(
-                "--minsites", type=int, default=100,
+                "--min-sites", "--minsites", type=int, default=100,
                 help="minimum number of sites ")
             parser.add_argument(
                 "--min-seq-coverage", "--minseqcoverage",
@@ -679,7 +688,7 @@ class MVFcall(object):
                 help=("proportion of total alignment a sequence"
                       "must cover to be retianed [0.1]"))
             parser.add_argument(
-                "--mindepth", type=int, default=4,
+                "--min-depth", "--mindepth", type=int, default=4,
                 help=("minimum number of alleles per site"))
             parser.add_argument(
                 "--bootstrap", type=int,
@@ -705,11 +714,11 @@ class MVFcall(object):
                       "(may cause errors for RAxML); "
                       "remove=remove entirely from alignment"))
             parser.add_argument(
-                "--tempdir", default='./raxmltemp',
+                "--temp-dir", "--tempdir", default='./raxmltemp',
                 type=os.path.abspath,
                 help=("Temporary directory path"))
             parser.add_argument(
-                "--tempprefix", default="mvftree",
+                "--temp-prefix", "--tempprefix", default="mvftree",
                 help=("Temporary file prefix"))
             return parser
         parser = generate_argparser()
@@ -833,7 +842,8 @@ class MVFcall(object):
                       "alignments are assumed to be "
                       "in-frame coding sequences."))
             parser.add_argument(
-                "--outtype", choices=['protein', 'codon'],
+                "--output-data", "--outputdata",
+                choices=['protein', 'codon'],
                 default="codon",
                 help=("protein=single data column "
                       "of protein alleles; "

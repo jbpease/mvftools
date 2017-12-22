@@ -143,7 +143,7 @@ def parse_gff_translate(gff_file, args):
                 try:
                     gff_triplets[contigname].append((coords[j], coords[j+1],
                                                      coords[j+2], strand))
-                except:
+                except IndexError:
                     raise RuntimeError(len(coords), j, strand,
                                        contigname, coords[j])
     gff_entries = None
@@ -281,7 +281,7 @@ def translate_mvf(args):
             print("gff_processed")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.metadata = deepcopy(mvf.metadata)
-    outmvf.metadata['flavor'] = args.outtype
+    outmvf.metadata['flavor'] = args.output_data
     outmvf.write_data(outmvf.get_header())
     entrybuffer = []
     nentry = 0
@@ -298,7 +298,7 @@ def translate_mvf(args):
                         inputbuffer, mvf):
                     if all([x in '-X' for x in amino_acids]):
                         continue
-                    if args.outtype == 'protein':
+                    if args.output_data == 'protein':
                         entrybuffer.append(
                             (current_contig, pos, (amino_acids,)))
                     else:
@@ -318,7 +318,7 @@ def translate_mvf(args):
                     inputbuffer, mvf):
                 if all([x in '-X' for x in amino_acids]):
                     continue
-                if args.outtype == 'protein':
+                if args.output_data == 'protein':
                     entrybuffer.append(
                         (current_contig, pos, (amino_acids,)))
                 else:
@@ -369,7 +369,7 @@ def translate_mvf(args):
                                                       for x in amino_acids]))
                 if all([x in '-X' for x in amino_acids]):
                     continue
-                if args.outtype == 'protein':
+                if args.output_data == 'protein':
                     entrybuffer.append((contigid, coords[0], (amino_acids,)))
                 else:
                     entrybuffer.append((
