@@ -417,8 +417,6 @@ def write_png(filepath, buf, width, height):
         raw_data = b"".join(bytearray([0]) + buf[span:span + width_byte_4]
                             for span in range(
                                 (height - 1) * width * 4, -1, - width_byte_4))
-        print(len(raw_data))
-        print(width, height, width * height)
 
         def png_pack(png_tag, data):
             """PNG packaging"""
@@ -436,7 +434,7 @@ def write_png(filepath, buf, width, height):
 def plot_chromoplot(args):
     """Main method"""
     pallette = Pallette()
-    if args.colors is None:
+    if args.colors is not None:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
     if args.quiet is False:

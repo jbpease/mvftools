@@ -98,6 +98,13 @@ def same_window(coords1, coords2, windowsize):
         return coords1[0] == coords2[0]
 
 
+def mixed_sorter(x):
+    if isinstance(x[0], int) is True:
+        return (str(x[0]).zfill(20), x[1])
+    else:
+        return x
+
+
 # MVF Class Object
 
 class MultiVariantFile(object):
@@ -106,10 +113,10 @@ class MultiVariantFile(object):
         path = file path (converted to absolute path)
         filemode = read/write mode
         entrystart: auto-generated file coordinate where entries start
+        flavor: [dna, codon, protein, dnaqual, dnaindel]
         metadata = dict of associated data including (but not limited to):
             contigs: dict[id] = dict(metadata)
             isgzip: boolean if file is gzip-compressed
-            flavor: [dna, codon, protein, dnaqual, dnaindel]
             samples: dict[index] = dict(sample_info)
             ncol: auto-generated int(number of samples)
             labels: auto-generated tuple of sample labels
@@ -117,8 +124,8 @@ class MultiVariantFile(object):
 
     def __init__(self, path, filemode, **kwargs):
         self.path = os.path.abspath(path)
-        self.metadata = {'flavor': 'dna'}
-        self.metadata['labels'] = []
+        self.flavor = 'dna'
+        self.metadata = {'labels': []}
         self.metadata['samples'] = {}
         self.metadata['contigs'] = {}
         self.metadata['trees'] = []
@@ -163,8 +170,7 @@ class MultiVariantFile(object):
                            open(self.path, 'wt'))
             self.metadata['ncol'] = kwargs.get('ncol', 2)
         filehandler.close()
-        self.metadata['flavor'] = (kwargs.get('flavor', False) or
-                                   self.metadata.get('flavor', 'dna'))
+        self.flavor = kwargs['flavor'] if 'flavor' in kwargs else self.flavor
 
     def _process_header(self, headerlines):
         """Processes header lines into metadata
@@ -296,7 +302,7 @@ class MultiVariantFile(object):
                 arr = line.rstrip().split()
                 loc = arr[0].split(':')
                 yield (loc[0], int(loc[1]), arr[1:])
-            except:
+            except ValueError as exception:
                 raise RuntimeError(
                     "Error processing MVF at line# {} = {} ".format(
                         linecount, line))
@@ -366,7 +372,7 @@ class MultiVariantFile(object):
                         allelesets = [''.join([alleles[j] for j in subset])
                                       for alleles in [self.decode(x)
                                                       for x in allelesets]]
-                    except:
+                    except IndexError as exception:
                         raise RuntimeError(allelesets)
                 if no_gap:
                     if any(x in allelesets[0] for x in '-@'):
@@ -404,7 +410,7 @@ class MultiVariantFile(object):
         """Returns formatted header string (with final newline)
         """
         header = ["##mvf version=1.2 flavor={} {}".format(
-            self.metadata['flavor'], ' '.join([
+            self.flavor, ' '.join([
                 "{}={}".format(k, v) for (k, v) in sorted(
                     self.metadata.items())
                 if k not in ('contigs', 'samples', 'flavor', 'version',
@@ -419,8 +425,9 @@ class MultiVariantFile(object):
         header.extend(["#c {} label={} length={} {}".format(
             cid, cdata['label'], cdata['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
-                sorted(cdata.items())) if k not in ['length', 'label']]))
-                       for cid, cdata in sorted(contigs)])
+                sorted(cdata.items(), key=mixed_sorter))
+                if k not in ['length', 'label']]))
+                       for cid, cdata in sorted(contigs, key=mixed_sorter)])
         if len(self.metadata["trees"]) > 0:
             header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
         if len(self.metadata["notes"]) > 0:
@@ -461,7 +468,7 @@ class MultiVariantFile(object):
             Arguments:
                 alleles: unencoded allele string
         """
-        if self.metadata['flavor'] == 'dna':
+        if self.flavor == 'dna':
             return encode_mvfstring(alleles).replace(
                 'N', 'X').replace('n', 'X')
         else:

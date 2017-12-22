@@ -37,7 +37,7 @@ from datetime import datetime
 from io import StringIO
 from itertools import combinations
 from Bio import Phylo
-from pylib.mvfbase import MultiVariantFile
+from pylib.mvfbase import MultiVariantFile, same_window
 from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
 
@@ -485,20 +485,27 @@ def infer_window_tree(args):
     # WINDOW START INTERATION
     verify_raxml(params)
     current_contig = ''
-    window_start = 0
-    window = None
+    current_position = 0
+    window_data = None
+    skip_contig = False
     topo_ids = {}
     topo_counts = {}
     for contig, pos, allelesets in mvf.iterentries(
             contigs=args.contigs, subset=sample_cols, quiet=args.quiet,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
-        if contig is not current_contig or (args.windowsize is not -1 and (
-                pos > window_start + args.windowsize)):
-            if window:
-                entry = window.maketree_raxml(params)
+        if current_contig == contig:
+            if skip_contig is True:
+                continue
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
+            skip_contig = False
+            if window_data:
+                entry = window_data.maketree_raxml(params)
                 if entry['status'] is not 'ok':
                     if args.outputempty:
                         treefile.write_entry(entry)
+                    if args.windowsize == -1:
+                        skip_contig = True
                 else:
                     topo = entry["topology"]
                     topo_counts[topo] = topo_counts.get(topo, 0) + 1
@@ -507,26 +514,27 @@ def infer_window_tree(args):
                                           max(topo_ids.values()) + 1 or 0)
                     entry["topoid"] = topo_ids[topo]
                     treefile.write_entry(entry)
-                window_start = ((contig is current_contig and
-                                 args.windowsize is not -1) and
-                                window_start + args.windowsize or 0)
+                current_position = (current_position + args.windowsize if
+                                    (contig == current_contig and
+                                     args.windowsize > 0) else 0)
             current_contig = contig[:]
-            window = None
-            window = WindowData(window_params={
-                'contigname': (args.output_contig_labels and
-                               mvf.get_contig_label(current_contig) or
+            window_data = None
+            window_data = WindowData(window_params={
+                'contigname': (mvf.get_contig_label(current_contig) if
+                               args.output_contig_labels is not None else
                                current_contig[:]),
                 "windowstart": ('-1' if args.windowsize == -1
-                                else window_start + 0),
+                                else current_position + 0),
                 "windowsize": args.windowsize,
                 "labels": main_labels[:]})
         # ADD ALLELES
-        if args.choose_allele is not 'none':
-            allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
-        window.append_alleles(allelesets[0], mindepth=args.mindepth)
+        if mvf.flavor == 'dna':
+            if args.choose_allele is not 'none':
+                allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
+            window_data.append_alleles(allelesets[0], mindepth=args.mindepth)
     # LAST LOOP
-    if window:
-        entry = window.maketree_raxml(params)
+    if window_data:
+        entry = window_data.maketree_raxml(params)
         if entry['status'] is not 'ok':
             if args.outputempty:
                 treefile.write_entry(entry)
@@ -538,7 +546,7 @@ def infer_window_tree(args):
                     max(topo_ids.values()) + 1 if topo_ids else 0)
             entry["topoid"] = topo_ids[topo]
             treefile.write_entry(entry)
-        window = None
+        window_data = None
     # END WINDOW ITERATION
     topo_list = sorted([(v, k) for k, v in topo_counts.items()],
                        reverse=True)

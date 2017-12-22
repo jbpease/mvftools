@@ -768,7 +768,8 @@ class MVFcall(object):
             """
             pallette = Pallette()
             parser = MvfArgumentParser()
-            parser.add_argument("--outprefix",
+            parser.addarg_mvf()
+            parser.add_argument("--out-prefix", "--outprefix",
                                 help="Output prefix (not required).")
             parser.add_argument("--samples", nargs='*', required=True,
                                 help="3 or more taxa to use for quartets")

@@ -95,12 +95,11 @@ def parse_regions_arg(regionfilepath, contigs):
 def mvf2fasta(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    flavor = mvf.metadata['flavor']
-    if (flavor in ("dna", "rna") and args.outdata == "prot") or (
-            flavor == "prot" and args.outdata in ("dna", "rna")):
+    if (mvf.flavor in ("dna", "rna") and args.outdata == "prot") or (
+            mvf.flavor == "prot" and args.outdata in ("dna", "rna")):
         raise RuntimeError(
             "--outdata {} incompatiable with '{}' flavor mvf".format(
-                args.outdata, flavor))
+                args.outdata, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.metadata['contigs'])
     sample_cols = mvf.get_sample_indices(args.samples or None)
@@ -136,14 +135,14 @@ def mvf2fasta(args):
                     xlabel = "{}".format(label)
                 tmp_files[label].write(">{}\n".format(xlabel))
                 labelwritten[label] = True
-            if flavor == 'dna':
+            if mvf.flavor == 'dna':
                 tmp_files[label].write(
                     "N" if allelesets[0][col] == 'X'
                     else allelesets[0][col])
-            elif flavor in ('codon', 'prot') and (
+            elif mvf.flavor in ('codon', 'prot') and (
                     args.outdata == 'prot'):
                 tmp_files[label].write(allelesets[0][col])
-            elif flavor == 'codon' and args.outdata == 'dna':
+            elif mvf.flavor == 'codon' and args.outdata == 'dna':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
@@ -233,7 +232,7 @@ def fasta2mvf(args):
         mvf.metadata['samples'][i] = {'label': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = 'fasta'
-    mvf.metadata['flavor'] = args.flavor
+    mvf.flavor = args.flavor
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
@@ -266,12 +265,11 @@ def fasta2mvf(args):
 def mvf2phy(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    flavor = mvf.metadata['flavor']
-    if (flavor in ("dna", "rna") and args.outdata == "prot") or (
-            flavor == "prot" and args.outdata in ("dna", "rna")):
+    if (mvf.flavor in ("dna", "rna") and args.outdata == "prot") or (
+            mvf.flavor == "prot" and args.outdata in ("dna", "rna")):
         raise RuntimeError(
             "--outdata {} incompatiable with '{}' flavor mvf".format(
-                args.outdata, flavor))
+                args.outdata, mvf.flavor))
     max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
     if args.region is not None:
         _, max_region_coord, _ = parse_regions_arg(
@@ -318,18 +316,18 @@ def mvf2phy(args):
                     tmp_files[label].write("{}{}".format(
                         label[:20], " "*(20 - len(label[:20]))))
                 labelwritten[label] = True
-            if flavor == 'dna':
+            if mvf.flavor == 'dna':
                 tmp_files[label].write(
                     allelesets[0][col] == 'X' and
                     'N' or allelesets[0][col])
                 if label == labels[0]:
                     curcontigend += 1
-            elif ((flavor == 'codon' and args.outdata == 'prot') or (
-                    flavor == 'prot')):
+            elif ((mvf.flavor == 'codon' and args.outdata == 'prot') or (
+                    mvf.flavor == 'prot')):
                 tmp_files[label].write(allelesets[0][col])
                 if label == labels[0]:
                     curcontigend += 1
-            elif flavor == 'codon':
+            elif mvf.flavor == 'codon':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))

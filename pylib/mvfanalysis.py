@@ -130,7 +130,7 @@ def calc_dstat_combinations(args):
                         '{}:baba'.format(xcontig),
                         '{}:bbaa'.format(xcontig),
                         '{}:D'.format(xcontig)
-                       ])
+                        ])
     outfile = OutputFile(path=args.out, headers=headers)
     for i, j, k in combinations(range(nsamples), 3):
         trio = tuple([i, j, k])
@@ -160,7 +160,7 @@ def calc_dstat_combinations(args):
                               ('{}:baba'.format(contig), baba),
                               ('{}:bbaa'.format(contig), bbaa),
                               ('{}:D'.format(contig), dstat)
-                             ])
+                              ])
         outfile.write_entry(entry)
     return ''
 
@@ -378,15 +378,15 @@ def calc_pairwise_distances(args):
                            (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
-            if mvf.metadata['flavor'] == 'dna':
+            if mvf.flavor == 'dna':
                 all_diff, all_total = pairwise_distance_nuc(all_match)
-            elif mvf.metadata['flavor'] == 'prot':
+            elif mvf.flavor == 'prot':
                 all_diff, all_total = pairwise_distance_prot(all_match)
             for samplepair in base_matches:
-                if mvf.metadata['flavor'] == 'dna':
+                if mvf.flavor == 'dna':
                     ndiff, ntotal = pairwise_distance_nuc(
                         base_matches[samplepair])
-                elif mvf.metadata['flavor'] == 'prot':
+                elif mvf.flavor == 'prot':
                     ndiff, ntotal = pairwise_distance_prot(
                         base_matches[samplepair])
                 taxa = "{};{}".format(labels[samplepair[0]],
@@ -440,14 +440,14 @@ def calc_pairwise_distances(args):
             current_position = 0
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
-        if mvf.metadata['flavor'] == 'dna':
+        if mvf.flavor == 'dna':
             all_diff, all_total = pairwise_distance_nuc(all_match)
-        elif mvf.metadata['flavor'] == 'prot':
+        elif mvf.flavor == 'prot':
             all_diff, all_total = pairwise_distance_prot(all_match)
         for samplepair in base_matches:
-            if mvf.metadata['flavor'] == 'dna':
+            if mvf.flavor == 'dna':
                 ndiff, ntotal = pairwise_distance_nuc(base_matches[samplepair])
-            elif mvf.metadata['flavor'] == 'prot':
+            elif mvf.flavor == 'prot':
                 ndiff, ntotal = pairwise_distance_prot(
                     base_matches[samplepair])
             taxa = "{};{}".format(labels[samplepair[0]],

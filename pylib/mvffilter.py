@@ -88,11 +88,9 @@ def make_module(modulename, ncol, optargs=None):
             """Only retain sites where all members of the specific
                group contain alleles
             """
-            print(entry, mvfenc)
             if mvfenc == 'full':
                 allele_groups = [set([entry[x] for x in y]) -
                                  set('X-') for y in optargs]
-                print(allele_groups)
                 if not all(allele_groups):
                     return False
                 return True
@@ -423,7 +421,56 @@ def make_module(modulename, ncol, optargs=None):
             """return sites in ID,START,STOP (inclusive)"""
             return entry[0] in optargs[0]
 
-    # SAMPLE
+    # REQINFORMATIVE
+    elif modulename == 'reqinformative':
+        moduletype = 'filter'
+
+        def reqinformative(entry, mvfenc):
+            """only retain informative sites (2+ alleles in 2+ samples)"""
+            if mvfenc == 'full':
+                return len([x for x in set(entry.upper())
+                            if entry.upper().count(x) > 1 and
+                            x not in 'NX-']) > 1
+            return False
+
+    # REQINVARIANT
+    elif modulename == 'reqinvariant':
+        moduletype = 'filter'
+
+        def reqinvariant(entry, mvfenc):
+            """only retain invariant sites"""
+            if mvfenc in ('full', 'onevar', 'refvar'):
+                return False
+            elif mvfenc == 'invar':
+                return True
+            elif mvfenc == 'onecov':
+                return entry[0].upper() == entry[2].upper()
+
+    # REQONECHAR
+    elif modulename == "reqonechar":
+        moduletype = 'filter'
+
+        def reqonechar(entry, mvfenc):
+            """require one of the specified characters appear in entry
+            """
+            if mvfenc in ('full', 'invar', 'refvar'):
+                return any([x in entry for x in optargs[0]])
+            elif mvfenc == 'onecov':
+                return any([x in (entry[0], entry[2]) for x in optargs[0]])
+            elif mvfenc == 'onevar':
+                return any([x in (entry[0], entry[1], entry[3])
+                            for x in optargs[0]])
+
+    # REQREGION
+    elif modulename == "reqregion":
+        moduletype = 'location'
+
+        def reqregion(entry):
+            """return sites in ID,START,STOP (inclusive)"""
+            return (entry[0] == optargs[0][0] and
+                    optargs[0][1] <= entry[1] <= optargs[0][2])
+
+    # REQSAMPLE
     elif modulename == 'reqsample':
         moduletype = 'filter'
 
@@ -523,7 +570,6 @@ def build_actionset(moduleargs, ncol):
     for module in moduleargs:
         if ':' in module:
             modargs = module.split(':')
-            print("Z", modargs)
             if modargs[0] not in MODULENAMES:
                 raise RuntimeError("Module {} not found".format(modargs[0]))
             for i in range(1, len(modargs)):
@@ -533,8 +579,12 @@ def build_actionset(moduleargs, ncol):
                 modargs[1] = int(modargs[1])
                 modargs[2] = int(modargs[2])
             elif modargs[0] == 'mincoverage':
-                if int(modargs[1][0]) > ncol:
-                    raise RuntimeError()
+                modargs[1][0] = int(modargs[1][0])
+                if modargs[1][0] > ncol:
+                    raise RuntimeError((
+                        "ERROR: Minimum columns specified ({}) is "
+                        "greater than number of MVF total columns"
+                        "({}).").format(modargs[1][0], ncol))
             # for i in range(1, len(modargs)):
             #    try:
             #        modargs[i] = [int(x) for x in modargs[i]]
