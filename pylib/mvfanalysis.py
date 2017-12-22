@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-This program analyzes a DNA MVF alignment using the modules specified below,
-use the --morehelp option for additional module information.
-
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
