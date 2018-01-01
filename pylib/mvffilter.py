@@ -93,10 +93,6 @@ def make_module(modulename, ncol, optargs=None):
                                  set('X-') for y in optargs]
                 if not all(allele_groups):
                     return False
-<<<<<<< HEAD:mvf_filter.py
-=======
-                return True
->>>>>>> mdev:pylib/mvffilter.py
             else:
                 return False
 
