@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
+#! -*- coding: utf-8 -*-
+
 """
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-<<<<<<< HEAD:mvfbase.py
-VERSION 2017-11-17
-"""
-=======
->>>>>>> mdev:pylib/mvfbase.py
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -430,14 +426,9 @@ class MultiVariantFile(object):
         header.extend(["#c {} label={} length={} {}".format(
             cid, cdata['label'], cdata['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
-<<<<<<< HEAD:mvfbase.py
-                sorted(cdata.items())) if k not in ['length', 'label']]))
-            for cid, cdata in (sorted(contigs))])
-=======
                 sorted(cdata.items(), key=mixed_sorter))
                 if k not in ['length', 'label']]))
                        for cid, cdata in sorted(contigs, key=mixed_sorter)])
->>>>>>> mdev:pylib/mvfbase.py
         if len(self.metadata["trees"]) > 0:
             header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
         if len(self.metadata["notes"]) > 0:

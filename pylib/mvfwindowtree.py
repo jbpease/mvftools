@@ -480,13 +480,8 @@ def infer_window_tree(args):
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
               'choose_allele': args.choose_allele,
-<<<<<<< HEAD:mvf_window_tree.py
-              'tempdir': args.tempdir,
-              'tempprefix': args.tempprefix}
-=======
               'tempdir': args.temp_dir,
               'tempprefix': args.temp_prefix}
->>>>>>> mdev:pylib/mvfwindowtree.py
     # WINDOW START INTERATION
     verify_raxml(params)
     current_contig = ''
@@ -533,16 +528,10 @@ def infer_window_tree(args):
                 "windowsize": args.windowsize,
                 "labels": main_labels[:]})
         # ADD ALLELES
-<<<<<<< HEAD:mvf_window_tree.py
-        if args.choose_allele is not 'none':
-            allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
-        window.append_alleles(allelesets[0], mindepth=args.mindepth)
-=======
         if mvf.flavor == 'dna':
             if args.choose_allele is not 'none':
                 allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
             window_data.append_alleles(allelesets[0], mindepth=args.min_depth)
->>>>>>> mdev:pylib/mvfwindowtree.py
     # LAST LOOP
     if window_data:
         entry = window_data.maketree_raxml(params)
