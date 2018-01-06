@@ -182,13 +182,24 @@ class MultiVariantFile(object):
         for line in headerlines:
             try:
                 entry = line.split()
+                # Primary MVF header line
                 if entry[0].startswith('##mvf'):
                     for elem in entry[1:]:
-                        if '=' in elem:
-                            elem = elem.split('=')
-                            self.metadata[elem[0]] = interpret_param(elem[1])
-                        else:
+                        if '=' not in elem:
                             self.metadata[elem] = True
+                            continue
+                        elem = elem.split('=')
+                        if elem[0] == "flavor":
+                            self.flavor = elem[1]
+                            if self.flavor not in (
+                                    'dna', 'rna', 'prot', 'codon'):
+                                raise(RuntimeError(
+                                    "ERROR: flavor '{}' is not valid!".format(
+                                        self.flavor)))
+                        else:
+                            self.metadata[elem[0]] = (
+                                interpret_param(elem[1]))
+                # Sample column information header lines
                 elif entry[0].startswith('#s'):
                     self.metadata['samples'][sample_index] = {
                         'label': entry[1]}
@@ -201,6 +212,7 @@ class MultiVariantFile(object):
                         else:
                             self.metadata['samples'][sample_index][elem] = True
                     sample_index += 1
+                # Contig information header lines
                 elif entry[0].startswith('#c'):
                     contigid = entry[1]
                     self.metadata['contigs'][contigid] = {}
@@ -211,8 +223,10 @@ class MultiVariantFile(object):
                                 interpret_param(elem[1]))
                         else:
                             self.metadata['contigs'][contigid][elem] = True
+                # Tree/phylogeny header lines
                 elif entry[0].startswith("#t"):
                     self.metadata['trees'].append(line[2:].strip())
+                # Notes header lines
                 elif entry[0].startswith("#n"):
                     self.metadata['notes'].append(line[2:].strip())
                 else:
@@ -303,7 +317,7 @@ class MultiVariantFile(object):
                 arr = line.rstrip().split()
                 loc = arr[0].split(':')
                 yield (loc[0], int(loc[1]), arr[1:])
-            except ValueError as exception:
+            except ValueError:
                 raise RuntimeError(
                     "Error processing MVF at line# {} = {} ".format(
                         linecount, line))
@@ -373,7 +387,7 @@ class MultiVariantFile(object):
                         allelesets = [''.join([alleles[j] for j in subset])
                                       for alleles in [self.decode(x)
                                                       for x in allelesets]]
-                    except IndexError as exception:
+                    except IndexError:
                         raise RuntimeError(allelesets)
                 if no_gap:
                     if any(x in allelesets[0] for x in '-@'):

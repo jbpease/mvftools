@@ -65,30 +65,34 @@ def parse_regions_arg(regionfilepath, contigs):
                             contig = cid
                 assert contig in contigs
                 if len(entry) == 1:
-                    fmt_regions.append((entry[0], None, None, '+'))
+                    fmt_regions.append((contig, None, None, '+'))
                 elif len(entry) == 2:
                     assert int(entry[1]) > 0
-                    fmt_regions.append((entry[0], int(entry[1]), None, '+'))
+                    fmt_regions.append((contig, int(entry[1]), None, '+'))
                 else:
                     assert int(entry[1]) > 0
                     assert int(entry[2]) > 0
                     assert int(entry[2]) > int(entry[1])
                     fmt_regions.append((
-                        entry[0], int(entry[1]), int(entry[2]),
+                        contig, int(entry[1]), int(entry[2]),
                         "+" if int(entry[2]) > int(entry[1]) else "-"))
     fmt_regions.sort()
     for contigid, _, maxcoord, _ in fmt_regions:
         if contigid not in region_max_coord:
-            region_max_coord[contigid] = maxcoord + 0
+            region_max_coord[contigid] = (
+                None if maxcoord is None else maxcoord + 0)
+        elif maxcoord is None:
+            pass
         elif maxcoord > region_max_coord[contigid]:
             region_max_coord[contigid] = maxcoord + 0
-    regionlabel = ','.join(["{}:{}{}{}{}".format(
+    regionlabel = ','.join(["{}{}{}{}{}".format(
         contigs[x[0]]['label'],
-        "" if x[1] == -1 else x[1],
-        "" if x[2] == -1 else '..',
-        "" if x[2] == -1 else x[2],
-        "" if x[2] == -1 else "({})".format(x[3])
-        ) for x in fmt_regions])
+        "" if (x[1] == -1 or x[1] == 0 or x[1] is None) else (
+            ":{}".format(x[1])),
+        "" if (x[2] == -1 or x[2] == 0 or x[2] is None) else '..',
+        "" if (x[2] == -1 or x[2] == 0 or x[2] is None) else x[2],
+        "" if (x[2] == -1 or x[2] == 0 or x[2] is None) else
+        "({})".format(x[3])) for x in fmt_regions])
     return fmt_regions, region_max_coord, regionlabel
 
 
@@ -102,6 +106,7 @@ def mvf2fasta(args):
                 args.output_data, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.metadata['contigs'])
+
     sample_cols = mvf.get_sample_indices(args.samples or None)
     labels = mvf.get_sample_labels(sample_cols)
     skipcontig = ''
