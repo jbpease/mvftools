@@ -287,7 +287,7 @@ def make_module(modulename, ncol, optargs=None):
                 if entry[0] in 'X-':
                     if entry[1] in 'X-':
                         return False
-                    if optargs >= ncol - 1:
+                    if optargs[0][0] >= ncol - 1:
                         return False
                 if entry[1] in 'X-' and optargs[0][0] > 1:
                     return False
