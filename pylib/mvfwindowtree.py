@@ -9,7 +9,7 @@ James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -134,7 +134,7 @@ class WindowData(object):
                              'aligndepth': len(self.seqs) or 0})
         # CHECK AGAIN FOR EMPTY SITES
         self.remove_empty_sites()
-        if len(self.seqs[0]) < params.get('dminsites', 0):
+        if len(self.seqs[0]) < params.get('minsites', 0):
             return ('', {'status': 'short.proc',
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
@@ -175,7 +175,7 @@ class WindowData(object):
             datetime.now().strftime('%Y-%m-%d-%H-%M-%S'),
             randint(100000, 999999))
         temp_filepath = os.path.abspath(
-            "{}/{}_temp.phy".format(params['temp_dir'], jobname))
+            "{}/{}_temp.phy".format(params['tempdir'], jobname))
         # Temporarily Shorten Labels for Use in Phylip
         temp_labels = {'encode': {}, 'decode': {}}
         for labellen in (len(x) > 10 for x in self.labels):
@@ -186,8 +186,9 @@ class WindowData(object):
                     temp_labels['decode'][newlabel] = oldlabel
                     self.labels[j] = newlabel
                 break
-        params['outgroups'] = params.get('outgroups', False) and [
-            temp_labels['encode'].get(x, x) for x in params['outgroups']] or []
+        params['outgroups'] = (
+            [temp_labels['encode'].get(x, x) for x in params['rootwith']] if
+            params['rootwith'] is not None else [])
         self.write_phylip(temp_filepath)
         try:
             run_raxml(temp_filepath, jobname, params)
@@ -221,7 +222,7 @@ class WindowData(object):
             node.branch_length = None
             if not node.is_terminal:
                 node.name = ''
-        if params['rootwith']:
+        if params['rootwith'] is not None:
             params['rootwith'] = [x for x in params['rootwith']
                                   if x in self.labels]
         topology = ladderize_alpha_tree(
@@ -297,12 +298,12 @@ class WindowData(object):
         for i, j in combinations(range(len(self.seqs)), 2):
             duplicate = True
             for k, base in enumerate(self.seqs[i]):
-                if base is not self.seqs[j][k]:
+                if base != self.seqs[j][k]:
                     duplicate = False
                     break
             if duplicate:
                 remove_indices.update([j])
-                if mode is 'dontuse':
+                if mode == 'dontuse':
                     if self.labels[i] not in duplicates:
                         duplicates[self.labels[i]] = []
 
@@ -406,13 +407,18 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
             node.clades.sort(key=lambda c: c.name)
     tree0.ladderize()
     if rootwith:
-        for node in tree0.get_nonterminals():
-            if all([subnode.name in rootwith for subnode
-                    in node.get_terminals()]):
-                tree0.root_with_outgroup(node)
-                break
+        if len(rootwith) == 1:
+            for node in tree0.get_terminals():
+                if node.name == rootwith[0]:
+                    tree0.root_with_outgroup(node)
+        else:
+            for node in tree0.get_nonterminals():
+                if all([subnode.name in rootwith for subnode
+                        in node.get_terminals()]):
+                    tree0.root_with_outgroup(node)
+                    break
     tree_string = tree0.__format__('newick').replace(
-        ':1.00000', '').rstrip()
+        ':1.00000', '').replace(":0.00000", "").rstrip()
     return tree_string
 
 
@@ -433,15 +439,15 @@ def hapsplit(alleles, mode):
                     x for x in order if x in MLIB.hapsplit(base, mode=mode)])
             else:
                 newalleles.extend([base, base])
-        if mode is 'major':
+        if mode == 'major':
             alleles = ''.join([x[0] for x in newalleles])
-        elif mode is 'minor':
+        elif mode == 'minor':
             alleles = ''.join([x[1] for x in newalleles])
-        elif mode is 'majorminor':
+        elif mode == 'majorminor':
             alleles = ''.join([x for x in newalleles])
-    elif mode is 'randomone':
+    elif mode == 'randomone':
         alleles = ''.join([MLIB.hapsplit(x, mode=mode) for x in alleles])
-    elif mode is 'randomboth':
+    elif mode == 'randomboth':
         alleles = ''.join([MLIB.hapsplit(x, mode=mode) for x in alleles])
     return alleles
 
@@ -449,7 +455,7 @@ def hapsplit(alleles, mode):
 def infer_window_tree(args):
     """Main method"""
     # ESTABLISH FILE OBJECTS
-    args.contigs = args.contigs or []
+    args.contigs = None if args.contigs is None else args.contigs.split(",")
     mvf = MultiVariantFile(args.mvf, 'read')
     treefile = OutputFile(
         args.out,
@@ -469,7 +475,9 @@ def infer_window_tree(args):
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
-              'rootwith': args.root_with or [],
+              'rootwith': (args.root_with.split(',') if
+                           args.root_with is not None else
+                           None),
               'minsites': args.min_sites,
               'minseqcoverage': args.min_seq_coverage,
               'mindepth': args.min_depth,
@@ -479,7 +487,7 @@ def infer_window_tree(args):
               'model': args.raxml_model,
               'bootstrap': args.bootstrap,
               'windowsize': args.windowsize,
-              'choose_allele': args.choose_allele,
+              'chooseallele': args.choose_allele,
               'tempdir': args.temp_dir,
               'tempprefix': args.temp_prefix}
     # WINDOW START INTERATION
@@ -499,12 +507,12 @@ def infer_window_tree(args):
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
             skip_contig = False
-            if window_data:
+            if window_data is not None:
                 entry = window_data.maketree_raxml(params)
-                if entry['status'] is not 'ok':
-                    if args.outputempty:
+                if entry['status'] != 'ok':
+                    if args.output_empty:
                         treefile.write_entry(entry)
-                    if args.windowsize == -1:
+                    if args.windowsize != -1:
                         skip_contig = True
                 else:
                     topo = entry["topology"]
@@ -529,14 +537,14 @@ def infer_window_tree(args):
                 "labels": main_labels[:]})
         # ADD ALLELES
         if mvf.flavor == 'dna':
-            if args.choose_allele is not 'none':
+            if args.choose_allele != 'none':
                 allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
             window_data.append_alleles(allelesets[0], mindepth=args.min_depth)
     # LAST LOOP
     if window_data:
         entry = window_data.maketree_raxml(params)
-        if entry['status'] is not 'ok':
-            if args.outputempty:
+        if entry['status'] != 'ok':
+            if args.output_empty:
                 treefile.write_entry(entry)
         else:
             topo = entry["topology"]
