@@ -108,6 +108,9 @@ def calc_group_unique_allele_window(args):
        spatially along chromosomes (i.e. Lineage-specific rates)"""
     data = {}
     mvf = MultiVariantFile(args.mvf, 'read')
+    if mvf.flavor != 'codon':
+        raise RuntimeError(
+            "\n=====================\nERROR: MVF is not codon flavor!")
     annotations = {}
     coordinates = {}
     labels = mvf.get_sample_labels()[:]
@@ -128,7 +131,9 @@ def calc_group_unique_allele_window(args):
     if args.allele_groups is not None:
         args.allele_groups = procarg_allelegroups(
             args.allele_groups, mvf)
-    if args.species_groups is not None:
+    if args.species_groups is None:
+        args.species_groups = args.allele_groups
+    else:
         args.species_groups = procarg_speciesgroups(
             args.species_groups, mvf)
     fieldtags = [
@@ -152,9 +157,10 @@ def calc_group_unique_allele_window(args):
     allsets = list(sorted(allsets))
     speciesnames = args.species_groups.keys()
     speciesrev = {}
-    for species in args.species_groups:
-        speciesrev.update([
-            (x, species) for x in args.species_groups[species]])
+    if args.species_groups is not None:
+        for species in args.species_groups:
+            speciesrev.update([
+                (x, species) for x in args.species_groups[species]])
     if args.mincoverage is not None:
         if args.mincoverage < len(groups) * 2:
             raise RuntimeError("""
@@ -162,6 +168,7 @@ def calc_group_unique_allele_window(args):
                 --mincoverage cannot be lower than the twice the number
                 of specified groups in --allele-groups
                 """)
+    genealign = []
     for contig, pos, allelesets in mvf:
         if not current_contig:
             current_contig = contig[:]
@@ -171,8 +178,9 @@ def calc_group_unique_allele_window(args):
             xkey = (current_contig, current_position,)
             data[xkey] = counts.copy()
             data[xkey].update([
-                ('contig', (args.use_labels and
-                            mvf.get_contig_label(current_contig))),
+                ('contig', (mvf.get_contig_label(current_contig)
+                            if args.use_labels is True else
+                            current_contig)),
                 ('position', current_position),
                 ('nonsynyonymous_changes',
                  counts.get('nonsynonymous_changes', 0) or 0),
@@ -313,13 +321,15 @@ def calc_group_unique_allele_window(args):
                     protein_groups, 2)):
                 synon_change = True
         if nonsyn_change:
-            print('NON', contig, pos, allelesets, codon_groups,
-                  protein_groups, groups, mvf.get_contig_label(contig))
+            if args.verbose is True:
+                print('NON', contig, pos, allelesets, codon_groups,
+                      protein_groups, groups, mvf.get_contig_label(contig))
             counts.add('nonsynonymous_changes')
             totals.add('nonsynonymous_changes')
         elif synon_change:
-            print('SYN', contig, pos, allelesets, codon_groups,
-                  protein_groups, groups, mvf.get_contig_label(contig))
+            if args.verbose is True:
+                print('SYN', contig, pos, allelesets, codon_groups,
+                      protein_groups, groups, mvf.get_contig_label(contig))
             counts.add('synonymous_changes')
             totals.add('synonymous_changes')
     args.totals = totals

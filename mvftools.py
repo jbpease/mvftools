@@ -626,6 +626,9 @@ class MVFcall(object):
                       "RAxML-PAML format LRT test scan for "
                       "selection on the target branch in addition "
                       "to the basic patterns scan"))
+            parser.add_argument(
+                "--verbose", action="store_true",
+                help="additional screen output")
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:

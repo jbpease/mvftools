@@ -92,7 +92,6 @@ def iter_codons(inputbuffer, mvf):
             amino_acids = translate(''.join(alleles))[0]
         else:
             decoded_alleles = [mvf.decode(x) for x in alleles]
-            print(decoded_alleles)
             amino_acids = [translate(''.join(x))
                            for x in zip(*decoded_alleles)]
             amino_acids = mvf.encode(
@@ -252,14 +251,14 @@ def annotate_mvf(args):
         if args.nongenic_mode is False and annotated_pos is True:
             entrybuffer.append((gff[contigid][pos], pos, allelesets))
             nentry += 1
-            if nentry == args.linebuffer:
+            if nentry == args.line_buffer:
                 outmvf.write_entries(entrybuffer)
                 entrybuffer = []
                 nentry = 0
         elif args.nongenic_mode is True and annotated_pos is False:
             entrybuffer.append((contigid, pos, allelesets))
             nentry += 1
-            if nentry == args.linebuffer:
+            if nentry == args.line_buffer:
                 outmvf.write_entries(entrybuffer)
                 entrybuffer = []
                 nentry = 0
@@ -273,7 +272,7 @@ def annotate_mvf(args):
 def translate_mvf(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if mvf.metadata['flavor'] != 'dna':
+    if mvf.flavor != 'dna':
         raise RuntimeError("MVF must be flavor=dna to translate")
     if args.gff:
         gff = parse_gff_translate(args.gff, args)
@@ -281,7 +280,7 @@ def translate_mvf(args):
             print("gff_processed")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.metadata = deepcopy(mvf.metadata)
-    outmvf.metadata['flavor'] = args.output_data
+    outmvf.flavor = args.output_data
     outmvf.write_data(outmvf.get_header())
     entrybuffer = []
     nentry = 0
@@ -307,7 +306,7 @@ def translate_mvf(args):
                                 amino_acids, alleles[0],
                                 alleles[1], alleles[2])))
                     nentry += 1
-                    if nentry == args.linebuffer:
+                    if nentry == args.line_buffer:
                         outmvf.write_entries(entrybuffer)
                         entrybuffer = []
                         nentry = 0
@@ -327,7 +326,7 @@ def translate_mvf(args):
                             amino_acids, alleles[0],
                             alleles[1], alleles[2])))
                 nentry += 1
-                if nentry == args.linebuffer:
+                if nentry == args.line_buffer:
                     outmvf.write_entries(entrybuffer)
                     entrybuffer = []
                     nentry = 0
@@ -376,12 +375,11 @@ def translate_mvf(args):
                         contigid, coords[0], (
                             amino_acids, alleles[0], alleles[1], alleles[2])))
                 nentry += 1
-                if nentry == args.linebuffer:
+                if nentry == args.line_buffer:
                     outmvf.write_entries(entrybuffer)
                     entrybuffer = []
                     nentry = 0
     if entrybuffer:
-        print(entrybuffer)
         outmvf.write_entries(entrybuffer)
         entrybuffer = []
         nentry = 0

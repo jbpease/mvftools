@@ -129,7 +129,7 @@ def mvf_join(args):
                             contigid)
             entries.append((contigid, pos, allelesets))
             nentries += 1
-            if nentries == args.linebuffer:
+            if nentries == args.line_buffer:
                 concatmvf.write_entries(entries)
                 entries = []
                 nentries = 0
