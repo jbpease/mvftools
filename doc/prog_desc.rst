@@ -1469,6 +1469,15 @@ Parameters
 **Type:** boolean flag
 
 
+
+``--verbose``
+^^^^^^^^^^^^^
+
+**Description:** additional screen output
+
+**Type:** boolean flag
+
+
 .. InferTree:
 
 InferTree
@@ -1796,7 +1805,7 @@ Parameters
 ``--outgroup`` (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** 1 or more outgroups to use for quartets
+**Description:** 1 or more outgroups to use for quartets, as comma-separated list
 
 **Type:** None; **Default:** None
 
@@ -1805,7 +1814,7 @@ Parameters
 ``--samples`` (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** 3 or more taxa to use for quartets
+**Description:** 3 or more taxa to use for quartets, comma-separated labels
 
 **Type:** None; **Default:** None
 
@@ -1824,7 +1833,7 @@ Parameters
 ``--contigs``
 ^^^^^^^^^^^^^
 
-**Description:** Enter the ids of one or more contigs in the order they will appear in the chromoplot. (defaults to all ids in order present in MVF)
+**Description:** Enter the ids of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF)
 
 **Type:** None; **Default:** None
 

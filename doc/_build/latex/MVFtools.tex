@@ -55,7 +55,7 @@
 
 
 \title{MVFtools}
-\date{Dec 21, 2017}
+\date{Jan 11, 2018}
 \release{0.5.0}
 \author{James B. Pease\\Ben K. Rosenzweig\\Roddra J. Johnson}
 \newcommand{\sphinxlogo}{\sphinxincludegraphics{logo.png}\par}
@@ -71,7 +71,7 @@
 
 
 \chapter{Getting Started}
-\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:intro}}\label{\detokenize{intro::doc}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}
+\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}\label{\detokenize{intro::doc}}\label{\detokenize{intro:intro}}
 
 \section{What is MVFtools?}
 \label{\detokenize{intro:what-is-mvftools}}
@@ -1771,33 +1771,40 @@ None
 \sphinxstylestrong{Type:} boolean flag
 
 
+\subsubsection{\sphinxstyleliteralintitle{-{-}verbose}}
+\label{\detokenize{prog_desc:id105}}
+\sphinxstylestrong{Description:} additional screen output
+
+\sphinxstylestrong{Type:} boolean flag
+
+
 \section{InferTree}
 \label{\detokenize{prog_desc:infertree}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id105}}
+\label{\detokenize{prog_desc:id106}}
 None
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id106}}
+\label{\detokenize{prog_desc:id107}}
 
 \subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id107}}
+\label{\detokenize{prog_desc:id108}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id108}}
+\label{\detokenize{prog_desc:id109}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id109}}
+\label{\detokenize{prog_desc:id110}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
@@ -1820,7 +1827,7 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}contigs}}
-\label{\detokenize{prog_desc:id110}}
+\label{\detokenize{prog_desc:id111}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contigs.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
@@ -1871,7 +1878,7 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id111}}
+\label{\detokenize{prog_desc:id112}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -1899,7 +1906,7 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}raxml-path/-{-}raxmlpath}}
-\label{\detokenize{prog_desc:id112}}
+\label{\detokenize{prog_desc:id113}}
 \sphinxstylestrong{Description:} RAxML path for manual specification.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} raxml
@@ -1913,14 +1920,14 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}samples}}
-\label{\detokenize{prog_desc:id113}}
+\label{\detokenize{prog_desc:id114}}
 \sphinxstylestrong{Description:} Specify comma-separated list of samples, Leave blank for all samples.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}temp-dir/-{-}tempdir}}
-\label{\detokenize{prog_desc:id114}}
+\label{\detokenize{prog_desc:id115}}
 \sphinxstylestrong{Description:} Temporary directory path
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} ./raxmltemp
@@ -1937,36 +1944,36 @@ None
 \label{\detokenize{prog_desc:joinmvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id115}}
+\label{\detokenize{prog_desc:id116}}
 None
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id116}}
+\label{\detokenize{prog_desc:id117}}
 
 \subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id117}}
+\label{\detokenize{prog_desc:id118}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id118}}
+\label{\detokenize{prog_desc:id119}}
 \sphinxstylestrong{Description:} One or more mvf files.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id119}}
+\label{\detokenize{prog_desc:id120}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id120}}
+\label{\detokenize{prog_desc:id121}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
@@ -1994,14 +2001,14 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id121}}
+\label{\detokenize{prog_desc:id122}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id122}}
+\label{\detokenize{prog_desc:id123}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -2011,22 +2018,22 @@ None
 \label{\detokenize{prog_desc:plotchromoplot}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id123}}
+\label{\detokenize{prog_desc:id124}}
 None
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id124}}
+\label{\detokenize{prog_desc:id125}}
 
 \subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id125}}
+\label{\detokenize{prog_desc:id126}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id126}}
+\label{\detokenize{prog_desc:id127}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
@@ -2034,14 +2041,14 @@ None
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}outgroup} (required)}
 \label{\detokenize{prog_desc:outgroup-required}}
-\sphinxstylestrong{Description:} 1 or more outgroups to use for quartets
+\sphinxstylestrong{Description:} 1 or more outgroups to use for quartets, as comma-separated list
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}samples} (required)}
 \label{\detokenize{prog_desc:samples-required}}
-\sphinxstylestrong{Description:} 3 or more taxa to use for quartets
+\sphinxstylestrong{Description:} 3 or more taxa to use for quartets, comma-separated labels
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
@@ -2056,8 +2063,8 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}contigs}}
-\label{\detokenize{prog_desc:id127}}
-\sphinxstylestrong{Description:} Enter the ids of one or more contigs in the order they will appear in the chromoplot. (defaults to all ids in order present in MVF)
+\label{\detokenize{prog_desc:id128}}
+\sphinxstylestrong{Description:} Enter the ids of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF)
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
@@ -2102,7 +2109,7 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id128}}
+\label{\detokenize{prog_desc:id129}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -2126,57 +2133,57 @@ None
 \label{\detokenize{prog_desc:translatemvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id129}}
+\label{\detokenize{prog_desc:id130}}
 None
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id130}}
+\label{\detokenize{prog_desc:id131}}
 
 \subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id131}}
+\label{\detokenize{prog_desc:id132}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id132}}
+\label{\detokenize{prog_desc:id133}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id133}}
+\label{\detokenize{prog_desc:id134}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}filter-annotation/-{-}filterannotation}}
-\label{\detokenize{prog_desc:id134}}
+\label{\detokenize{prog_desc:id135}}
 \sphinxstylestrong{Description:} skip GFF entries with text matching this in their ‘Notes’ field
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}gff}}
-\label{\detokenize{prog_desc:id135}}
+\label{\detokenize{prog_desc:id136}}
 \sphinxstylestrong{Description:} Input GFF3 file. If GFF3 not provided, alignments are assumed to be in-frame coding sequences.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id136}}
+\label{\detokenize{prog_desc:id137}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}output-data/-{-}outputdata}}
-\label{\detokenize{prog_desc:id137}}
+\label{\detokenize{prog_desc:id138}}
 \sphinxstylestrong{Description:} protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} codon
@@ -2185,14 +2192,14 @@ None
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id138}}
+\label{\detokenize{prog_desc:id139}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id139}}
+\label{\detokenize{prog_desc:id140}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -2512,7 +2519,7 @@ Coming soon.
 
 
 \chapter{Version History}
-\label{\detokenize{version::doc}}\label{\detokenize{version:version-history}}
+\label{\detokenize{version:version-history}}\label{\detokenize{version::doc}}
 \sphinxstylestrong{v.0.5.0}
 
 \sphinxstyleemphasis{2017-11-27 - Major Upgrade}: Change to single-command structure

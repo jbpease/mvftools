@@ -783,15 +783,18 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.add_argument("--out-prefix", "--outprefix",
                                 help="Output prefix (not required).")
-            parser.add_argument("--samples", nargs='*', required=True,
-                                help="3 or more taxa to use for quartets")
-            parser.add_argument("--outgroup", nargs='*', required=True,
-                                help="1 or more outgroups to use for quartets")
+            parser.add_argument("--samples", nargs=1, required=True,
+                                help=("3 or more taxa to use for quartets, "
+                                      "comma-separated labels"))
+            parser.add_argument("--outgroup", nargs=1, required=True,
+                                help=("1 or more outgroups to use for "
+                                      "quartets, as comma-separated list"))
             parser.addarg_windowsize()
             parser.add_argument(
-                "--contigs", nargs='*',
+                "--contigs", nargs=1,
                 help=("Enter the ids of one or more contigs in the "
-                      "order they will appear in the chromoplot. "
+                      "order they will appear in the chromoplot (as "
+                      "comma-separated list)"
                       "(defaults to all ids in order present in MVF)"))
             parser.add_argument(
                 "--majority", action="store_true",

@@ -443,16 +443,10 @@ def plot_chromoplot(args):
     if args.quiet is False:
         print("Parsing headers...")
     if args.contigs is not None:
-        contignames = args.contigs
+        contignames = args.contigs[0].split(",")
     else:
         contignames = [mvf.metadata['contigs'][contigid]['label']
                        for contigid in mvf.metadata['contigs']]
-        for i, contigname in enumerate(contignames):
-            try:
-                contignames[i] = int(contigname)
-            except ValueError as exception:
-                pass
-        contignames = [str(x) for x in sorted(contignames)]
     if args.quiet is False:
         print("Plotting chromoplot for contigs: {}".format(
             ",".join(contignames)))
@@ -470,6 +464,10 @@ def plot_chromoplot(args):
         if contig_found:
             continue
         raise RuntimeError(contigname, "not found in MVF contig ids or labels")
+    args.samples = args.samples[0].split(",")
+    assert len(args.samples) >= 3
+    args.outgroup = args.outgroup[0].split(",")
+    assert len(args.outgroup) >= 1
     quartets = [(x, y, z, outgroup) for x, y, z in
                 combinations(args.samples, 3) for outgroup in args.outgroup]
     # Begin iterations
