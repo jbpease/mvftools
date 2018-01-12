@@ -475,7 +475,8 @@ def plot_chromoplot(args):
         if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet)))
         params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
-                  'outpath': (args.out_prefix or '_'.join(quartet)) + ".png",
+                  'outpath': ((args.out_prefix if args.out_prefix is not None
+                               else '') or '_'.join(quartet)) + ".png",
                   'labels': quartet,
                   'windowsize': args.windowsize,
                   'majority': args.majority,
