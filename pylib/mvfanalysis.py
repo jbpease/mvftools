@@ -184,8 +184,9 @@ def calc_pattern_count(args):
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
-            while pos > current_position + args.windowsize - 1:
-                current_position += args.windowsize
+            if args.windowsize > 0:
+                while pos > current_position + args.windowsize - 1:
+                    current_position += args.windowsize
         # Check if windows are specified.
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
@@ -311,16 +312,24 @@ def calc_character_count(args):
         else:
             alleles = allelesets[0]
             if len(alleles) == 1:
-                if alleles in args.base_match:
+                if args.base_match is None:
                     all_match += 1
-                if alleles in args.base_total:
+                elif alleles in args.base_match:
+                    all_match += 1
+                if args.base_total is None:
+                    all_total += 1
+                elif alleles in args.base_total:
                     all_total += 1
             else:
                 alleles = mvf.decode(alleles)
                 for i, base in enumerate(alleles):
-                    if base in args.base_match:
+                    if args.base_match is None:
                         match_counts[labels[i]] += 1
-                    if base in args.base_total:
+                    elif base in args.base_match:
+                        match_counts[labels[i]] += 1
+                    if args.base_total is None:
+                        total_counts[labels[i]] += 1
+                    elif base in args.base_total:
                         total_counts[labels[i]] += 1
             data_in_buffer = 1
     if data_in_buffer:
