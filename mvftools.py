@@ -140,7 +140,7 @@ class MVFcall(object):
                 "--flavor", choices=['dna', 'protein'],
                 help="type of file [dna] or protein", default='dna')
             parser.add_argument(
-                "--contig-ids", "--contigids", nargs='*',
+                  "--contig-ids", "--contigids", nargs='*',
                 help=("manually specify one or more contig ids "
                       "as ID:NAME"))
             parser.add_argument(
