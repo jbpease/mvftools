@@ -152,7 +152,7 @@ class VariantCallFile(object):
                 linebuffer = []
                 nline = 0
         for line in linebuffer:
-            vcfrecord = self._parse_entry(line, **args)
+            vcfrecord = self._parse_entry(line, **vars(args))
             if vcfrecord == -1:
                 continue
             yield vcfrecord
@@ -269,7 +269,6 @@ class VariantCallFile(object):
                 plvalues = [float(x) if x != '.' else -1
                             for x in sample['GL'].split(',')]
             else:
-                # print(sample, alleles)
                 plvalues = [float(x) if x != '.' else -1
                             for x in sample['PL'].split(',')]
             if all(0 <= x <= 1 for x in plvalues) and sum([
@@ -310,8 +309,8 @@ def vcf2mvf(args=None):
     # PROCESS CONTIG INFO
     vcfcontigs = vcf.metadata['contigs'].copy()
     contig_translate = {}
-    if args.contigids:
-        for cid, cvcf, cmvf in (x.split(';') for x in args.contigids):
+    if args.contig_ids:
+        for cid, cvcf, cmvf in (x.split(';') for x in args.contig_ids):
             try:
                 cid = int(cid)
             except ValueError:
@@ -391,7 +390,7 @@ def vcf2mvf(args=None):
                 (contig_translate.get(vcfrecord['contig'])[0],
                  vcfrecord['coord'],
                  ((mvf_alleles, qual_alleles) if
-                  args.outflavor in ('dnaqual',) else
+                  args.out_flavor in ('dnaqual',) else
                   (mvf_alleles,))))
             nentry += 1
             if nentry == args.line_buffer:
@@ -399,7 +398,6 @@ def vcf2mvf(args=None):
                 mvfentries = []
                 nentry = 0
         # except Exception as exception:
-            # print("ERROR", vcfrecord)
     if mvfentries:
         mvf.write_entries(mvfentries)
         mvfentries = []
