@@ -464,20 +464,36 @@ def plot_chromoplot(args):
         if contig_found:
             continue
         raise RuntimeError(contigname, "not found in MVF contig ids or labels")
-    args.samples = args.samples[0].split(",")
-    assert len(args.samples) >= 3
-    args.outgroup = args.outgroup[0].split(",")
-    assert len(args.outgroup) >= 1
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    assert len(sample_indices) >= 3
+    if args.outgroup_indices is not None:
+        outgroup_indices = [int(x) for x in
+                            args.outgroup_indices[0].split(",")]
+    elif args.outgroup_labels is not None:
+        outgroup_indices = mvf.get_sample_indices(
+            labels=args.outgroup_labels[0].split(","))
+    assert len(outgroup_indices) >= 1
     quartets = [(x, y, z, outgroup) for x, y, z in
-                combinations(args.samples, 3) for outgroup in args.outgroup]
+                combinations(sample_indices, 3) for outgroup in
+                outgroup_indices]
     # Begin iterations
-    for quartet in quartets:
+    for quartet_indices in quartets:
+        quartet_labels = [sample_labels[x] for x in quartet_indices]
         if args.quiet is False:
-            print("Beginning quartet {}".format(",".join(quartet)))
+            print("Beginning quartet {}".format(",".join(quartet_labels)))
         params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
                   'outpath': ((args.out_prefix if args.out_prefix is not None
-                               else '') or '_'.join(quartet)) + ".png",
-                  'labels': quartet,
+                               else '') or '_'.join(quartet_labels)) + ".png",
+                  'labels': quartet_labels,
+                  'indices': quartet_indices,
                   'windowsize': args.windowsize,
                   'majority': args.majority,
                   'infotrack': args.info_track,
@@ -486,7 +502,6 @@ def plot_chromoplot(args):
                   'quiet': args.quiet,
                   'plottype': args.plot_type}
         chromoplot = Chromoplot(params=params, pallette=pallette)
-        quartet_indices = mvf.get_sample_indices(labels=quartet)
         current_contig = ''
         for contig, pos, allelesets in mvf.iterentries(
                 subset=quartet_indices, decode=True,

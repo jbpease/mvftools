@@ -13,7 +13,7 @@ from time import time
 from pylib.mvffasphy import fasta2mvf, mvf2fasta, mvf2phy
 from pylib.mvfmaf import maf2mvf
 from pylib import mvfanalysis
-from pylib.mvfargo import MvfArgumentParser
+from pylib.mvfargo import MvfArgumentParser, mutex_check
 from pylib.mvfcheck import check_mvf
 from pylib.mvfwindowtree import infer_window_tree
 from pylib.mvftranslate import annotate_mvf, translate_mvf
@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.8.0",
+                            version="0.5.1",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -141,8 +141,8 @@ class MVFcall(object):
                 help="type of file [dna] or protein", default='dna')
             parser.add_argument(
                   "--contig-ids", "--contigids", nargs='*',
-                help=("manually specify one or more contig ids "
-                      "as ID:NAME"))
+                  help=("manually specify one or more contig ids "
+                        "as ID:NAME"))
             parser.add_argument(
                 "--sample-replace", "--samplereplace", nargs="*",
                 help=("one or more TAG:NEWLABEL or TAG, items, "
@@ -392,7 +392,8 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.addarg_out()
             parser.addarg_contigs()
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             parser.addarg_mincoverage()
             parser.addarg_windowsize()
             parser.add_argument(
@@ -406,6 +407,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvfanalysis.calc_character_count(args)
         return ''
 
@@ -420,8 +422,11 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
+            parser.addarg_sample_indices(nmin=3)
+            parser.addarg_sample_labels(nmin=3)
+            parser.addarg_outgroup_indices()
+            parser.addarg_outgroup_labels()
             parser.addarg_contigs()
-            parser.addarg_samples()
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
@@ -441,7 +446,8 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
-            parser.addarg_samples()
+            parser.addarg_sample_indices(nmin=2)
+            parser.addarg_sample_labels(nmin=2)
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
             return parser
@@ -449,6 +455,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvfanalysis.calc_pairwise_distances(args)
         return ''
 
@@ -463,7 +470,8 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
             return parser
@@ -471,12 +479,13 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvfanalysis.calc_pattern_count(args)
         return ''
 
     def CalcSampleCoverage(self):
-        """Counts sample coverage for specified combinations
-           of taxa in an MVF file.
+        """Counts per-contig coverage for
+           specified sample columns in an MVF file.
         """
 
         def generate_argparser():
@@ -486,12 +495,14 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.addarg_out()
             parser.addarg_contigs()
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvfanalysis.calc_sample_coverage(args)
         return ''
 
@@ -728,6 +739,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         infer_window_tree(args)
         return ''
 
@@ -783,12 +795,10 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.add_argument("--out-prefix", "--outprefix",
                                 help="Output prefix (not required).")
-            parser.add_argument("--samples", nargs=1, required=True,
-                                help=("3 or more taxa to use for quartets, "
-                                      "comma-separated labels"))
-            parser.add_argument("--outgroup", nargs=1, required=True,
-                                help=("1 or more outgroups to use for "
-                                      "quartets, as comma-separated list"))
+            parser.addarg_sample_indices(nmin=3)
+            parser.addarg_sample_labels(nmin=3)
+            parser.addarg_outgroup_indices(nmin=1)
+            parser.addarg_outgroup_labels(nmin=1)
             parser.addarg_windowsize()
             parser.add_argument(
                 "--contigs", nargs=1,
@@ -829,6 +839,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         plot_chromoplot(args)
         return ''
 

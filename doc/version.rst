@@ -2,6 +2,10 @@
 Version History
 ===============
 
+**v.0.5.1**
+
+2018-02-01: Changes to the --sample and --outgroup arguments for some calculations into separate --sample-indices and --sample-labels arguments.  This fixes an issue where if the sample labels are numerical they are misinterpreted when specified at the command line. All sample/outgroup indices or labels should be specified as a single comma-separated list.
+
 **v.0.5.0**
 
 *2017-11-27 - Major Upgrade*: Change to single-command structure

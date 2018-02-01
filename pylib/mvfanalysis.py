@@ -59,23 +59,31 @@ def pi_diversity(seq):
 
 def calc_sample_coverage(args):
     """Counts the total number of non-gap/ambiguous characters for
-      each sample.
+      each sample per contig.
       """
     mvf = MultiVariantFile(args.mvf, 'read')
-    labels = mvf.get_sample_labels()
     data = {}
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
     for contig, _, allelesets in mvf.iterentries(
-            contigs=args.contigs, subset=args.samples,
+            contigs=args.contigs, subset=sample_indices,
             decode=True):
         if contig not in data:
-            data[contig] = dict.fromkeys(labels, 0)
+            data[contig] = dict.fromkeys(sample_labels, 0)
             data[contig]['contig'] = contig
-        for j, base in enumerate(allelesets[0]):
-            data[contig][labels[j]] += int(
-                base not in 'Xx-')
-        labels = labels
+        for j, x in enumerate(sample_indices):
+            data[contig][sample_labels[x]] += int(
+                allelesets[0][j] not in 'Xx-')
     outfile = OutputFile(path=args.out,
-                         headers=(["contig"] + labels))
+                         headers=(["contig"] + [sample_labels[x] for x in
+                                                sample_indices]))
     for contig in data:
         outfile.write_entry(data[contig])
     return ''
@@ -84,44 +92,52 @@ def calc_sample_coverage(args):
 def calc_dstat_combinations(args):
     """Calculate genome-wide D-statstics for
        all possible trio combinations of samples
+       and outgroups specified.
     """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
-    nsamples = len(args.samples) - 1
-    samplenames = (args.samples.split(",")
-                   if args.samples is not None
-                   else mvf.get_sample_labels())
+    sample_labels = mvf.get_sample_labels()
+    if args.outgroup_indices is not None:
+        outgroup_indices = [int(x) for x in
+                            args.outgroup_indices[0].split(",")]
+    elif args.outgroup_labels is not None:
+        outgroup_indices = mvf.get_sample_indices(
+            labels=args.outgroup_labels[0].split(","))
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    if any(x in outgroup_indices for x in sample_indices):
+        raise RuntimeError("Sample and Outgroup column lists cannot overlap.")
     contigs = (args.contigs.split(",")
                if args.contigs is not None
                else mvf.get_contig_labels())
     for contig, _, allelesets in mvf:
         alleles = mvf.decode(allelesets[0])
-        if alleles[-1] in 'X-':
-            continue
-        for i in range(nsamples - 2):
-            if alleles[i] not in 'ATGC':
-                continue
-            for j in range(i + 1, nsamples - 1):
-                if alleles[j] not in 'ATGC':
+        for i, j, k in combinations(sample_indices, 3):
+            for outgroup in outgroup_indices:
+                subset = [alleles[x] for x in
+                          [i, j, k, outgroup]]
+                if any(x not in 'ATGC' for x in subset):
                     continue
-                for k in range(j + 1, nsamples):
-                    if alleles[k] not in 'ATGC':
-                        continue
-                    subset = [alleles[x] for x in [i, j, k, -1]]
-                    if subset[-1] not in subset[:3]:
-                        continue
-                    if len(set(subset)) != 2:
-                        continue
-                    val = (1 * (subset[j] == subset[-1]) +
-                           2 * (subset[k] == subset[-1]))
-                    trio = (i, j, k)
-                    if trio not in data:
-                        data[trio] = {}
-                    if contig not in data[trio]:
-                        data[trio][contig] = [0, 0, 0]
-                    data[trio][contig][val - 1] += 1
+                if subset[-1] not in subset[:3]:
+                    continue
+                if len(set(subset)) != 2:
+                    continue
+                val = (1 * (subset[1] == subset[-1]) +
+                       2 * (subset[2] == subset[-1]))
+                tetrad = (i, j, k, outgroup)
+                if tetrad not in data:
+                    data[tetrad] = {}
+                if contig not in data[tetrad]:
+                    data[tetrad][contig] = [0, 0, 0]
+                data[tetrad][contig][val - 1] += 1
     # WRITE OUTPUT
-    headers = ['sample0', 'sample1', 'sample2']
+    headers = ['sample0', 'sample1', 'sample2', "outgroup"]
     for xcontig in contigs:
         headers.extend(['{}:abba'.format(xcontig),
                         '{}:baba'.format(xcontig),
@@ -129,54 +145,63 @@ def calc_dstat_combinations(args):
                         '{}:D'.format(xcontig)
                         ])
     outfile = OutputFile(path=args.out, headers=headers)
-    for i, j, k in combinations(range(nsamples), 3):
-        trio = tuple([i, j, k])
-        if trio not in data:
-            continue
-        entry = dict([('sample{}'.format(i),
-                       samplenames[x][0])
-                      for i, x in enumerate(trio)])
-        for contig in contigs:
-            if contig not in data[trio]:
-                entry.update(dict().fromkeys([
-                    '{}:abba'.format(contig),
-                    '{}:baba'.format(contig),
-                    '{}:bbaa'.format(contig),
-                    '{}:D'.format(contig)],
-                                             '0'))
-            else:
-                [abba, baba, bbaa] = data[trio][contig]
-                if abba > baba and abba > bbaa:
-
-                    dstat = zerodiv(baba - bbaa, baba + bbaa)
-                elif baba > bbaa and baba > abba:
-                    dstat = zerodiv(abba - bbaa, abba + bbaa)
+    for i, j, k in combinations(sample_indices, 3):
+        for outgroup in outgroup_indices:
+            tetrad = tuple([i, j, k, outgroup])
+            if tetrad not in data:
+                continue
+            entry = dict([('sample{}'.format(i),
+                           sample_labels[x])
+                          for i, x in enumerate(tetrad[:3])])
+            entry['outgroup'] = sample_labels[outgroup]
+            for contig in contigs:
+                if contig not in data[tetrad]:
+                    entry.update(dict().fromkeys([
+                        '{}:abba'.format(contig),
+                        '{}:baba'.format(contig),
+                        '{}:bbaa'.format(contig),
+                        '{}:D'.format(contig)],
+                                                 '0'))
                 else:
-                    dstat = zerodiv(abba - baba, abba + baba)
-                entry.update([('{}:abba'.format(contig), abba),
-                              ('{}:baba'.format(contig), baba),
-                              ('{}:bbaa'.format(contig), bbaa),
-                              ('{}:D'.format(contig), dstat)
-                              ])
-        outfile.write_entry(entry)
+                    [abba, baba, bbaa] = data[tetrad][contig]
+                    if abba > baba and abba > bbaa:
+
+                        dstat = zerodiv(baba - bbaa, baba + bbaa)
+                    elif baba > bbaa and baba > abba:
+                        dstat = zerodiv(abba - bbaa, abba + bbaa)
+                    else:
+                        dstat = zerodiv(abba - baba, abba + baba)
+                    entry.update([('{}:abba'.format(contig), abba),
+                                  ('{}:baba'.format(contig), baba),
+                                  ('{}:bbaa'.format(contig), bbaa),
+                                  ('{}:D'.format(contig), dstat)
+                                  ])
+            outfile.write_entry(entry)
     return ''
 
 
 def calc_pattern_count(args):
     """Count biallelic patterns spatially along
        chromosomes (e.g,, for use in DFOIL or Dstats
-       http://www.github.com/jbpease/dfoil)
+       http://www.github.com/jbpease/dfoil).
+       The last sample specified will determine the 'A'
+       versus 'B' allele.
     """
     mvf = MultiVariantFile(args.mvf, 'read')
-    labels = mvf.get_sample_labels()
     data = {}
     current_contig = None
     current_position = 0
     sitepatterns = {}
-    samples = ([labels.index(x) for x in args.samples]
-               if args.samples is not None
-               else range(len(labels)))
-    nsamples = len(samples)
+    # sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    nsamples = len(sample_indices)
     for contig, pos, allelesets in mvf:
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage, allelesets[0]) is False:
@@ -211,7 +236,7 @@ def calc_pattern_count(args):
             continue
         else:
             alleles = mvf.decode(allelesets[0])
-            alleles = [alleles[x] for x in samples]
+            alleles = [alleles[x] for x in sample_indices]
             if any(x in alleles for x in 'X-RYKMWS'):
                 continue
             if len(set(alleles)) > 2:
@@ -231,34 +256,37 @@ def calc_pattern_count(args):
         [MLIB.abpattern(x, nsamples)
          for x in range(0, 2 ** nsamples, 2)])
     outfile = OutputFile(path=args.out, headers=headers)
+    outfile.write("#{}\n".format(",".join(
+        mvf.get_sample_labels(sample_indices))))
     sorted_entries = sorted([(data[k]['contig'],
                               data[k]['position'], k)
                              for k in data])
     for _, _, k in sorted_entries:
         outfile.write_entry(data[k])
     # WRITE LIST OUTPUT
-    sorted_entries = sorted([(data[k]['contig'],
-                              data[k]['position'], k)
-                             for k in data])
-    total_counts = {}
-    for contig, pos, k in sorted_entries:
-        outfilepath = "{}-{}-{}.counts.list".format(
-            args.out, contig, pos)
+    if args.output_lists is True:
+        sorted_entries = sorted([(data[k]['contig'],
+                                  data[k]['position'], k)
+                                 for k in data])
+        total_counts = {}
+        for contig, pos, k in sorted_entries:
+            outfilepath = "{}-{}-{}.counts.list".format(
+                args.out, contig, pos)
+            with open(outfilepath, 'w') as outfile:
+                outfile.write("pattern,count\n")
+                for pattern, pcount in sorted(data[k].items()):
+                    if pattern in ['contig', 'position']:
+                        continue
+                    outfile.write("{},{}\n".format(pattern, pcount))
+                    total_counts[pattern] = (
+                        total_counts.get(pattern, 0) + pcount)
+        outfilepath = "{}-TOTAL.counts.list".format(args.out)
         with open(outfilepath, 'w') as outfile:
             outfile.write("pattern,count\n")
-            for pattern, pcount in sorted(data[k].items()):
+            for pattern, pcount in sorted(total_counts.items()):
                 if pattern in ['contig', 'position']:
                     continue
                 outfile.write("{},{}\n".format(pattern, pcount))
-                total_counts[pattern] = (
-                    total_counts.get(pattern, 0) + pcount)
-    outfilepath = "{}-TOTAL.counts.list".format(args.out)
-    with open(outfilepath, 'w') as outfile:
-        outfile.write("pattern,count\n")
-        for pattern, pcount in sorted(total_counts.items()):
-            if pattern in ['contig', 'position']:
-                continue
-            outfile.write("{},{}\n".format(pattern, pcount))
     return ''
 
 
@@ -267,18 +295,29 @@ def calc_character_count(args):
        spatially along chromosomes
     """
     mvf = MultiVariantFile(args.mvf, 'read')
-    labels = mvf.get_sample_labels()
     data = {}
+    sample_labels = mvf.get_sample_labels()
     current_contig = None
     current_position = 0
-    match_counts = dict().fromkeys(labels, 0)
-    total_counts = dict().fromkeys(labels, 0)
     all_match = 0
     all_total = 0
     data_in_buffer = 0
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    match_counts = dict().fromkeys(
+        [sample_labels[i] for i in sample_indices], 0)
+    total_counts = dict().fromkeys(
+        [sample_labels[i] for i in sample_indices], 0)
     for contig, pos, allelesets in mvf:
         # Check Minimum Site Coverage
-        if check_mincoverage(args.mincoverage, allelesets[0]) is False:
+        if check_mincoverage(args.mincoverage,
+                             allelesets[0]) is False:
             continue
         # Establish first contig
         if current_contig is None:
@@ -304,8 +343,10 @@ def calc_character_count(args):
             else:
                 current_position += (0 if args.windowsize == -1
                                      else args.windowsize)
-            match_counts = dict().fromkeys(labels, 0)
-            total_counts = dict().fromkeys(labels, 0)
+            match_counts = dict().fromkeys(
+                [sample_labels[i] for i in sample_indices], 0)
+            total_counts = dict().fromkeys(
+                [sample_labels[i] for i in sample_indices], 0)
             all_total = 0
             all_match = 0
             data_in_buffer = 0
@@ -322,15 +363,15 @@ def calc_character_count(args):
                     all_total += 1
             else:
                 alleles = mvf.decode(alleles)
-                for i, base in enumerate(alleles):
+                for i in sample_indices:
                     if args.base_match is None:
-                        match_counts[labels[i]] += 1
-                    elif base in args.base_match:
-                        match_counts[labels[i]] += 1
+                        match_counts[sample_labels[i]] += 1
+                    elif alleles[i] in args.base_match:
+                        match_counts[sample_labels[i]] += 1
                     if args.base_total is None:
-                        total_counts[labels[i]] += 1
-                    elif base in args.base_total:
-                        total_counts[labels[i]] += 1
+                        total_counts[sample_labels[i]] += 1
+                    elif alleles[i] in args.base_total:
+                        total_counts[sample_labels[i]] += 1
             data_in_buffer = 1
     if data_in_buffer:
         data[(current_contig, current_position)] = {
@@ -344,7 +385,7 @@ def calc_character_count(args):
                                total_counts[k] + all_total > 0 else 0))])
     # WRITE OUTPUT
     headers = ['contig', 'position']
-    for label in labels:
+    for label in sample_labels:
         headers.extend([label + x for x in ('.match', '.total', '.prop')])
     outfile = OutputFile(path=args.out,
                          headers=headers)
@@ -362,12 +403,19 @@ def calc_pairwise_distances(args):
     """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
-    labels = mvf.get_sample_labels()
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
     current_contig = None
     current_position = 0
     data_in_buffer = False
-    ncol = mvf.metadata['ncol']
-    sample_pairs = [tuple(x) for x in combinations(range(ncol), 2)]
+    sample_pairs = [tuple(x) for x in combinations(sample_indices, 2)]
     base_matches = dict([(x, {}) for x in sample_pairs])
     all_match = {}
     for contig, pos, allelesets in mvf:
@@ -395,8 +443,8 @@ def calc_pairwise_distances(args):
                 elif mvf.flavor == 'prot':
                     ndiff, ntotal = pairwise_distance_prot(
                         base_matches[samplepair])
-                taxa = "{};{}".format(labels[samplepair[0]],
-                                      labels[samplepair[1]])
+                taxa = "{};{}".format(sample_labels[samplepair[0]],
+                                      sample_labels[samplepair[1]])
                 data[(current_contig, current_position)].update({
                     '{};ndiff'.format(taxa): ndiff + all_diff,
                     '{};ntotal'.format(taxa): ntotal + all_total,
@@ -423,6 +471,8 @@ def calc_pairwise_distances(args):
             if 'X' in alleles or '-' in alleles:
                 continue
             samplepair = (0, int(alleles[3:]))
+            if any(x not in sample_indices for x in samplepair):
+                continue
             basepair = "{}{}".format(alleles[0], alleles[2])
             base_matches[samplepair][basepair] = (
                 base_matches[samplepair].get(basepair, 0) + 1)
@@ -433,6 +483,8 @@ def calc_pairwise_distances(args):
                            if x not in 'X-']
         for i, j in combinations(valid_positions, 2):
             samplepair = (i, j)
+            if any(x not in sample_indices for x in samplepair):
+                continue
             basepair = "{}{}".format(alleles[i], alleles[j])
             base_matches[samplepair][basepair] = (
                 base_matches[samplepair].get(basepair, 0) + 1)
@@ -456,8 +508,8 @@ def calc_pairwise_distances(args):
             elif mvf.flavor == 'prot':
                 ndiff, ntotal = pairwise_distance_prot(
                     base_matches[samplepair])
-            taxa = "{};{}".format(labels[samplepair[0]],
-                                  labels[samplepair[1]])
+            taxa = "{};{}".format(sample_labels[samplepair[0]],
+                                  sample_labels[samplepair[1]])
             data[(current_contig, current_position)].update({
                 '{};ndiff'.format(taxa): ndiff + all_diff,
                 '{};ntotal'.format(taxa): ntotal + all_total,
@@ -466,8 +518,8 @@ def calc_pairwise_distances(args):
     headers = ['contig', 'position']
     for samplepair in sample_pairs:
         headers.extend(['{};{};{}'.format(
-            labels[samplepair[0]],
-            labels[samplepair[1]],
+            sample_labels[samplepair[0]],
+            sample_labels[samplepair[1]],
             x) for x in ('ndiff', 'ntotal', 'dist')])
     outfile = OutputFile(path=args.out, headers=headers)
     sorted_entries = sorted([(

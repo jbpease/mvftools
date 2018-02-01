@@ -1,5 +1,31 @@
 # -*- coding: utf-8 -*-
-"""Custom Argparse Calls"""
+"""
+MVFtools: Multisample Variant Format Toolkit
+James B. Pease and Ben K. Rosenzweig
+http://www.github.org/jbpease/mvftools
+
+If you use this software please cite:
+Pease JB and BK Rosenzweig. 2015.
+"Encoding Data Using Biological Principles: the Multisample Variant Format
+for Phylogenomics and Population Genomics"
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+
+This file is part of MVFtools.
+
+MVFtools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+MVFtools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
 
 import os
 import argparse
@@ -52,11 +78,56 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--out", help="Output file",
             required=True, type=os.path.abspath)
 
+    def addarg_outgroup_indices(self, nmin=None):
+        self.add_argument(
+            "--outgroup-indices", "--outgroupindices",
+            nargs=1,
+            help=("Specify comma-separated list of {}outgroup "
+                  "sample numerical indices (first column is 1). "
+                  "Leave blank for all samples. "
+                  "Do not use with --outgroup_labels.".format(
+                    str(nmin) + " or more " if nmin is not None
+                    else "")))
+
+    def addarg_outgroup_labels(self, nmin=None):
+        self.add_argument(
+            "--outgroup-labels", "--outgrouplabels",
+            nargs=1,
+            help=("Specify comma-separated list of {}outgroup "
+                  "sample labels. "
+                  "Labels must be exact (case-sensitive). "
+                  "Leave blank for all samples."
+                  "Do not use with --outgroup_indicies.".format(
+                    str(nmin) + " or more " if nmin is not None
+                    else "")))
+
     def addarg_samples(self):
         self.add_argument(
             "--samples",
             help=("Specify comma-separated list of samples, "
                   "Leave blank for all samples."))
+
+    def addarg_sample_indices(self, nmin=None):
+        self.add_argument(
+            "--sample-indices", "--sampleindices",
+            nargs=1,
+            help=("Specify comma-separated list of {}sample "
+                  "numerical indices (first sample is 1). "
+                  "Leave blank for all samples. "
+                  "Do not use with --sample_labels.".format(
+                    str(nmin) + " or more " if nmin is not None
+                    else "")))
+
+    def addarg_sample_labels(self, nmin=None):
+        self.add_argument(
+            "--sample-labels",
+            nargs=1,
+            help=("Specify comma-separated list of {}sample labels. "
+                  "Labels must be exact (case-sensitive). "
+                  "Leave blank for all samples."
+                  "Do not use with --sample_indicies.".format(
+                    str(nmin) + " or more " if nmin is not None
+                    else "")))
 
     def addarg_windowsize(self):
         self.add_argument(
@@ -96,3 +167,20 @@ def int_range_action(min_value, max_value):
                         option_string, max_value))
             setattr(namespace, self.dest, values)
     return IntRangeAction
+
+
+def mutex_check(args):
+    """Check for Mutually Exclusive arguments in an
+       argparse parsed ArgumentParser"""
+    if "sample_indices" in args and "sample_labels" in args:
+        if (args.sample_indices is not None
+                and args.sample_labels is not None):
+            raise RuntimeError(
+                "--sample-indices and --sample-labels should not "
+                "be used simulataneously.")
+    if "outgroup_indices" in args and "outgroup_labels" in args:
+        if (args.sample_indices is not None
+                and args.sample_labels is not None):
+            raise RuntimeError(
+                "--outgroup-indices and --outgroup-labels should not "
+                "be used simulataneously.")

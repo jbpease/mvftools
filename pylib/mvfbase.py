@@ -596,6 +596,13 @@ class OutputFile(object):
                                      for k in self.headers]) + "\n")
         return ''
 
+    def write(self, data):
+        """Writes data to file
+        """
+        with open(self.path, 'at') as outfile:
+            outfile.write(data)
+        return ''
+
 
 class AnalysisModule(object):
     """General Functions for Analysis Modules
