@@ -826,7 +826,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 
@@ -891,7 +891,7 @@ Parameters
 ``--outgroup-indices/--outgroupindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 1). Leave blank for all samples. Do not use with --outgroup_labels.
+**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
 
 **Type:** None; **Default:** None
 
@@ -918,7 +918,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 
@@ -992,7 +992,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 
@@ -1066,7 +1066,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 
@@ -1140,7 +1140,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 
@@ -1921,7 +1921,7 @@ Parameters
 ``--outgroup-indices/--outgroupindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of 1 or more outgroup sample numerical indices (first column is 1). Leave blank for all samples. Do not use with --outgroup_labels.
+**Description:** Specify comma-separated list of 1 or more outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
 
 **Type:** None; **Default:** None
 
@@ -1958,7 +1958,7 @@ Parameters
 ``--sample-indices/--sampleindices``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 1). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
 **Type:** None; **Default:** None
 

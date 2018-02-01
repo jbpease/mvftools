@@ -83,7 +83,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--outgroup-indices", "--outgroupindices",
             nargs=1,
             help=("Specify comma-separated list of {}outgroup "
-                  "sample numerical indices (first column is 1). "
+                  "sample numerical indices (first column is 0). "
                   "Leave blank for all samples. "
                   "Do not use with --outgroup_labels.".format(
                     str(nmin) + " or more " if nmin is not None
@@ -112,7 +112,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--sample-indices", "--sampleindices",
             nargs=1,
             help=("Specify comma-separated list of {}sample "
-                  "numerical indices (first sample is 1). "
+                  "numerical indices (first sample is 0). "
                   "Leave blank for all samples. "
                   "Do not use with --sample_labels.".format(
                     str(nmin) + " or more " if nmin is not None
