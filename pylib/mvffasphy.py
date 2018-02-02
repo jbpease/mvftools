@@ -106,13 +106,20 @@ def mvf2fasta(args):
                 args.output_data, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.metadata['contigs'])
-
-    sample_cols = mvf.get_sample_indices(args.samples or None)
-    labels = mvf.get_sample_labels(sample_cols)
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
     skipcontig = ''
     tmp_files = dict((fn, open("{}-{}.tmp".format(
-        fn, randint(1000000, 9999999)), 'w+', args.buffer)) for fn in labels)
-    labelwritten = dict.fromkeys(labels, False)
+        fn, randint(1000000, 9999999)), 'w+', args.buffer))
+        for fn in sample_labels)
+    labelwritten = dict.fromkeys(sample_labels, False)
     for contig, pos, allelesets in mvf.iterentries(
             contigs=[x for x in max_region_coord],
             quiet=args.quiet, decode=True):
@@ -132,7 +139,7 @@ def mvf2fasta(args):
                         break
         if inregion is False:
             continue
-        for col, label in zip(sample_cols, labels):
+        for col, label in zip(sample_indices, sample_labels):
             if not labelwritten[label]:
                 if args.label_type == 'long':
                     xlabel = "{} region={}".format(label, regionlabel)
@@ -279,12 +286,20 @@ def mvf2phy(args):
     if args.region is not None:
         _, max_region_coord, _ = parse_regions_arg(
             args.region, mvf.metadata['contigs'])
-    sample_cols = mvf.get_sample_indices(args.samples or None)
-    labels = mvf.get_sample_labels(sample_cols)
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
     skipcontig = ''
     tmp_files = dict((fn, open("{}-{}.tmp".format(
-        fn, randint(1000000, 9999999)), 'w+', args.buffer)) for fn in labels)
-    labelwritten = dict.fromkeys(labels, False)
+        fn, randint(1000000, 9999999)), 'w+', args.buffer))
+        for fn in sample_labels)
+    labelwritten = dict.fromkeys(sample_labels, False)
     curcontigname = None
     curcontigstart = 1
     curcontigend = 1
@@ -312,7 +327,7 @@ def mvf2phy(args):
             # reset start as one position after end of last
             curcontigstart = curcontigend
             curcontigend = curcontigend + 1
-        for col, label in zip(sample_cols, labels):
+        for col, label in zip(sample_indices, sample_labels):
             if not labelwritten[label]:
                 if args.label_type == 'long':
                     tmp_files[label].write("{}{}".format(
@@ -325,18 +340,18 @@ def mvf2phy(args):
                 tmp_files[label].write(
                     allelesets[0][col] == 'X' and
                     'N' or allelesets[0][col])
-                if label == labels[0]:
+                if label == sample_labels[0]:
                     curcontigend += 1
             elif ((mvf.flavor == 'codon' and args.output_data == 'prot') or (
                     mvf.flavor == 'prot')):
                 tmp_files[label].write(allelesets[0][col])
-                if label == labels[0]:
+                if label == sample_labels[0]:
                     curcontigend += 1
             elif mvf.flavor == 'codon':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
-                if label == labels[0]:
+                if label == sample_labels[0]:
                     curcontigend += 3
     first_file = True
     totalseqlen = 0
@@ -352,14 +367,15 @@ def mvf2phy(args):
                     else:
                         totalseqlen += len(buff.strip())
                     buff = filehandler.read(args.buffer)
-                outfile.write("{} {}\n".format(len(labels), totalseqlen))
+                outfile.write("{} {}\n".format(
+                    len(sample_labels), totalseqlen))
                 first_file = False
             filehandler.seek(0, 0)
             buff = filehandler.read(args.buffer)
             while buff != '':
                 if first_file is True:
                     outfile.write("{} {}\n".format(
-                        len(labels), len(buff.split()[1])))
+                        len(sample_labels), len(buff.split()[1])))
                     first_file = False
                 outfile.write(buff)
                 buff = filehandler.read(args.buffer)

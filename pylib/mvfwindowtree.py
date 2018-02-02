@@ -465,13 +465,19 @@ def infer_window_tree(args):
                  'alignlength', 'aligndepth', 'status'])
     topofile = OutputFile(args.out + '.counts',
                           headers=['rank', 'topology', 'count'])
-    sample_cols = (None if args.samples is None else
-                   mvf.get_sample_indices(args.samples.split(",")))
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
     if not os.path.exists(args.temp_dir):
         os.mkdir(args.temp_dir)
     os.chdir(args.temp_dir)
     # SETUP PARAMS
-    main_labels = mvf.get_sample_labels(sample_cols)
+    main_labels = mvf.get_sample_labels(sample_indices)
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
@@ -499,7 +505,7 @@ def infer_window_tree(args):
     topo_ids = {}
     topo_counts = {}
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=args.contigs, subset=sample_cols, quiet=args.quiet,
+            contigs=args.contigs, subset=sample_indices, quiet=args.quiet,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
         if current_contig == contig:
             if skip_contig is True:

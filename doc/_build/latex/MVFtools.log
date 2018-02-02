@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Arch Linux) (preloaded format=pdflatex 2017.11.17)  1 FEB 2018 16:20
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Arch Linux) (preloaded format=pdflatex 2017.11.17)  2 FEB 2018 07:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1205,13 +1205,13 @@ LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10.95> not available
 ]
 Chapter 5.
 [47]
-LaTeX Font Info:    Try loading font information for TS1+pcr on input line 2348
+LaTeX Font Info:    Try loading font information for TS1+pcr on input line 2369
 .
  (/usr/share/texmf-dist/tex/latex/psnfss/ts1pcr.fd
 File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
 )
 LaTeX Font Info:    Font shape `TS1/pcr/m/it' in size <10> not available
-(Font)              Font shape `TS1/pcr/m/sl' tried instead on input line 2348.
+(Font)              Font shape `TS1/pcr/m/sl' tried instead on input line 2369.
 
  [48] [49] [50] [51]
 [52]
@@ -1231,22 +1231,22 @@ Chapter 8.
 ]
 Chapter 9.
 (./MVFtools.ind)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 2716.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 2737.
  [59]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 2716.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 2737.
  (./MVFtools.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 2716.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 2716.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 2737.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 2737.
 
 Package rerunfilecheck Info: File `MVFtools.out' has not changed.
 (rerunfilecheck)             Checksum: 1FB922F0421DA1C8A56236405D6DC407;8121.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2716.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 2737.
  ) 
 Here is how much of TeX's memory you used:
- 14364 strings out of 492985
- 200247 string characters out of 6138637
- 457021 words of memory out of 5000000
- 17209 multiletter control sequences out of 15000+600000
+ 14370 strings out of 492985
+ 200352 string characters out of 6138637
+ 457270 words of memory out of 5000000
+ 17212 multiletter control sequences out of 15000+600000
  54085 words of font info for 88 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
  37i,12n,51p,1880b,498s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1259,10 +1259,10 @@ helvetic/uhvb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/helvetic/uhvbo8a.pfb
 ></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist
 /fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/
 utmri8a.pfb>
-Output written on MVFtools.pdf (63 pages, 224392 bytes).
+Output written on MVFtools.pdf (63 pages, 225388 bytes).
 PDF statistics:
- 1001 PDF objects out of 1200 (max. 8388607)
- 909 compressed objects within 10 object streams
- 393 named destinations out of 1000 (max. 500000)
+ 1004 PDF objects out of 1200 (max. 8388607)
+ 912 compressed objects within 10 object streams
+ 396 named destinations out of 1000 (max. 500000)
  514 words of extra memory for PDF output out of 10000 (max. 10000000)
 

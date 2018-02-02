@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1",
+                            version="0.5.1.1",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -238,7 +238,8 @@ class MVFcall(object):
                                 help="Output path of FASTA file.",
                                 required=True)
             parser.addarg_regions()
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             parser.add_argument(
                 "--label-type", "--labeltype",
                 choices=('long', 'short'), default='long',
@@ -259,6 +260,7 @@ class MVFcall(object):
             return parser
         args = parser.parse_args(self.arguments[1:])
         mvf2fasta(args)
+        mutex_check(args)
         return ''
 
     def ConvertMVF2Phylip(self):
@@ -281,7 +283,8 @@ class MVFcall(object):
                 "--output-data", "--outputdata",
                 choices=("dna", "rna", "prot"),
                 help="Output dna, rna or prot data.")
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             parser.add_argument(
                 "--buffer", type=int, default=100000,
                 help="size (bp) of write buffer for each sample")
@@ -299,6 +302,7 @@ class MVFcall(object):
             return parser
 
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvf2phy(args)
         return ''
 
@@ -432,6 +436,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
         mvfanalysis.calc_dstat_combinations(args)
         return ''
 
@@ -659,7 +664,8 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
-            parser.addarg_samples()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
             parser.addarg_contigs()
             parser.addarg_windowsize()
             parser.add_argument(
