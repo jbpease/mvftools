@@ -128,14 +128,23 @@ def calc_dstat_combinations(args):
                     continue
                 if len(set(subset)) != 2:
                     continue
-                val = (1 * (subset[1] == subset[-1]) +
-                       2 * (subset[2] == subset[-1]))
+                # [ABBA, BABA, BBAA]
+                val = (0 +
+                       1 * (subset[0] == subset[3]) +
+                       2 * (subset[1] == subset[3]) +
+                       4 * (subset[2] == subset[3]))
+                if val == 1 or val == 2:
+                    val -= 1
+                elif val == 4:
+                    val = 2
+                else:
+                    continue
                 tetrad = (i, j, k, outgroup)
                 if tetrad not in data:
                     data[tetrad] = {}
                 if contig not in data[tetrad]:
                     data[tetrad][contig] = [0, 0, 0]
-                data[tetrad][contig][val - 1] += 1
+                data[tetrad][contig][val] += 1
     # WRITE OUTPUT
     headers = ['sample0', 'sample1', 'sample2', "outgroup"]
     for xcontig in contigs:
@@ -160,8 +169,7 @@ def calc_dstat_combinations(args):
                         '{}:abba'.format(contig),
                         '{}:baba'.format(contig),
                         '{}:bbaa'.format(contig),
-                        '{}:D'.format(contig)],
-                                                 '0'))
+                        '{}:D'.format(contig)], '0'))
                 else:
                     [abba, baba, bbaa] = data[tetrad][contig]
                     if abba > baba and abba > bbaa:
