@@ -63,6 +63,7 @@ def calc_sample_coverage(args):
       """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
+    # Set up sample indices
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -72,8 +73,16 @@ def calc_sample_coverage(args):
             labels=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    # Set up contig ids
+    if args.contig_ids is not None:
+        contig_ids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contig_ids = mvf.get_contig_ids(
+            labels=args.contig_labels[0].split(","))
+    else:
+        contig_ids = mvf.get_contig_ids()
     for contig, _, allelesets in mvf.iterentries(
-            contigs=args.contigs, subset=sample_indices,
+            contigs=contig_ids, subset=sample_indices,
             decode=True):
         if contig not in data:
             data[contig] = dict.fromkeys(sample_labels, 0)
@@ -111,12 +120,18 @@ def calc_dstat_combinations(args):
             labels=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    if args.contig_ids is not None:
+        contig_ids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contig_ids = mvf.get_contig_ids(
+            labels=args.contig_labels[0].split(","))
+    else:
+        contig_ids = mvf.get_contig_ids()
     if any(x in outgroup_indices for x in sample_indices):
         raise RuntimeError("Sample and Outgroup column lists cannot overlap.")
-    contigs = (args.contigs.split(",")
-               if args.contigs is not None
-               else mvf.get_contig_labels())
     for contig, _, allelesets in mvf:
+        if contig not in contig_ids:
+            continue
         alleles = mvf.decode(allelesets[0])
         for i, j, k in combinations(sample_indices, 3):
             for outgroup in outgroup_indices:
@@ -147,7 +162,7 @@ def calc_dstat_combinations(args):
                 data[tetrad][contig][val] += 1
     # WRITE OUTPUT
     headers = ['sample0', 'sample1', 'sample2', "outgroup"]
-    for xcontig in contigs:
+    for xcontig in contig_ids:
         headers.extend(['{}:abba'.format(xcontig),
                         '{}:baba'.format(xcontig),
                         '{}:bbaa'.format(xcontig),
@@ -163,7 +178,7 @@ def calc_dstat_combinations(args):
                            sample_labels[x])
                           for i, x in enumerate(tetrad[:3])])
             entry['outgroup'] = sample_labels[outgroup]
-            for contig in contigs:
+            for contig in contig_ids:
                 if contig not in data[tetrad]:
                     entry.update(dict().fromkeys([
                         '{}:abba'.format(contig),
@@ -304,12 +319,13 @@ def calc_character_count(args):
     """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
-    sample_labels = mvf.get_sample_labels()
     current_contig = None
     current_position = 0
     all_match = 0
     all_total = 0
     data_in_buffer = 0
+    # Set up sample indices
+    sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -318,6 +334,14 @@ def calc_character_count(args):
             labels=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    # Set up contig ids
+    if args.contig_ids is not None:
+        contig_ids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contig_ids = mvf.get_contig_ids(
+            labels=args.contig_labels[0].split(","))
+    else:
+        contig_ids = mvf.get_contig_ids()
     match_counts = dict().fromkeys(
         [sample_labels[i] for i in sample_indices], 0)
     total_counts = dict().fromkeys(
@@ -326,6 +350,8 @@ def calc_character_count(args):
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage,
                              allelesets[0]) is False:
+            continue
+        if contig not in contig_ids:
             continue
         # Establish first contig
         if current_contig is None:

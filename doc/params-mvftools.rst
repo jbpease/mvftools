@@ -90,9 +90,119 @@ Parameters
 **Type:** boolean flag
 
 
-.. ConvertFasta2MVF:
+.. CalcCharacterCount:
 
-ConvertFasta2MVF
+CalcCharacterCount
+==================
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--base-match/--basematch``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** String of bases to match (i.e. numerator).
+
+**Type:** None; **Default:** None
+
+
+
+``--base-total/--basetotal``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** String of bases for total (i.e. denominator).
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. CalcPatternCount:
+
+CalcPatternCount
 ================
 
 Description
@@ -111,77 +221,652 @@ Parameters
 
 
 
-``--fasta`` (required)
-^^^^^^^^^^^^^^^^^^^^^^
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
 
-**Description:** input FASTA file(s)
+**Description:** Input MVF file.
 
-**Type:** None; **Default:** None
+**Type:** file path; **Default:** None
 
 
 
 ``--out`` (required)
 ^^^^^^^^^^^^^^^^^^^^
 
-**Description:** output MVF file
+**Description:** Output file
 
-**Type:** None; **Default:** None
+**Type:** file path; **Default:** None
 
 
 
-``--contig-by-file/--contigbyfile``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
 
-**Description:** Contigs are designated by separate files.
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
 
 **Type:** boolean flag
 
 
 
-``--contig-field/--contigfield``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** When headers are split by --field-sep, the 0-based index of the contig id.
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
 
-**Type:** integer; **Default:** None
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. CalcSampleCoverage:
+
+CalcSampleCoverage
+==================
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
 
 
 
 ``--contig-ids/--contigids``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** manually specify one or more contig ids as ID:NAME
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
 
 **Type:** None; **Default:** None
 
 
 
-``--field-sep/--fieldsep``
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. InferTree:
+
+InferTree
+=========
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--bootstrap``
+^^^^^^^^^^^^^^^
+
+**Description:** turn on rapid bootstrapping for RAxML and perform specified number of replicates
+
+**Type:** integer; **Default:** None
+
+
+
+``--choose-allele/--chooseallele/--hapmode``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele; minor=pick the less common allele; majorminor= pick the major in 'a' and minor in 'b'
+
+**Type:** None; **Default:** none
+
+**Choices:** ['none', 'randomone', 'randomboth', 'major', 'minor', 'majorminor']
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--duplicate-seq/--duplicateseq``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment
+
+**Type:** None; **Default:** dontuse
+
+**Choices:** ['dontuse', 'keep', 'remove']
+
+
+``--min-depth/--mindepth``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** FASTA field separator; assumes '>database accession locus' format
+**Description:** minimum number of alleles per site
 
-**Type:** None; **Default:** None
-
-**Choices:** ['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED', 'PIPE', 'AT', 'UNDER', 'DBLUNDER']
+**Type:** integer; **Default:** 4
 
 
-``--flavor``
-^^^^^^^^^^^^
 
-**Description:** type of file [dna] or protein
+``--min-seq-coverage/--minseqcoverage``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Type:** None; **Default:** dna
+**Description:** proportion of total alignment a sequencemust cover to be retianed [0.1]
 
-**Choices:** ['dna', 'protein']
+**Type:** float; **Default:** 0.1
 
 
-``--manual-coord/--manualcoord``
+
+``--min-sites/--minsites``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** minimum number of sites 
+
+**Type:** integer; **Default:** 100
+
+
+
+``--output-contig-labels/--outputcontiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output will use contig labels instead of id numbers.
+
+**Type:** boolean flag
+
+
+
+``--output-empty/--outputempty``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** manually specify reference coordinates for each file in the format CONTIGID:START..STOP, ...
+**Description:** Include entries of windows with no data in output.
+
+**Type:** boolean flag
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--raxml-model/--raxmlmodel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** choose RAxML model
+
+**Type:** None; **Default:** GTRGAMMA
+
+
+
+``--raxml-opts/--raxmlopts``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** specify additional RAxML arguments as a double-quotes encased string
+
+**Type:** None; **Default:** 
+
+
+
+``--raxml-outgroups/--raxmloutgroups``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Comma-separated list of outgroup taxon labels to use in RAxML.
 
 **Type:** None; **Default:** None
+
+
+
+``--raxml-path/--raxmlpath``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** RAxML path for manual specification.
+
+**Type:** None; **Default:** raxml
+
+
+
+``--root-with/--rootwith``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Comma-separated list of taxon labels to root trees with after RAxML
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--temp-dir/--tempdir``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Temporary directory path
+
+**Type:** file path; **Default:** ./raxmltemp
+
+
+
+``--temp-prefix/--tempprefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Temporary file prefix
+
+**Type:** None; **Default:** mvftree
+
+
+.. InferGroupSpecificAllele:
+
+InferGroupSpecificAllele
+========================
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--all-sample-trees/--allsampletrees``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Makes trees from all samples instead of only the most complete sequence from each species
+
+**Type:** boolean flag
+
+
+
+``--allele-groups/--allelegroups``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** GROUP1:LABEL,LABEL GROUP2:LABEL,LABEL 
+
+**Type:** None; **Default:** None
+
+
+
+``--branch-lrt/--branchlrt``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify the output file for and turn on the RAxML-PAML format LRT test scan for selection on the target branch in addition to the basic patterns scan
+
+**Type:** file path; **Default:** None
+
+
+
+``--chi-test/--chitest``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input two number values for expected Nonsynonymous and Synonymous expected values.
+
+**Type:** None; **Default:** None
+
+
+
+``--codeml-path/--codemlpath``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Full path for PAML codeml executable.
+
+**Type:** file path; **Default:** codeml
+
+
+
+``--end-contig/--endcontig``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Numerical id for the ending contig.
+
+**Type:** integer; **Default:** 100000000
+
+
+
+``--gff``
+^^^^^^^^^
+
+**Description:** Input gff annotation file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--num-target-species/--targetspec``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify the minimum number of taxa in the target set that are required to conduct analysis
+
+**Type:** integer; **Default:** 1
+
+
+
+``--outgroup``
+^^^^^^^^^^^^^^
+
+**Description:** Specify sample name with which to root trees.
+
+**Type:** None; **Default:** None
+
+
+
+``--output-align/--outputalign``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output alignment to this file path in phylip format.
+
+**Type:** None; **Default:** None
+
+
+
+``--paml-tmp/--pamltmp``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** path for temporary folder for PAML output files
+
+**Type:** file path; **Default:** pamltmp
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--raxml-path/--raxmlpath``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Full path to RAxML program executable.
+
+**Type:** file path; **Default:** raxml
+
+
+
+``--samples``
+^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of samples, Leave blank for all samples.
+
+**Type:** None; **Default:** None
+
+
+
+``--species-groups/--speciesgroups``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** None
+
+**Type:** None; **Default:** None
+
+
+
+``--start-contig/--startcontig``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Numerical ID for the starting contig.
+
+**Type:** integer; **Default:** 0
+
+
+
+``--target``
+^^^^^^^^^^^^
+
+**Description:** Specify the taxa labels that define the target lineage-specific branch to be tested.
+
+**Type:** None; **Default:** None
+
+
+
+``--use-labels/--uselabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Use contig labels instead of IDs in output.
+
+**Type:** boolean flag
+
+
+
+``--verbose``
+^^^^^^^^^^^^^
+
+**Description:** additional screen output
+
+**Type:** boolean flag
+
+
+.. FilterMVF:
+
+FilterMVF
+=========
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--actions``
+^^^^^^^^^^^^^
+
+**Description:** set of actions:args to perform, note these are done in order as listed
+
+**Type:** None; **Default:** None
+
+
+
+``--labels``
+^^^^^^^^^^^^
+
+**Description:** use sample labels instead of indices
+
+**Type:** boolean flag
+
+
+
+``--line-buffer/--linebuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Number of entries to store in memory at a time.
+
+**Type:** integer; **Default:** 100000
+
+
+
+``--more-help/--morehelp``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** prints full module list and descriptions
+
+**Type:** boolean flag
 
 
 
@@ -203,48 +888,30 @@ Parameters
 
 
 
-``--read-buffer/--readbuffer``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--test``
+^^^^^^^^^^
 
-**Description:** number of lines to hold in READ buffer
-
-**Type:** integer; **Default:** 100000
-
-
-
-``--ref-label/--reflabel``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** label for reference sample
-
-**Type:** None; **Default:** REF
-
-
-
-``--sample-field/--samplefield``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** when headers are split by --field-sep, the 0-based index of the sample id
-
-**Type:** integer; **Default:** None
-
-
-
-``--sample-replace/--samplereplace``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
+**Description:** manually input a line for testing
 
 **Type:** None; **Default:** None
 
 
 
-``--write-buffer/--writebuffer``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--test-nchar/--textnchar``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** number of lines to hold in WRITE buffer
+**Description:** total number of samples for test string
 
-**Type:** integer; **Default:** 100000
+**Type:** integer; **Default:** None
+
+
+
+``--verbose``
+^^^^^^^^^^^^^
+
+**Description:** report every line (for debugging)
+
+**Type:** boolean flag
 
 
 .. ConvertMAF2MVF:
@@ -451,10 +1118,10 @@ Parameters
 **Type:** None; **Default:** .
 
 
-.. ConvertMVF2Phylip:
+.. CalcDstatCombinations:
 
-ConvertMVF2Phylip
-=================
+CalcDstatCombinations
+=====================
 
 Description
 -----------
@@ -484,54 +1151,228 @@ Parameters
 ``--out`` (required)
 ^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Output Phylip file.
+**Description:** Output file
 
 **Type:** file path; **Default:** None
 
 
 
-``--buffer``
-^^^^^^^^^^^^
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** size (bp) of write buffer for each sample
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--outgroup-indices/--outgroupindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--outgroup-labels/--outgrouplabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. CalcPairwiseDistances:
+
+CalcPairwiseDistances
+=====================
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. TranslateMVF:
+
+TranslateMVF
+============
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--filter-annotation/--filterannotation``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** skip GFF entries with text matching this in their 'Notes' field
+
+**Type:** None; **Default:** None
+
+
+
+``--gff``
+^^^^^^^^^
+
+**Description:** Input GFF3 file. If GFF3 not provided, alignments are assumed to be in-frame coding sequences.
+
+**Type:** file path; **Default:** None
+
+
+
+``--line-buffer/--linebuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Number of entries to store in memory at a time.
 
 **Type:** integer; **Default:** 100000
 
 
 
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
-
-**Type:** None; **Default:** None
-
-
-
-``--label-type/--labeltype``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Long labels with all metadata or short ids
-
-**Type:** None; **Default:** short
-
-**Choices:** ('long', 'short')
-
-
 ``--output-data/--outputdata``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Output dna, rna or prot data.
+**Description:** protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3
 
-**Type:** None; **Default:** None
+**Type:** None; **Default:** codon
 
-**Choices:** ('dna', 'rna', 'prot')
+**Choices:** ['protein', 'codon']
 
 
-``--partition``
+``--overwrite``
 ^^^^^^^^^^^^^^^
 
-**Description:** Output a CSV partitions file with RAxMLformatting for use in partitioned phylogenetic methods.
+**Description:** USE WITH CAUTION: force overwrite of outputs
 
 **Type:** boolean flag
 
@@ -545,40 +1386,96 @@ Parameters
 **Type:** boolean flag
 
 
+.. JoinMVF:
 
-``--regions``
+JoinMVF
+=======
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
 ^^^^^^^^^^^^^
 
-**Description:** Path of a plain text file containing one more lines with entries 'contigid,stop,start' (one per line, inclusive coordinates) all data will be returned if left blank.
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** One or more mvf files.
 
 **Type:** file path; **Default:** None
 
 
 
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--line-buffer/--linebuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Number of entries to store in memory at a time.
+
+**Type:** integer; **Default:** 100000
+
+
+
+``--main_header_file/--mainheaderfile``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file will use same headers as this input file (default=first in list).
 
 **Type:** None; **Default:** None
 
 
 
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
+``--new-contigs/--newcontigs``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+**Description:** By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's contigs as distinct.
 
-**Type:** None; **Default:** None
+**Type:** boolean flag
 
 
 
-``--temp_dir/--tempdir``
-^^^^^^^^^^^^^^^^^^^^^^^^
+``--newsamples``
+^^^^^^^^^^^^^^^^
 
-**Description:** directory to write temporary fasta files
+**Description:** By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's sample columns as distinct.
 
-**Type:** None; **Default:** .
+**Type:** boolean flag
+
+
+
+``--overwrite``
+^^^^^^^^^^^^^^^
+
+**Description:** USE WITH CAUTION: force overwrite of outputs
+
+**Type:** boolean flag
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
 
 
 .. ConvertVCF2MVF:
@@ -757,111 +1654,10 @@ Parameters
 **Type:** file path; **Default:** None
 
 
-.. CalcCharacterCount:
+.. ConvertMVF2Phylip:
 
-CalcCharacterCount
-==================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--base-match/--basematch``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** String of bases to match (i.e. numerator).
-
-**Type:** None; **Default:** None
-
-
-
-``--base-total/--basetotal``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** String of bases for total (i.e. denominator).
-
-**Type:** None; **Default:** None
-
-
-
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
-
-**Type:** None; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CalcDstatCombinations:
-
-CalcDstatCombinations
-=====================
+ConvertMVF2Phylip
+=================
 
 Description
 -----------
@@ -891,788 +1687,45 @@ Parameters
 ``--out`` (required)
 ^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Output file
+**Description:** Output Phylip file.
 
 **Type:** file path; **Default:** None
 
 
 
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
-
-**Type:** None; **Default:** None
-
-
-
-``--outgroup-indices/--outgroupindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--outgroup-labels/--outgrouplabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies.
-
-**Type:** None; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CalcPairwiseDistances:
-
-CalcPairwiseDistances
-=====================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CalcPatternCount:
-
-CalcPatternCount
-================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CalcSampleCoverage:
-
-CalcSampleCoverage
-==================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
-
-**Type:** None; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CheckMVF:
-
-CheckMVF
-========
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-.. FilterMVF:
-
-FilterMVF
-=========
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--actions``
-^^^^^^^^^^^^^
-
-**Description:** set of actions:args to perform, note these are done in order as listed
-
-**Type:** None; **Default:** None
-
-
-
-``--labels``
+``--buffer``
 ^^^^^^^^^^^^
 
-**Description:** use sample labels instead of indices
-
-**Type:** boolean flag
-
-
-
-``--line-buffer/--linebuffer``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Number of entries to store in memory at a time.
+**Description:** size (bp) of write buffer for each sample
 
 **Type:** integer; **Default:** 100000
 
 
 
-``--more-help/--morehelp``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** prints full module list and descriptions
-
-**Type:** boolean flag
-
-
-
-``--overwrite``
-^^^^^^^^^^^^^^^
-
-**Description:** USE WITH CAUTION: force overwrite of outputs
-
-**Type:** boolean flag
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--test``
-^^^^^^^^^^
-
-**Description:** manually input a line for testing
-
-**Type:** None; **Default:** None
-
-
-
-``--test-nchar/--textnchar``
+``--label-type/--labeltype``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** total number of samples for test string
+**Description:** Long labels with all metadata or short ids
 
-**Type:** integer; **Default:** None
+**Type:** None; **Default:** short
 
-
-
-``--verbose``
-^^^^^^^^^^^^^
-
-**Description:** report every line (for debugging)
-
-**Type:** boolean flag
+**Choices:** ('long', 'short')
 
 
-.. InferGroupSpecificAllele:
-
-InferGroupSpecificAllele
-========================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--all-sample-trees/--allsampletrees``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Makes trees from all samples instead of only the most complete sequence from each species
-
-**Type:** boolean flag
-
-
-
-``--allele-groups/--allelegroups``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** GROUP1:LABEL,LABEL GROUP2:LABEL,LABEL 
-
-**Type:** None; **Default:** None
-
-
-
-``--branch-lrt/--branchlrt``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify the output file for and turn on the RAxML-PAML format LRT test scan for selection on the target branch in addition to the basic patterns scan
-
-**Type:** file path; **Default:** None
-
-
-
-``--chi-test/--chitest``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input two number values for expected Nonsynonymous and Synonymous expected values.
-
-**Type:** None; **Default:** None
-
-
-
-``--codeml-path/--codemlpath``
+``--output-data/--outputdata``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Full path for PAML codeml executable.
-
-**Type:** file path; **Default:** codeml
-
-
-
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
+**Description:** Output dna, rna or prot data.
 
 **Type:** None; **Default:** None
 
+**Choices:** ('dna', 'rna', 'prot')
 
 
-``--end-contig/--endcontig``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Numerical id for the ending contig.
-
-**Type:** integer; **Default:** 100000000
-
-
-
-``--gff``
-^^^^^^^^^
-
-**Description:** Input gff annotation file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--num-target-species/--targetspec``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify the minimum number of taxa in the target set that are required to conduct analysis
-
-**Type:** integer; **Default:** 1
-
-
-
-``--outgroup``
-^^^^^^^^^^^^^^
-
-**Description:** Specify sample name with which to root trees.
-
-**Type:** None; **Default:** None
-
-
-
-``--output-align/--outputalign``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output alignment to this file path in phylip format.
-
-**Type:** None; **Default:** None
-
-
-
-``--paml-tmp/--pamltmp``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** path for temporary folder for PAML output files
-
-**Type:** file path; **Default:** pamltmp
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--raxml-path/--raxmlpath``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Full path to RAxML program executable.
-
-**Type:** file path; **Default:** raxml
-
-
-
-``--samples``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of samples, Leave blank for all samples.
-
-**Type:** None; **Default:** None
-
-
-
-``--species-groups/--speciesgroups``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** None
-
-**Type:** None; **Default:** None
-
-
-
-``--start-contig/--startcontig``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Numerical ID for the starting contig.
-
-**Type:** integer; **Default:** 0
-
-
-
-``--target``
-^^^^^^^^^^^^
-
-**Description:** Specify the taxa labels that define the target lineage-specific branch to be tested.
-
-**Type:** None; **Default:** None
-
-
-
-``--use-labels/--uselabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Use contig labels instead of IDs in output.
-
-**Type:** boolean flag
-
-
-
-``--verbose``
-^^^^^^^^^^^^^
-
-**Description:** additional screen output
-
-**Type:** boolean flag
-
-
-.. InferTree:
-
-InferTree
-=========
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--bootstrap``
+``--partition``
 ^^^^^^^^^^^^^^^
 
-**Description:** turn on rapid bootstrapping for RAxML and perform specified number of replicates
-
-**Type:** integer; **Default:** None
-
-
-
-``--choose-allele/--chooseallele/--hapmode``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele; minor=pick the less common allele; majorminor= pick the major in 'a' and minor in 'b'
-
-**Type:** None; **Default:** none
-
-**Choices:** ['none', 'randomone', 'randomboth', 'major', 'minor', 'majorminor']
-
-
-``--contigs``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contigs.
-
-**Type:** None; **Default:** None
-
-
-
-``--duplicate-seq/--duplicateseq``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment
-
-**Type:** None; **Default:** dontuse
-
-**Choices:** ['dontuse', 'keep', 'remove']
-
-
-``--min-depth/--mindepth``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** minimum number of alleles per site
-
-**Type:** integer; **Default:** 4
-
-
-
-``--min-seq-coverage/--minseqcoverage``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** proportion of total alignment a sequencemust cover to be retianed [0.1]
-
-**Type:** float; **Default:** 0.1
-
-
-
-``--min-sites/--minsites``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** minimum number of sites 
-
-**Type:** integer; **Default:** 100
-
-
-
-``--output-contig-labels/--outputcontiglabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output will use contig labels instead of id numbers.
-
-**Type:** boolean flag
-
-
-
-``--output-empty/--outputempty``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Include entries of windows with no data in output.
+**Description:** Output a CSV partitions file with RAxMLformatting for use in partitioned phylogenetic methods.
 
 **Type:** boolean flag
 
@@ -1687,48 +1740,12 @@ Parameters
 
 
 
-``--raxml-model/--raxmlmodel``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--regions``
+^^^^^^^^^^^^^
 
-**Description:** choose RAxML model
+**Description:** Path of a plain text file containing one more lines with entries 'contigid,stop,start' (one per line, inclusive coordinates) all data will be returned if left blank.
 
-**Type:** None; **Default:** GTRGAMMA
-
-
-
-``--raxml-opts/--raxmlopts``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** specify additional RAxML arguments as a double-quotes encased string
-
-**Type:** None; **Default:** 
-
-
-
-``--raxml-outgroups/--raxmloutgroups``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Comma-separated list of outgroup taxon labels to use in RAxML.
-
-**Type:** None; **Default:** None
-
-
-
-``--raxml-path/--raxmlpath``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** RAxML path for manual specification.
-
-**Type:** None; **Default:** raxml
-
-
-
-``--root-with/--rootwith``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Comma-separated list of taxon labels to root trees with after RAxML
-
-**Type:** None; **Default:** None
+**Type:** file path; **Default:** None
 
 
 
@@ -1750,113 +1767,12 @@ Parameters
 
 
 
-``--temp-dir/--tempdir``
+``--temp_dir/--tempdir``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Temporary directory path
+**Description:** directory to write temporary fasta files
 
-**Type:** file path; **Default:** ./raxmltemp
-
-
-
-``--temp-prefix/--tempprefix``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Temporary file prefix
-
-**Type:** None; **Default:** mvftree
-
-
-.. JoinMVF:
-
-JoinMVF
-=======
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** One or more mvf files.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--line-buffer/--linebuffer``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Number of entries to store in memory at a time.
-
-**Type:** integer; **Default:** 100000
-
-
-
-``--main_header_file/--mainheaderfile``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file will use same headers as this input file (default=first in list).
-
-**Type:** None; **Default:** None
-
-
-
-``--new-contigs/--newcontigs``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's contigs as distinct.
-
-**Type:** boolean flag
-
-
-
-``--newsamples``
-^^^^^^^^^^^^^^^^
-
-**Description:** By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's sample columns as distinct.
-
-**Type:** boolean flag
-
-
-
-``--overwrite``
-^^^^^^^^^^^^^^^
-
-**Description:** USE WITH CAUTION: force overwrite of outputs
-
-**Type:** boolean flag
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
+**Type:** None; **Default:** .
 
 
 .. PlotChromoplot:
@@ -1896,7 +1812,7 @@ Parameters
 
 **Type:** None; **Default:** None
 
-**Choices:** {'lgrey': (250, 250, 250), 'dgrey': (192, 192, 192), 'black': (0, 0, 0), 'white': (255, 255, 255), 'red': (192, 0, 0), 'orange': (217, 95, 2), 'yellow': (192, 192, 0), 'green': (0, 192, 0), 'blue': (0, 0, 192), 'teal': (27, 158, 119), 'puce': (117, 112, 179), 'purple': (192, 0, 192), 'none': ()}
+**Choices:** {'teal': (27, 158, 119), 'green': (0, 192, 0), 'red': (192, 0, 0), 'dgrey': (192, 192, 192), 'blue': (0, 0, 192), 'puce': (117, 112, 179), 'black': (0, 0, 0), 'orange': (217, 95, 2), 'white': (255, 255, 255), 'lgrey': (250, 250, 250), 'none': (), 'yellow': (192, 192, 0), 'purple': (192, 0, 192)}
 
 
 ``--contigs``
@@ -1915,7 +1831,7 @@ Parameters
 
 **Type:** None; **Default:** none
 
-**Choices:** {'lgrey': (250, 250, 250), 'dgrey': (192, 192, 192), 'black': (0, 0, 0), 'white': (255, 255, 255), 'red': (192, 0, 0), 'orange': (217, 95, 2), 'yellow': (192, 192, 0), 'green': (0, 192, 0), 'blue': (0, 0, 192), 'teal': (27, 158, 119), 'puce': (117, 112, 179), 'purple': (192, 0, 192), 'none': ()}
+**Choices:** {'teal': (27, 158, 119), 'green': (0, 192, 0), 'red': (192, 0, 0), 'dgrey': (192, 192, 192), 'blue': (0, 0, 192), 'puce': (117, 112, 179), 'black': (0, 0, 0), 'orange': (217, 95, 2), 'white': (255, 255, 255), 'lgrey': (250, 250, 250), 'none': (), 'yellow': (192, 192, 0), 'purple': (192, 0, 192)}
 
 
 ``--info-track/--infotrack``
@@ -2017,10 +1933,10 @@ Parameters
 **Type:** integer; **Default:** 20
 
 
-.. TranslateMVF:
+.. CheckMVF:
 
-TranslateMVF
-============
+CheckMVF
+========
 
 Description
 -----------
@@ -2047,50 +1963,107 @@ Parameters
 
 
 
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
+``--quiet``
+^^^^^^^^^^^
 
-**Description:** Output file
+**Description:** Suppress screen output.
 
-**Type:** file path; **Default:** None
+**Type:** boolean flag
+
+
+.. ConvertFasta2MVF:
+
+ConvertFasta2MVF
+================
+
+Description
+-----------
+None
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
 
 
 
-``--filter-annotation/--filterannotation``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--fasta`` (required)
+^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** skip GFF entries with text matching this in their 'Notes' field
+**Description:** input FASTA file(s)
 
 **Type:** None; **Default:** None
 
 
 
-``--gff``
-^^^^^^^^^
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Input GFF3 file. If GFF3 not provided, alignments are assumed to be in-frame coding sequences.
+**Description:** output MVF file
 
-**Type:** file path; **Default:** None
-
-
-
-``--line-buffer/--linebuffer``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Number of entries to store in memory at a time.
-
-**Type:** integer; **Default:** 100000
+**Type:** None; **Default:** None
 
 
 
-``--output-data/--outputdata``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``--contig-by-file/--contigbyfile``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3
+**Description:** Contigs are designated by separate files.
 
-**Type:** None; **Default:** codon
+**Type:** boolean flag
 
-**Choices:** ['protein', 'codon']
+
+
+``--contig-field/--contigfield``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** When headers are split by --field-sep, the 0-based index of the contig id.
+
+**Type:** integer; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** manually specify one or more contig ids as ID:LABEL
+
+**Type:** None; **Default:** None
+
+
+
+``--field-sep/--fieldsep``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** FASTA field separator; assumes '>database accession locus' format
+
+**Type:** None; **Default:** None
+
+**Choices:** ['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED', 'PIPE', 'AT', 'UNDER', 'DBLUNDER']
+
+
+``--flavor``
+^^^^^^^^^^^^
+
+**Description:** type of file [dna] or protein
+
+**Type:** None; **Default:** dna
+
+**Choices:** ['dna', 'protein']
+
+
+``--manual-coord/--manualcoord``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** manually specify reference coordinates for each file in the format CONTIGID:START..STOP, ...
+
+**Type:** None; **Default:** None
+
 
 
 ``--overwrite``
@@ -2108,5 +2081,50 @@ Parameters
 **Description:** Suppress screen output.
 
 **Type:** boolean flag
+
+
+
+``--read-buffer/--readbuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** number of lines to hold in READ buffer
+
+**Type:** integer; **Default:** 100000
+
+
+
+``--ref-label/--reflabel``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** label for reference sample
+
+**Type:** None; **Default:** REF
+
+
+
+``--sample-field/--samplefield``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** when headers are split by --field-sep, the 0-based index of the sample id
+
+**Type:** integer; **Default:** None
+
+
+
+``--sample-replace/--samplereplace``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
+
+**Type:** None; **Default:** None
+
+
+
+``--write-buffer/--writebuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** number of lines to hold in WRITE buffer
+
+**Type:** integer; **Default:** 100000
 
 

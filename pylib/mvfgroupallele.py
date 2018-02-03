@@ -123,7 +123,6 @@ def calc_group_unique_allele_window(args):
         args.start_contig if args.start_contig is not None else 0)
     args.end_contig = (
         args.end_contig if args.end_contig is not None else 100000000000)
-
     if args.output_align is True:
         outputalign = []
     if args.gff is not None:
@@ -178,7 +177,7 @@ def calc_group_unique_allele_window(args):
             xkey = (current_contig, current_position,)
             data[xkey] = counts.copy()
             data[xkey].update([
-                ('contig', (mvf.get_contig_label(current_contig)
+                ('contig', (mvf.get_contig_labels(ids=current_contig)
                             if args.use_labels is True else
                             current_contig)),
                 ('position', current_position),
@@ -323,13 +322,15 @@ def calc_group_unique_allele_window(args):
         if nonsyn_change:
             if args.verbose is True:
                 print('NON', contig, pos, allelesets, codon_groups,
-                      protein_groups, groups, mvf.get_contig_label(contig))
+                      protein_groups, groups, mvf.get_contig_labels(
+                          ids=contig))
             counts.add('nonsynonymous_changes')
             totals.add('nonsynonymous_changes')
         elif synon_change:
             if args.verbose is True:
                 print('SYN', contig, pos, allelesets, codon_groups,
-                      protein_groups, groups, mvf.get_contig_label(contig))
+                      protein_groups, groups, mvf.get_contig_labels(
+                          ids=contig))
             counts.add('synonymous_changes')
             totals.add('synonymous_changes')
     args.totals = totals

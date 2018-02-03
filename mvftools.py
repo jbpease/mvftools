@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.1",
+                            version="0.5.1.2",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -142,7 +142,7 @@ class MVFcall(object):
             parser.add_argument(
                   "--contig-ids", "--contigids", nargs='*',
                   help=("manually specify one or more contig ids "
-                        "as ID:NAME"))
+                        "as ID:LABEL"))
             parser.add_argument(
                 "--sample-replace", "--samplereplace", nargs="*",
                 help=("one or more TAG:NEWLABEL or TAG, items, "
@@ -273,7 +273,6 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.add_argument("--out", type=os.path.abspath,
                                 help="Output Phylip file.", required=True)
-            parser.addarg_contigs()
             parser.addarg_regions()
             parser.add_argument(
                 "--label-type", "--labeltype",
@@ -395,7 +394,8 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
-            parser.addarg_contigs()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
             parser.addarg_sample_indices()
             parser.addarg_sample_labels()
             parser.addarg_mincoverage()
@@ -430,7 +430,8 @@ class MVFcall(object):
             parser.addarg_sample_labels(nmin=3)
             parser.addarg_outgroup_indices()
             parser.addarg_outgroup_labels()
-            parser.addarg_contigs()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
@@ -499,7 +500,8 @@ class MVFcall(object):
             parser = MvfArgumentParser()
             parser.addarg_mvf()
             parser.addarg_out()
-            parser.addarg_contigs()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
             parser.addarg_sample_indices()
             parser.addarg_sample_labels()
             return parser
@@ -578,7 +580,6 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.addarg_gff()
             parser.addarg_out()
-            parser.addarg_contigs()
             parser.addarg_samples()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
@@ -666,7 +667,8 @@ class MVFcall(object):
             parser.addarg_out()
             parser.addarg_sample_indices()
             parser.addarg_sample_labels()
-            parser.addarg_contigs()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
             parser.addarg_windowsize()
             parser.add_argument(
                 "--raxml-outgroups", "--raxmloutgroups",

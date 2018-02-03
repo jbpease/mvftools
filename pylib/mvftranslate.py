@@ -337,7 +337,7 @@ def translate_mvf(args):
                 mvf_entries[contigid] = {}
             mvf_entries[contigid][pos] = allelesets[0]
         for contigname in sorted(gff):
-            contigid = mvf.get_contig_id(contigname)
+            contigid = mvf.get_contig_ids(labels=contigname)
             for coords in sorted(gff[contigname]):
                 reverse_strand = False
                 if coords[3] == '-':

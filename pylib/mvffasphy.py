@@ -321,7 +321,8 @@ def mvf2phy(args):
             if args.partition is True:
                 if curcontigend > curcontigstart:
                     partitionfile.write("{}, {} = {}-{}\n".format(
-                        partprefix, mvf.get_contig_label(curcontigname),
+                        partprefix, mvf.get_contig_labels(
+                            ids=curcontigname),
                         curcontigstart, curcontigend - 1))
             curcontigname = contig[:]
             # reset start as one position after end of last
@@ -385,7 +386,7 @@ def mvf2phy(args):
     if args.partition is True:
         if curcontigend > curcontigstart:
             partitionfile.write("{},{},{},{}\n".format(
-                partprefix, mvf.get_contig_label(curcontigname),
+                partprefix, mvf.get_contig_labels(ids=curcontigname),
                 curcontigstart, curcontigend - 1))
         partitionfile.close()
     return ''

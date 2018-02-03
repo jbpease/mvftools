@@ -266,31 +266,38 @@ class MultiVariantFile(object):
         except IndexError:
             raise IndexError(indices, "contains invalid label index")
 
-    def get_contig_id(self, label):
+    def get_contig_ids(self, labels=None):
         """Returns contig id given contig label
         """
-        for contigid, contig in self.metadata['contigs'].items():
-            if contig['label'] == label:
-                return contigid
-        raise IndexError("contig '{}' not found".format(label))
+        if labels is None:
+            return [x for x in self.metadata['contigs']]
+        try:
+            if (isinstance(labels, list) or
+                isinstance(labels, tuple) or
+                    isinstance(labels, set)):
+                return [x for x in self.metadata['contigs']
+                        if x['label'] in labels]
+            elif isinstance(labels, str) or isinstance(labels, int):
+                return [x for x in self.metadata['contigs']
+                        if x['label'] == labels][0]
+        except IndexError:
+            raise IndexError("contig labels '{}' not found".format(labels))
 
-    def get_contig_ids(self):
-        """Returns all contig ids
-        """
-        return self.metadata['contigs'].keys()
-
-    def get_contig_label(self, contigid):
+    def get_contig_labels(self, ids=None):
         """Returns contig label given contig id
         """
-        if contigid in self.metadata['contigs']:
-            return self.metadata['contigs'][contigid]['label']
-        raise IndexError("contig '{}' not found".format(contigid))
-
-    def get_contig_labels(self):
-        """Returns contig labels as a list
-        """
-        return [self.metadata['contigs'][x]['label']
-                for x in self.metadata['contigs']]
+        if ids is None:
+            return [self.metadata['contigs'][x]['label']
+                    for x in self.metadata['contigs']]
+        try:
+            if (isinstance(ids, list) or
+                isinstance(ids, tuple) or
+                    isinstance(ids, set)):
+                return [self.metadata['contigs'][x]['label'] for x in ids]
+            elif isinstance(ids, str) or isinstance(ids, int):
+                return self.metadata['contigs'][ids]['label']
+        except IndexError:
+            raise IndexError("contig ids '{}' not found".format(ids))
 
     def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
@@ -354,8 +361,7 @@ class MultiVariantFile(object):
                 contigs = sorted(self.metadata['contigs'].keys())
         else:
             contigs = [x if x in self.metadata['contigs'] else
-                       self.get_contig_id(x)
-                       for x in contigs]
+                       self.get_contig_ids(x) for x in contigs]
         subset = subset or ''
         current_contigid = ''
         linecount = 0

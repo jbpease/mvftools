@@ -49,6 +49,18 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--contigs",
             help="Specify comma-separated list of contigs.")
 
+    def addarg_contig_ids(self):
+        self.add_argument(
+            "--contig-ids", "--contigids", nargs=1,
+            help=("Specify comma-separated list of contig short ids. "
+                  "Must match exactly. Do not use with --contig-labels."))
+
+    def addarg_contig_labels(self):
+        self.add_argument(
+            "--contig-labels", "--contiglabels", nargs=1,
+            help=("Specify comma-separated list of contig full labels. "
+                  "Must match exactly. Do not use with --contig-ids"))
+
     def addarg_gff(self):
         self.add_argument("--gff", type=os.path.abspath,
                           help="Input gff annotation file.")
@@ -179,8 +191,14 @@ def mutex_check(args):
                 "--sample-indices and --sample-labels should not "
                 "be used simulataneously.")
     if "outgroup_indices" in args and "outgroup_labels" in args:
-        if (args.sample_indices is not None
-                and args.sample_labels is not None):
+        if (args.outgroup_indices is not None
+                and args.outgroup_labels is not None):
             raise RuntimeError(
                 "--outgroup-indices and --outgroup-labels should not "
+                "be used simulataneously.")
+    if "contig_ids" in args and "contig_labels" in args:
+        if (args.contig_ids is not None
+                and args.contig_labels is not None):
+            raise RuntimeError(
+                "--contig-ids and --contig-labels should not "
                 "be used simulataneously.")

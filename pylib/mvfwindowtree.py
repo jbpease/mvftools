@@ -455,8 +455,15 @@ def hapsplit(alleles, mode):
 def infer_window_tree(args):
     """Main method"""
     # ESTABLISH FILE OBJECTS
-    args.contigs = None if args.contigs is None else args.contigs.split(",")
     mvf = MultiVariantFile(args.mvf, 'read')
+    # Set up contig ids
+    if args.contig_ids is not None:
+        contig_ids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contig_ids = mvf.get_contig_ids(
+            labels=args.contig_labels[0].split(","))
+    else:
+        contig_ids = mvf.get_contig_ids()
     treefile = OutputFile(
         args.out,
         headers=['contig', 'windowstart', 'windowsize', 'tree',
@@ -505,7 +512,7 @@ def infer_window_tree(args):
     topo_ids = {}
     topo_counts = {}
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=args.contigs, subset=sample_indices, quiet=args.quiet,
+            contigs=contig_ids, subset=sample_indices, quiet=args.quiet,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
         if current_contig == contig:
             if skip_contig is True:
@@ -534,7 +541,7 @@ def infer_window_tree(args):
             current_contig = contig[:]
             window_data = None
             window_data = WindowData(window_params={
-                'contigname': (mvf.get_contig_label(current_contig) if
+                'contigname': (mvf.get_contig_labels(ids=current_contig) if
                                args.output_contig_labels is not None else
                                current_contig[:]),
                 "windowstart": ('-1' if args.windowsize == -1
