@@ -585,11 +585,12 @@ def build_actionset(moduleargs, ncol):
                         "ERROR: Minimum columns specified ({}) is "
                         "greater than number of MVF total columns"
                         "({}).").format(modargs[1][0], ncol))
-            # for i in range(1, len(modargs)):
-            #    try:
-            #        modargs[i] = [int(x) for x in modargs[i]]
-            #    except ValueError:
-            #        continue
+            elif modargs[0] == 'columns':
+                for i in range(1, len(modargs)):
+                    try:
+                        modargs[i] = [int(x) for x in modargs[i]]
+                    except ValueError:
+                        continue
             actionset.append(make_module(modargs[0],
                              ncol, optargs=modargs[1:]))
         else:
