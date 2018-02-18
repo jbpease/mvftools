@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.2",
+                            version="0.5.1.3",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -809,8 +809,14 @@ class MVFcall(object):
             parser.addarg_outgroup_labels(nmin=1)
             parser.addarg_windowsize()
             parser.add_argument(
-                "--contigs", nargs=1,
+                "--contig-labels", "--contiglabels", nargs=1,
                 help=("Enter the ids of one or more contigs in the "
+                      "order they will appear in the chromoplot (as "
+                      "comma-separated list)"
+                      "(defaults to all ids in order present in MVF)"))
+            parser.add_argument(
+                "--contig-ids", "--contigids", "--contigs", nargs=1,
+                help=("Enter the labels of one or more contigs in the "
                       "order they will appear in the chromoplot (as "
                       "comma-separated list)"
                       "(defaults to all ids in order present in MVF)"))

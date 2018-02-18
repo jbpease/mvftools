@@ -5,7 +5,7 @@ A chromoplot shows a genome-wide diagram of different
 evolutionary histories for a given quartet of taxa.
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
@@ -215,7 +215,6 @@ class Chromoplot(object):
         self.write_window_log(headermode=True)
 
         for contig, _, _ in self.params['contigs']:
-
             i = 0
             contig_ab_values[contig] = []
             while i < width:
@@ -442,28 +441,15 @@ def plot_chromoplot(args):
     mvf = MultiVariantFile(args.mvf, 'read')
     if args.quiet is False:
         print("Parsing headers...")
-    if args.contigs is not None:
-        contignames = args.contigs[0].split(",")
+    if args.contig_ids is not None:
+        contigids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contigids = mvf.get_contig_ids(labels=args.contig_labels)
     else:
-        contignames = [mvf.metadata['contigs'][contigid]['label']
-                       for contigid in mvf.metadata['contigs']]
+        contigids = mvf.get_contig_ids()
     if args.quiet is False:
         print("Plotting chromoplot for contigs: {}".format(
-            ",".join(contignames)))
-    master_contigs = []
-    for contigname in contignames:
-        contig_found = False
-        for contigid in mvf.metadata['contigs']:
-            if (contigname == contigid or
-                    contigname == mvf.metadata['contigs'][contigid]['label']):
-                master_contigs.append((
-                    contigid,
-                    mvf.metadata['contigs'][contigid]['label'],
-                    mvf.metadata['contigs'][contigid]['length']))
-                contig_found = True
-        if contig_found:
-            continue
-        raise RuntimeError(contigname, "not found in MVF contig ids or labels")
+            ",".join(contigids)))
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -489,7 +475,10 @@ def plot_chromoplot(args):
         quartet_labels = [sample_labels[x] for x in quartet_indices]
         if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet_labels)))
-        params = {'contigs': [[str(x), y, z] for [x, y, z] in master_contigs],
+        params = {'contigs': [[contigid,
+                               mvf.metadata['contigs'][contigid]['label'],
+                               mvf.metadata['contigs'][contigid]['length']]
+                              for contigid in contigids],
                   'outpath': ((args.out_prefix if args.out_prefix is not None
                                else '') or '_'.join(quartet_labels)) + ".png",
                   'labels': quartet_labels,
@@ -505,7 +494,7 @@ def plot_chromoplot(args):
         current_contig = ''
         for contig, pos, allelesets in mvf.iterentries(
                 subset=quartet_indices, decode=True,
-                contigs=[str(x[1]) for x in master_contigs]):
+                contigs=contigids):
             if contig != current_contig:
                 if args.quiet is False:
                     print("Starting contig {}".format(contig))
@@ -524,6 +513,8 @@ def plot_chromoplot(args):
                                  for j in range(3)])
             chromoplot.add_data(str(contig),
                                 int(pos // args.windowsize), site_code)
+        contig = ''
+        current_contig = ''
         if not args.quiet:
             print("Writing image...")
         chromoplot.plot_chromoplot()

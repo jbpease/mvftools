@@ -6,7 +6,7 @@ James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2016.
+Pease JB and BK Rosenzweig. 2015.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
 IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.

@@ -275,11 +275,11 @@ class MultiVariantFile(object):
             if (isinstance(labels, list) or
                 isinstance(labels, tuple) or
                     isinstance(labels, set)):
-                return [x for x in self.metadata['contigs']
-                        if x['label'] in labels]
+                return [str(x) for x in self.metadata['contigs']
+                        if self.metadata['contigs'][x]['label'] in labels]
             elif isinstance(labels, str) or isinstance(labels, int):
                 return [x for x in self.metadata['contigs']
-                        if x['label'] == labels][0]
+                        if self.metadata['contigs'][x]['label'] == str(labels)]
         except IndexError:
             raise IndexError("contig labels '{}' not found".format(labels))
 
@@ -295,7 +295,7 @@ class MultiVariantFile(object):
                     isinstance(ids, set)):
                 return [self.metadata['contigs'][x]['label'] for x in ids]
             elif isinstance(ids, str) or isinstance(ids, int):
-                return self.metadata['contigs'][ids]['label']
+                return self.metadata['contigs'][str(ids)]['label']
         except IndexError:
             raise IndexError("contig ids '{}' not found".format(ids))
 
@@ -352,16 +352,13 @@ class MultiVariantFile(object):
         Note: for codons, filters must apply to all allele strings
         Note: using subset without decode returns encoded subset
         """
-        if not contigs:
+        if contigs is None:
             if no_nonref:
                 contigs = sorted([x for x in self.metadata['contigs']
                                   if self.metadata['contigs'][x].get(
                                       'ref', False)])
             else:
                 contigs = sorted(self.metadata['contigs'].keys())
-        else:
-            contigs = [x if x in self.metadata['contigs'] else
-                       self.get_contig_ids(x) for x in contigs]
         subset = subset or ''
         current_contigid = ''
         linecount = 0
