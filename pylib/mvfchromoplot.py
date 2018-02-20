@@ -444,7 +444,7 @@ def plot_chromoplot(args):
     if args.contig_ids is not None:
         contigids = args.contig_ids[0].split(",")
     elif args.contig_labels is not None:
-        contigids = mvf.get_contig_ids(labels=args.contig_labels)
+        contigids = mvf.get_contig_ids(labels=args.contig_labels[0].split(","))
     else:
         contigids = mvf.get_contig_ids()
     if args.quiet is False:
