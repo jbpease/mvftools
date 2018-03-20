@@ -286,7 +286,7 @@ class VariantCallFile(object):
         else:
             allele = '!'
             quality = -1
-        quality = int(quality) if quality != '.' else 60
+        quality = int(float(quality)) if quality != '.' else 60
         if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
         elif (-1 < quality < kwargs.get("low_qual", 20) or
