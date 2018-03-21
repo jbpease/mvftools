@@ -418,7 +418,6 @@ def make_module(modulename, ncol, optargs=None):
 
         def reqcontig(entry):
             """return sites in ID,START,STOP (inclusive)"""
-            print(int(entry[0]), optargs[0], int(entry[0]) in optargs[0])
             return entry[0] in optargs[0]
 
     # REQINFORMATIVE
