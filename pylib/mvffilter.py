@@ -551,7 +551,6 @@ def modulehelp():
     for modulename in sorted(MODULENAMES):
         modulename, modtype, module, _ = make_module(
             modulename, 0, optargs='')
-        print("{}: {} ({})".format(modulename, module.__doc__, modtype))
     return ''
 
 # HELP Generator
@@ -662,7 +661,9 @@ def filter_mvf(args):
                 else:
                     sys.stdout.write("Transform result {}\n".format(alleles))
             elif actiontype == 'location':
-                if not actionfunc([int(x) for x in loc.split(':')]):
+                loc = loc.split(':')
+                loc[1] = int(loc[1])
+                if actionfunc(loc) is False:
                     linefail = True
                     sys.stdout.write("Location Fail\n")
                     break
@@ -737,8 +738,8 @@ def filter_mvf(args):
                 if linetype == 'empty':
                     linefail = True
             elif actiontype == 'location':
-                if not actionfunc([chrom, pos]):
-                    linefail = False
+                if actionfunc([chrom, pos]) is False:
+                    linefail = True
             if linefail:
                 break
         if linefail is False:
@@ -747,7 +748,6 @@ def filter_mvf(args):
                     alleles = mvf.encode(alleles)
                 if not alleles:
                     linefail = True
-        if linefail is False:
             nbuffer += 1
             linebuffer.append((chrom, pos, (alleles,)))
             if args.verbose:

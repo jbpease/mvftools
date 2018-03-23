@@ -177,9 +177,11 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None):
             if contig not in gff_entries:
                 gff_entries[contig] = {}
             coords = [int(arr[3]), int(arr[4])]
+            strand = arr[6]
             if genename not in geneids:
                 geneids[geneid] = {'label': genename,
-                                   'length': max(coords) - min(coords)}
+                                   'length': max(coords) - min(coords),
+                                   'strand': strand}
             for j in range(min(coords), max(coords) + 1):
                 gff_entries[contig][j] = geneid
             geneid += 1
@@ -197,7 +199,7 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None):
 
 
 def parse_gff_analysis(gffpath):
-    """Parse GFF function used for the analsis script"""
+    """Parse GFF function used for the analysis script"""
     rxpr3 = re.compile(r' \(AHRD.*?\)')
     coordinates = {}
     annotations = {}
@@ -337,7 +339,7 @@ def translate_mvf(args):
                 mvf_entries[contigid] = {}
             mvf_entries[contigid][pos] = allelesets[0]
         for contigname in sorted(gff):
-            contigid = mvf.get_contig_ids(labels=contigname)
+            contigid = mvf.get_contig_ids(labels=contigname)[0]
             for coords in sorted(gff[contigname]):
                 reverse_strand = False
                 if coords[3] == '-':

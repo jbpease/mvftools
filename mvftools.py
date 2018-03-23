@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.3",
+                            version="0.5.1.3a",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -115,6 +115,7 @@ class MVFcall(object):
                       "positions that are this number of bp away "
                       "from an annotated region boundary"))
             parser.addarg_linebuffer()
+            parser.addarg_overwrite()
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
