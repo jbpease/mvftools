@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.3a",
+                            version="0.5.1.3b",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
@@ -481,6 +481,8 @@ class MVFcall(object):
             parser.addarg_sample_labels()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
+            parser.add_argument("--output-lists",
+                                action="store_true")
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:

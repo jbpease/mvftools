@@ -74,7 +74,10 @@ class MvfBioLib(object):
             [(x + 'N', 'X') for x in 'ATGCKMRSWYNX'] +
             [('N' + x, 'X') for x in 'ATGCKMRSWYX'] +
             [(x + 'X', 'X') for x in 'ATGCKMRSWYNX'] +
-            [('X' + x, 'X') for x in 'ATGCKMRSWYN']
+            [('X' + x, 'X') for x in 'ATGCKMRSWYN'] +
+            [(x + '*', x) for x in 'ATGCKMRSWY'] +
+            [('*' + x, x) for x in 'ATGCKMRSWY'] +
+            [('N*', 'X'), ('*N', 'X'), ('**', '-')]
             )
 
         # VCF genotype index codes for PL order
