@@ -131,6 +131,7 @@ class MultiVariantFile(object):
         self.metadata['contigs'] = {}
         self.metadata['trees'] = []
         self.metadata['notes'] = []
+        self.metadata['maxcontigid'] = 0
         if filemode not in ('read', 'r', 'rb', 'write', 'w', 'wb'):
             raise RuntimeError("Invalid filemode {}".format(filemode))
         self.filemode = filemode
@@ -299,13 +300,17 @@ class MultiVariantFile(object):
         except IndexError:
             raise IndexError("contig ids '{}' not found".format(ids))
 
+    def reset_max_contig_id(self):
+        maxid = 0
+        maxid = max([int(contigid) if is_int(contigid) else 0 for
+                     contigid in self.metadata['contigs']])
+        self.metadata['maxcontigid'] = maxid
+        return ''
+
     def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
-        maxid = 0
-        for contigid in self.metadata['contigs']:
-            if is_int(contigid):
-                maxid = max(maxid, int(contigid))
-        return str(maxid + 1)
+        self.metadata['maxcontigid'] += 1
+        return str(self.metadata['maxcontigid'])
 
     def __iter__(self, quiet=False):
         """Simple entry iterator

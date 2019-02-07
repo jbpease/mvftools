@@ -79,6 +79,7 @@ def mvf_join(args):
         # This will create a dictionary of samples{old:new}, contigs{old:new}
         transformer = MvfTransformer()
         mvf = MultiVariantFile(mvfname, 'read')
+        mvf.reset_max_contig_id()
         for i, label in enumerate(mvf.get_sample_labels()):
             if label not in concatmvf.get_sample_labels():
                 concatmvf.metadata['labels'].append(label)
