@@ -302,9 +302,10 @@ class MultiVariantFile(object):
 
     def reset_max_contig_id(self):
         maxid = 0
-        maxid = max([int(contigid) if is_int(contigid) else 0 for
-                     contigid in self.metadata['contigs']])
-        self.metadata['maxcontigid'] = maxid
+        if len(self.metadata['contigs']) > 0:
+            maxid = max([int(contigid) if is_int(contigid) else 0 for
+                         contigid in self.metadata['contigs']])
+            self.metadata['maxcontigid'] = maxid
         return ''
 
     def get_next_contig_id(self):
