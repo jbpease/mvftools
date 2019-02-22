@@ -189,6 +189,7 @@ class VariantCallFile(object):
         record['tagindex'] = {}
         tags = arr[8].split(':')
         record['samples'] = []
+        record['alleles'] = ["-" if x == "*" else x for x in record['alleles']]
         for elem in arr[9:]:
             record['samples'].append(dict(
                 zip(tags, elem.split(':'))))
@@ -227,7 +228,7 @@ class VariantCallFile(object):
         if '|' in sample.get('GT', ''):
             # phased = True
             sample['GT'] = sample['GT'].replace('|', '/')
-        if list(sample.values())[0] in ('./.', '.'):
+        if list(sample.values())[0][0] == '.':
             return ('-', 0, 0)
         try:
             sample_depth = int(sample['DP'])
@@ -242,10 +243,14 @@ class VariantCallFile(object):
             allele = sample.get('GT', 'X')
             if '/' in allele:
                 allele = [int(x) for x in allele.split('/')]
-                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
+                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = MLIB.joinbases[allele]
+                #allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
             elif '|' in allele:
                 allele = [int(x) for x in allele.split('|')]
-                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
+                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = MLIB.joinbases[allele]
+                #allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
             else:
                 allele = 'X'
         # Low coverage
@@ -279,8 +284,9 @@ class VariantCallFile(object):
             imaxpl = (-1 if plvalues.count(maxpl) != 1 else
                       plvalues.index(maxpl))
             allele = ('X' if imaxpl == -1 else
-                      MLIB.joinbases[''.join(
-                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])])
+                      MLIB.joinbases[''.join(list(set(
+                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
+                          - set("-")))])
             quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
