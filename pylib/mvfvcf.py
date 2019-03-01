@@ -283,10 +283,16 @@ class VariantCallFile(object):
             maxpl = max(plvalues) if 0 not in plvalues else 0
             imaxpl = (-1 if plvalues.count(maxpl) != 1 else
                       plvalues.index(maxpl))
-            allele = ('X' if imaxpl == -1 else
-                      MLIB.joinbases[''.join(list(set(
+            if imaxpl == -1:
+                allele = "X"
+            else:
+                alleles = ''.join(list(set(
                           [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
-                          - set("-")))])
+                          - set("-")))
+                if alleles == "":
+                    allele = "-"
+                else:
+                    allele = MLIB.joinbases[alleles]
             quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
