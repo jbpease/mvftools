@@ -27,6 +27,7 @@ def main(filepath, function_name, outfile=None):
     met = getattr(x, function_name)
     met.selfdoc = True
     for fxn in met.__dict__:
+        print(fxn)
         if fxn[0] == '_' or fxn == "selfdoc":
             continue
         print("Processing", fxn)
@@ -48,10 +49,11 @@ def main(filepath, function_name, outfile=None):
                ), file=outfile)
         entries = []
         for y in parser._actions:
-            # print(y)
+            # print(type(y).__name__, y)
             if (isinstance(y, _StoreTrueAction) is True) or (
                 isinstance(y, _StoreFalseAction) is True) or (
-                    isinstance(y, _HelpAction) is True):
+                    isinstance(y, _HelpAction) is True) or (
+                    type(y).__name__ == "_IntRangeAction"):
                 optstring = '/'.join(y.option_strings)
                 sortkey = y.option_strings[0].strip('-')
                 if isinstance(y, _HelpAction) is True:

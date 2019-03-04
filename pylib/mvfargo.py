@@ -159,12 +159,12 @@ class MvfArgumentParser(argparse.ArgumentParser):
 
 
 def int_range_action(min_value, max_value):
-    class IntRangeAction(argparse.Action):
+    class _IntRangeAction(argparse.Action):
 
         def __init__(self, option_strings, dest, nargs=None, **kwargs):
             if nargs is not None:
                 raise ValueError("nargs not allowed")
-            super(IntRangeAction, self).__init__(
+            super(_IntRangeAction, self).__init__(
                 option_strings, dest, **kwargs)
 
         def __call__(self, parser, namespace, values, option_string=None):
@@ -178,7 +178,7 @@ def int_range_action(min_value, max_value):
                     parser.error("Maximum value for {0} is {1}".format(
                         option_string, max_value))
             setattr(namespace, self.dest, values)
-    return IntRangeAction
+    return _IntRangeAction
 
 
 def mutex_check(args):

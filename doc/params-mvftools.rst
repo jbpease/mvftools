@@ -82,6 +82,15 @@ Parameters
 
 
 
+``--overwrite``
+^^^^^^^^^^^^^^^
+
+**Description:** USE WITH CAUTION: force overwrite of outputs
+
+**Type:** boolean flag
+
+
+
 ``--quiet``
 ^^^^^^^^^^^
 
@@ -858,6 +867,15 @@ Parameters
 **Type:** None; **Default:** None
 
 
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
 .. CalcDstatCombinations:
 
 CalcDstatCombinations
@@ -1033,6 +1051,15 @@ Parameters
 **Type:** None; **Default:** None
 
 
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
 .. CalcPatternCount:
 
 CalcPatternCount
@@ -1081,6 +1108,15 @@ Parameters
 
 
 
+``--output-lists``
+^^^^^^^^^^^^^^^^^^
+
+**Description:** None
+
+**Type:** boolean flag
+
+
+
 ``--quiet``
 ^^^^^^^^^^^
 
@@ -1105,6 +1141,15 @@ Parameters
 **Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
 
 **Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
 
 
 .. CalcSampleCoverage:
@@ -1565,6 +1610,15 @@ Parameters
 **Type:** boolean flag
 
 
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
 .. InferTree:
 
 InferTree
@@ -1783,6 +1837,15 @@ Parameters
 **Description:** Temporary file prefix
 
 **Type:** None; **Default:** mvftree
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
 
 
 .. JoinMVF:
@@ -2024,6 +2087,15 @@ Parameters
 **Description:** Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
 
 **Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
 
 
 
