@@ -583,7 +583,7 @@ def build_actionset(moduleargs, ncol):
                         "ERROR: Minimum columns specified ({}) is "
                         "greater than number of MVF total columns"
                         "({}).").format(modargs[1][0], ncol))
-            elif modargs[0] == 'columns':
+            elif modargs[0] in ['columns', 'collapsemerge']:
                 for i in range(1, len(modargs)):
                     try:
                         modargs[i] = [int(x) for x in modargs[i]]

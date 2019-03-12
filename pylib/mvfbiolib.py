@@ -79,7 +79,8 @@ class MvfBioLib(object):
             [('*' + x, x) for x in 'ATGCKMRSWY'] +
             [('N*', 'X'), ('*N', 'X'), ('**', '-')]
             )
-
+        self.joinbases.update([(k.lower(), v.lower()) 
+            for k, v in self.joinbases.items()])
         # VCF genotype index codes for PL order
         self.vcf_gtcodes = [
             (0, 0), (0, 1), (1, 1), (0, 2), (1, 2),

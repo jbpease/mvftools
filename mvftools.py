@@ -78,7 +78,7 @@ class MVFcall(object):
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.3b",
+                            version="0.5.1.4",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if not hasattr(self, args.command):
