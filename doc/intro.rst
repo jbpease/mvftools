@@ -11,9 +11,11 @@ Multisample Variant Format (MVF), is designed for compact storage and efficient 
 
 How do I cite this?
 ===================
-Pease JB and BK Rosenzweig. 2015. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. In press. http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+Pease JB and BK Rosenzweig. 2018. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. 15(4):1231-1238.  http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-Please also include the URL <https://www.github.com/jbpease/mvftools> in your methods section where the program is referenced.
+Please also include the URL [https://www.github.com/jbpease/mvftools] in your methods section where the program is referenced.
+
+(Note this paper was originally published online in 2015, but did not receive final citation page numbering until 2018.  You may see older citations as 2015, which is the same paper.)
 
 Installation
 ============
@@ -27,14 +29,14 @@ Alternatively, you can download MVftools as a .zip file from the github page.
 Requirements
 ------------
 * Python 3.x: https://www.python.org/downloads/
+* Biopython 1.6+: (http://www.biopython.org/)
+* Scipy: (http://www.scipy.org/)
+* Numpy (http://www.numpy.org/)
 
 Additional Requirements for Some Modules
 ----------------------------------------
-  * Scipy: (http://www.scipy.org/)
-  * Biopython 1.6+: (http://www.biopython.org/),
-  * Numpy (http://www.numpy.org/), 
-  * RAxML 8.x (7.x should also work, but 8.x recommended; https://sco.h-its.org/exelixis/web/software/raxml/index.html)
-  * PAML (http://abacus.gene.ucl.ac.uk/software/paml.html)
+* RAxML (8.x recommended; https://sco.h-its.org/exelixis/web/software/raxml/index.html)
+* PAML (http://abacus.gene.ucl.ac.uk/software/paml.html)
 
 Preparing your data
 ===================

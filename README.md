@@ -12,9 +12,11 @@ Multisample Variant Format (MVF), which is designed for compact storage and effi
 
 ## Citation Information
 
-Pease JB and BK Rosenzweig. 2016. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. In press. http://www.dx.doi.org/10.1109/tcbb.2015.2509997
+Pease JB and BK Rosenzweig. 2018. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. 15(4):1231-1238.  http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 Please also include the URL [https://www.github.com/jbpease/mvftools] in your methods section where the program is referenced.
+
+(Note this paper was originally published online in 2015, but did not receive final citation page numbering until 2018.  You may see older citations as 2015, which is the same paper.)
 
 ## Manual
 
@@ -23,7 +25,17 @@ Please see the full manual at (https://github.com/jbpease/mvftools/blob/master/M
 
 ## Requirements
 
-MVFtools requires **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
+MVFtools requires:
+  * **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
+  * BioPython ([https://biopython.org/])
+  * Numpy ([https://www.numpy.org/])
+  * Scipy ([https://www.scipy.org/])
+
+*Optionally required for certain modules:*
+  * RAxML (8.x recommended; [https://sco.h-its.org/exelixis/web/software/
+raxml/index.html])
+  * PAML ([http://abacus.gene.ucl.ac.uk/software/paml.html])
+
 
 ## FAQ and Questions/Comments
 See the manual above and visit the Google Groups site for FAQs and to ask question:
@@ -34,6 +46,11 @@ https://groups.google.com/forum/#!forum/mvftools
 * [http://dx.doi.org/10.1111/mec.13679]
 * [http://dx.doi.org/10.1111/mec.13610]
 * [http://dx.doi.org/10.1371/journal.pbio.1002379]
+* [https://doi.org/10.1038/s41467-018-04963-6]
+* [https://doi.org/10.1093/gbe/evy227]
+* [https://doi.org/10.1093/molbev/msy198]
+* [https://doi.org/10.1534/genetics.118.301831]
+
 
 ## License
 This file is part of MVFtools.

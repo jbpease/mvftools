@@ -55,8 +55,8 @@
 
 
 \title{MVFtools}
-\date{Mar 04, 2019}
-\release{0.5.1.3b}
+\date{Mar 18, 2019}
+\release{0.5.1.4}
 \author{James B. Pease\\Ben K. Rosenzweig\\Roddra J. Johnson}
 \newcommand{\sphinxlogo}{\sphinxincludegraphics{logo.png}\par}
 \renewcommand{\releasename}{Release}
@@ -71,7 +71,7 @@
 
 
 \chapter{Getting Started}
-\label{\detokenize{intro:intro}}\label{\detokenize{intro::doc}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}\label{\detokenize{intro:getting-started}}
+\label{\detokenize{intro::doc}}\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:intro}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}
 
 \section{What is MVFtools?}
 \label{\detokenize{intro:what-is-mvftools}}
@@ -102,22 +102,22 @@ Alternatively, you can download MVftools as a .zip file from the github page.
 \item {} 
 Python 3.x: \sphinxurl{https://www.python.org/downloads/}
 
+\item {} 
+Biopython 1.6+: (\sphinxurl{http://www.biopython.org/})
+
+\item {} 
+Scipy: (\sphinxurl{http://www.scipy.org/})
+
+\item {} 
+Numpy (\sphinxurl{http://www.numpy.org/})
+
 \end{itemize}
 
 
 \subsection{Additional Requirements for Some Modules}
 \label{\detokenize{intro:additional-requirements-for-some-modules}}\begin{itemize}
 \item {} 
-Scipy: (\sphinxurl{http://www.scipy.org/})
-
-\item {} 
-Biopython 1.6+: (\sphinxurl{http://www.biopython.org/}),
-
-\item {} 
-Numpy (\sphinxurl{http://www.numpy.org/}),
-
-\item {} 
-RAxML 8.x (7.x should also work, but 8.x recommended; \sphinxurl{https://sco.h-its.org/exelixis/web/software/raxml/index.html})
+RAxML (8.x recommended; \sphinxurl{https://sco.h-its.org/exelixis/web/software/raxml/index.html})
 
 \item {} 
 PAML (\sphinxurl{http://abacus.gene.ucl.ac.uk/software/paml.html})
@@ -587,7 +587,7 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 
 \chapter{Program Parameter Descriptions}
-\label{\detokenize{prog_desc:program-parameter-descriptions}}\label{\detokenize{prog_desc::doc}}
+\label{\detokenize{prog_desc::doc}}\label{\detokenize{prog_desc:program-parameter-descriptions}}
 
 \section{AnnotateMVF}
 \label{\detokenize{prog_desc:annotatemvf}}
@@ -2373,7 +2373,7 @@ None
 
 
 \chapter{mvf\_filter modules}
-\label{\detokenize{mvf_filter_modules:mvf-filter-modules}}\label{\detokenize{mvf_filter_modules::doc}}
+\label{\detokenize{mvf_filter_modules::doc}}\label{\detokenize{mvf_filter_modules:mvf-filter-modules}}
 
 \section{GENERAL NOTES}
 \label{\detokenize{mvf_filter_modules:general-notes}}
@@ -2706,7 +2706,7 @@ Coming soon.
 
 
 \chapter{Version History}
-\label{\detokenize{version:version-history}}\label{\detokenize{version::doc}}
+\label{\detokenize{version::doc}}\label{\detokenize{version:version-history}}
 \sphinxstylestrong{v.0.5.1}
 
 2018-02-01: Changes to the \textendash{}sample and \textendash{}outgroup arguments for some calculations into separate \textendash{}sample-indices and \textendash{}sample-labels arguments.  This fixes an issue where if the sample labels are numerical they are misinterpreted when specified at the command line. All sample/outgroup indices or labels should be specified as a single comma-separated list.
