@@ -79,7 +79,8 @@ class MvfBioLib(object):
             [(x + '*', x) for x in 'ATGCKMRSWY'] +
             [('*' + x, x) for x in 'ATGCKMRSWY'] +
             [('N*', 'X'), ('*N', 'X'), ('**', '-')] + 
-            [(x + y + z, 'X') for (x, y, z) in permutations('ATGC', 3)]                                                                      
+            [(x + y + z, 'X') for (x, y, z) in permutations('ATGC', 3)] + 
+            [(w + x + y + z, 'X') for (w, x, y, z) in permutations('ATGC', 4)]
             )
 
         # VCF genotype index codes for PL order
