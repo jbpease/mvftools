@@ -7,10 +7,10 @@ James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2015.
+Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -63,11 +63,12 @@ class MvfBioLib(object):
             'R': 'AG', 'Y': 'CT', 'M': 'AC', 'K': 'GT',
             'S': 'CG', 'W': 'AT',
             'N': 'XX', '-': '--', 'X': 'XX'}
-
+        #Joinbases for haploid/diploid
         self.joinbases = dict(
             [("AC", "M"), ("AG", "R"), ("AT", "W"),
              ("CG", "S"), ("CT", "Y"), ("GT", "K")] +
-            [(x + x, x) for x in 'ATGC'] +
+            [(x, x) for x in 'ATGCRYWSMK'] +
+            [(x + x, x) for x in 'ATGCRYWSMK'] +
             [(x[::-1], y) for x, y in [
                 ("AC", "M"), ("AG", "R"), ("AT", "W"),
                 ("CG", "S"), ("CT", "Y"), ("GT", "K")]] +
@@ -81,11 +82,54 @@ class MvfBioLib(object):
             )
         self.joinbases.update([(k.lower(), v.lower()) 
             for k, v in self.joinbases.items()])
-        # VCF genotype index codes for PL order
+        #Joinbases for polyploid
+        self.joinbasespoly = self.joinbases.copy()
+        self.joinbasespoly.update(
+            [(x + y + z, 'X') for (x, y, z) in permutations('ATGC', 3)] + 
+            [(w + x + y + z, 'X') for (w, x, y, z) in permutations('ATGC', 4)]
+            )
+        self.joinbasespoly.update([(k.lower(), v.lower()) 
+            for k, v in self.joinbases.items()])
+        
+        
+        
+        # VCF genotype index codes for PL order for diploid
         self.vcf_gtcodes = [
             (0, 0), (0, 1), (1, 1), (0, 2), (1, 2),
             (2, 2), (0, 3), (1, 3), (2, 3), (3, 3)]
-
+        self.vcf_gtcodeshex = [tuple(
+            [0] * x[0] + [1] * x[1] + 
+            [2] * x[2] + [3] * x[3]) for x in [
+            (6,0,0,0), (5,1,0,0), (4,2,0,0), (3,3,0,0), (2,4,0,0), (1,5,0,0), 
+            (0,6,0,0), 
+            (5,0,1,0), (4,1,1,0), (3,2,1,0), (2,3,1,0), (1,4,1,0), (0,5,1,0), 
+            (4,0,2,0), (3,1,2,0), (2,2,2,0), (1,3,2,0), (0,4,2,0), 
+            (3,0,3,0), (2,1,3,0), (1,2,3,0), (0,3,3,0), 
+            (2,0,4,0), (1,1,4,0), (0,2,4,0), 
+            (1,0,5,0), (0,1,5,0), 
+            (0,0,6,0), 
+            (5,0,0,1), (4,1,0,1), (3,2,0,1), (2,3,0,1), (1,4,0,1), (0,5,0,1), 
+            (4,0,1,1), (3,1,1,1), (2,2,1,1), (1,3,1,1), (0,4,1,1), 
+            (3,0,2,1), (2,1,2,1), (1,2,2,1), (0,3,2,1), 
+            (2,0,3,1), (1,1,3,1), (0,2,3,1), 
+            (1,0,4,1), (0,1,4,1),
+            (0,0,5,1), 
+            (4,0,0,2), (3,1,0,2), (2,2,0,2), (1,3,0,2), (0,4,0,2), 
+            (3,0,1,2), (2,1,1,2), (1,2,1,2), (0,3,1,2), 
+            (2,0,2,2), (1,1,2,2), (0,2,2,2), 
+            (1,0,3,2), (0,1,3,2),
+            (0,0,4,2), 
+            (3,0,0,3), (2,1,0,3), (1,2,0,3), (0,3,0,3), 
+            (2,0,1,3), (1,1,1,3), (0,2,1,3), 
+            (1,0,2,3), (0,1,2,3),
+            (0,0,3,3), 
+            (2,0,0,4), (1,1,0,4), (0,2,0,4), 
+            (1,0,1,4), (0,1,1,4),
+            (0,0,2,4), 
+            (1,0,0,5), (0,1,0,5),
+            (0,0,1,5),
+            (0,0,0,6)]]
+        
     def _populate_complement(self):
         compbases = [
             ('A', 'T'), ('C', 'G'), ('K', 'M'), ('R', 'Y'), ('S', 'W'),

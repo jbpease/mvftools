@@ -6,10 +6,10 @@ James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2015.
+Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -227,7 +227,7 @@ class VariantCallFile(object):
         if '|' in sample.get('GT', ''):
             # phased = True
             sample['GT'] = sample['GT'].replace('|', '/')
-        if list(sample.values())[0] in ('./.', '.'):
+        if list(sample.values())[0][0] == '.':
             return ('-', 0, 0)
         try:
             sample_depth = int(sample['DP'])
@@ -242,10 +242,12 @@ class VariantCallFile(object):
             allele = sample.get('GT', 'X')
             if '/' in allele:
                 allele = [int(x) for x in allele.split('/')]
-                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
+                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = MLIB.joinbases[allele]
             elif '|' in allele:
                 allele = [int(x) for x in allele.split('|')]
-                allele = MLIB.joinbases[''.join([alleles[x] for x in allele])]
+                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = MLIB.joinbases[allele]
             else:
                 allele = 'X'
         # Low coverage
@@ -278,9 +280,20 @@ class VariantCallFile(object):
             maxpl = max(plvalues) if 0 not in plvalues else 0
             imaxpl = (-1 if plvalues.count(maxpl) != 1 else
                       plvalues.index(maxpl))
+            if imaxpl == -1:
+                allele = "X"
+            else:
+                alleles = ''.join(list(set(                        
+                    [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
+                    - set("-")))
+                if alleles == "":
+                     allele = "-"
+                else:
+                    allele = MLIB.joinbases[alleles]
             allele = ('X' if imaxpl == -1 else
-                      MLIB.joinbases[''.join(
-                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])])
+                      MLIB.joinbases[''.join(list(set(
+                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
+                      - set("-")))])
             quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:

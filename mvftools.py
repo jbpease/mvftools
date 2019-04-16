@@ -23,10 +23,10 @@ from pylib.mvffilter import filter_mvf
 
 _LICENSE = """
 If you use this software please cite:
-Pease JB and BK Rosenzweig. 2015.
+Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. In press.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
