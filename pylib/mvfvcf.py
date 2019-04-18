@@ -183,7 +183,7 @@ class VariantCallFile(object):
         record['alleles'] = [arr[3]]
         if arr[4] != '.':
             for altbase in arr[4].split(','):
-                if len(altbase) > 1:  # and not indel:
+                if len(altbase) > 1 or altbase == '*':  # and not indel:
                     return -1
                 record['alleles'].append(altbase)
         record['tagindex'] = {}
@@ -235,6 +235,7 @@ class VariantCallFile(object):
                 return ('-', 0, 0)
         except Exception as exception:
             sample_depth = -1
+        print(alleles)
         # Fixed sites
         if all(sample.get(x, -1) in (-1, '.')
                for x in ('PL', 'GL', 'GQ', 'GP')):
@@ -282,31 +283,40 @@ class VariantCallFile(object):
                       plvalues.index(maxpl))
             if imaxpl == -1:
                 allele = "X"
+            elif kwargs['hex'] is True:
+                alleles = ''.join(list(set(
+                    [alleles[x] for x in MLIB.vcf_gtcodeshex[imaxpl]])
+                    - set("-")))
+                if alleles == "":
+                    allele = "-"
+                else:
+                    allele = MLIB.joinbasespoly[alleles]
             else:
-                alleles = ''.join(list(set(                        
+                alleles = ''.join(list(set(
                     [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
                     - set("-")))
                 if alleles == "":
-                     allele = "-"
+                    allele = "-"
                 else:
                     allele = MLIB.joinbases[alleles]
-            allele = ('X' if imaxpl == -1 else
-                      MLIB.joinbases[''.join(list(set(
-                          [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
-                      - set("-")))])
             quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
         # Fail-safe check (you should never see a ! in the MVF)
         else:
             allele = '!'
             quality = -1
+        print(allele)
         quality = int(float(quality)) if quality != '.' else 60
         if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
         elif (-1 < quality < kwargs.get("low_qual", 20) or
               (-1 < sample_depth < kwargs.get("low_depth", 3))):
             allele = allele.lower()
-        if allele in 'NnBbDdHhVvXx':
-            allele = 'X'
+        if kwargs['hex'] is True:
+            if allele in 'NnXx':
+                allele = 'X'
+        else:
+            if allele in 'NnBbDdHhVvXx':
+                allele = 'X'
         return (allele, quality, sample_depth)
 
 
