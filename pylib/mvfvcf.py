@@ -235,7 +235,6 @@ class VariantCallFile(object):
                 return ('-', 0, 0)
         except Exception as exception:
             sample_depth = -1
-        print(alleles)
         # Fixed sites
         if all(sample.get(x, -1) in (-1, '.')
                for x in ('PL', 'GL', 'GQ', 'GP')):
@@ -304,7 +303,6 @@ class VariantCallFile(object):
         else:
             allele = '!'
             quality = -1
-        print(allele)
         quality = int(float(quality)) if quality != '.' else 60
         if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
