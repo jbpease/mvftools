@@ -366,7 +366,7 @@ def make_module(modulename, ncol, optargs=None):
         moduletype = "transform"
 
         def removechar(entry, mvfenc):
-            """"replace specified characters with '-'"""
+            """replace specified characters with '-'"""
             if mvfenc in ('refvar', 'full'):
                 if all([(x in optargs[0] or x == '-') for x in entry]):
                     return ''
@@ -551,6 +551,10 @@ def modulehelp():
     for modulename in sorted(MODULENAMES):
         modulename, modtype, module, _ = make_module(
             modulename, 0, optargs='')
+        description = module.__doc__.replace("\n", " ")
+        while "  " in description:
+            description = description.replace("  ", " ")
+        print(modulename, description.strip())
     return ''
 
 # HELP Generator

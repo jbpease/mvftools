@@ -546,8 +546,8 @@ class MVFcall(object):
             """Generate argparse parser
             """
             parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
+            parser.addarg_mvf(required=False)
+            parser.addarg_out(required=False)
             parser.add_argument(
                 "--actions", nargs='*',
                 help=("set of actions:args to perform, "

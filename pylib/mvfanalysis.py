@@ -356,8 +356,9 @@ def calc_character_count(args):
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
-            while pos > current_position + args.windowsize - 1:
-                current_position += args.windowsize
+            if args.windowsize > 0:
+                while pos > current_position + args.windowsize - 1:
+                    current_position += args.windowsize
         # Check if windows are specified.
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
@@ -459,8 +460,9 @@ def calc_pairwise_distances(args):
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
-            while pos > current_position + args.windowsize - 1:
-                current_position += args.windowsize
+            if args.windowsize > 0:
+                while pos > current_position + args.windowsize - 1:
+                    current_position += args.windowsize
         # Check if windows are specified.
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
@@ -487,8 +489,9 @@ def calc_pairwise_distances(args):
             if contig != current_contig:
                 current_contig = contig[:]
                 current_position = 0
-                while pos > current_position + args.windowsize - 1:
-                    current_position += args.windowsize
+                if args.windowsize > 0:
+                    while pos > current_position + args.windowsize - 1:
+                        current_position += args.windowsize
             else:
                 current_position += args.windowsize
             base_matches = dict([(x, {}) for x in sample_pairs])

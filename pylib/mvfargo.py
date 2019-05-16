@@ -75,9 +75,9 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--mincoverage", type=int,
             help="Mininum sample coverage for sites.")
 
-    def addarg_mvf(self):
+    def addarg_mvf(self, required=True):
         self.add_argument(
-            "--mvf", type=os.path.abspath, required=True,
+            "--mvf", type=os.path.abspath, required=required,
             help="Input MVF file.")
 
     def addarg_overwrite(self):
@@ -85,10 +85,10 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--overwrite", action="store_true",
             help="USE WITH CAUTION: force overwrite of outputs")
 
-    def addarg_out(self):
+    def addarg_out(self, required=True):
         self.add_argument(
             "--out", help="Output file",
-            required=True, type=os.path.abspath)
+            required=required, type=os.path.abspath)
 
     def addarg_outgroup_indices(self, nmin=None):
         self.add_argument(
