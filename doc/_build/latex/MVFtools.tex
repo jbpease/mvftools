@@ -5,23 +5,17 @@
    \let\sphinxpxdimen\pdfpxdimen\else\newdimen\sphinxpxdimen
 \fi \sphinxpxdimen=.75bp\relax
 
+\PassOptionsToPackage{warn}{textcomp}
 \usepackage[utf8]{inputenc}
 \ifdefined\DeclareUnicodeCharacter
- \ifdefined\DeclareUnicodeCharacterAsOptional
-  \DeclareUnicodeCharacter{"00A0}{\nobreakspace}
-  \DeclareUnicodeCharacter{"2500}{\sphinxunichar{2500}}
-  \DeclareUnicodeCharacter{"2502}{\sphinxunichar{2502}}
-  \DeclareUnicodeCharacter{"2514}{\sphinxunichar{2514}}
-  \DeclareUnicodeCharacter{"251C}{\sphinxunichar{251C}}
-  \DeclareUnicodeCharacter{"2572}{\textbackslash}
- \else
-  \DeclareUnicodeCharacter{00A0}{\nobreakspace}
-  \DeclareUnicodeCharacter{2500}{\sphinxunichar{2500}}
-  \DeclareUnicodeCharacter{2502}{\sphinxunichar{2502}}
-  \DeclareUnicodeCharacter{2514}{\sphinxunichar{2514}}
-  \DeclareUnicodeCharacter{251C}{\sphinxunichar{251C}}
-  \DeclareUnicodeCharacter{2572}{\textbackslash}
- \fi
+% support both utf8 and utf8x syntaxes
+\edef\sphinxdqmaybe{\ifdefined\DeclareUnicodeCharacterAsOptional\string"\fi}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe00A0}{\nobreakspace}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2500}{\sphinxunichar{2500}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2502}{\sphinxunichar{2502}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2514}{\sphinxunichar{2514}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe251C}{\sphinxunichar{251C}}
+  \DeclareUnicodeCharacter{\sphinxdqmaybe2572}{\textbackslash}
 \fi
 \usepackage{cmap}
 \usepackage[T1]{fontenc}
@@ -29,8 +23,9 @@
 \usepackage{babel}
 \usepackage{times}
 \usepackage[Bjarne]{fncychap}
-\usepackage[dontkeepoldnames]{sphinx}
+\usepackage{sphinx}
 
+\fvset{fontsize=\small}
 \usepackage{geometry}
 
 % Include hyperref last.
@@ -41,12 +36,21 @@
 \urlstyle{same}
 \addto\captionsenglish{\renewcommand{\contentsname}{Contents:}}
 
-\addto\captionsenglish{\renewcommand{\figurename}{Fig.}}
-\addto\captionsenglish{\renewcommand{\tablename}{Table}}
+\addto\captionsenglish{\renewcommand{\figurename}{Fig.\@ }}
+\makeatletter
+\def\fnum@figure{\figurename\thefigure{}}
+\makeatother
+\addto\captionsenglish{\renewcommand{\tablename}{Table }}
+\makeatletter
+\def\fnum@table{\tablename\thetable{}}
+\makeatother
 \addto\captionsenglish{\renewcommand{\literalblockname}{Listing}}
 
 \addto\captionsenglish{\renewcommand{\literalblockcontinuedname}{continued from previous page}}
 \addto\captionsenglish{\renewcommand{\literalblockcontinuesname}{continues on next page}}
+\addto\captionsenglish{\renewcommand{\sphinxnonalphabeticalgroupname}{Non-alphabetical}}
+\addto\captionsenglish{\renewcommand{\sphinxsymbolsname}{Symbols}}
+\addto\captionsenglish{\renewcommand{\sphinxnumbersname}{Numbers}}
 
 \addto\extrasenglish{\def\pageautorefname{page}}
 
@@ -55,23 +59,25 @@
 
 
 \title{MVFtools}
-\date{Mar 18, 2019}
-\release{0.5.1.4}
+\date{Jun 29, 2019}
+\release{0.5.2}
 \author{James B. Pease\\Ben K. Rosenzweig\\Roddra J. Johnson}
 \newcommand{\sphinxlogo}{\sphinxincludegraphics{logo.png}\par}
 \renewcommand{\releasename}{Release}
 \makeindex
-
 \begin{document}
 
-\maketitle
+\pagestyle{empty}
+\sphinxmaketitle
+\pagestyle{plain}
 \sphinxtableofcontents
+\pagestyle{normal}
 \phantomsection\label{\detokenize{index::doc}}
 
 
 
 \chapter{Getting Started}
-\label{\detokenize{intro::doc}}\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:intro}}\label{\detokenize{intro:welcome-to-mvftools-s-documentation}}
+\label{\detokenize{intro:getting-started}}\label{\detokenize{intro:intro}}\label{\detokenize{intro::doc}}
 
 \section{What is MVFtools?}
 \label{\detokenize{intro:what-is-mvftools}}
@@ -80,9 +86,11 @@ Multisample Variant Format (MVF), is designed for compact storage and efficient 
 
 \section{How do I cite this?}
 \label{\detokenize{intro:how-do-i-cite-this}}
-Pease JB and BK Rosenzweig. 2015. “Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics” \sphinxstyleemphasis{IEEE/ACM Transactions on Computational Biology and Bioinformatics}. In press. \sphinxurl{http://www.dx.doi.org/10.1109/tcbb.2015.2509997}
+Pease JB and BK Rosenzweig. 2018. “Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics” \sphinxstyleemphasis{IEEE/ACM Transactions on Computational Biology and Bioinformatics}. 15(4):1231-1238.  \sphinxurl{http://www.dx.doi.org/10.1109/tcbb.2015.2509997}
 
-Please also include the URL \textless{}\sphinxurl{https://www.github.com/jbpease/mvftools}\textgreater{} in your methods section where the program is referenced.
+Please also include the URL {[}\sphinxurl{https://www.github.com/jbpease/mvftools}{]} in your methods section where the program is referenced.
+
+(Note this paper was originally published online in 2015, but did not receive final citation page numbering until 2018.  You may see older citations as 2015, which is the same paper.)
 
 
 \section{Installation}
@@ -130,14 +138,13 @@ PAML (\sphinxurl{http://abacus.gene.ucl.ac.uk/software/paml.html})
 
 \subsection{Sequence Alignment}
 \label{\detokenize{intro:sequence-alignment}}
-MVF files can be created from VCF, FASTA, and MAF files using the \sphinxcode{ConvertVCF2MVF}, \sphinxcode{ConvertFasta2MVF}, or \sphinxcode{ConvertMAF2MVF} commands respectively.  Once converted to MVF format, analyses and manipulations can be carried out using the rest of the commands in MVFtools.
+MVF files can be created from VCF, FASTA, and MAF files using the \sphinxcode{\sphinxupquote{ConvertVCF2MVF}}, \sphinxcode{\sphinxupquote{ConvertFasta2MVF}}, or \sphinxcode{\sphinxupquote{ConvertMAF2MVF}} commands respectively.  Once converted to MVF format, analyses and manipulations can be carried out using the rest of the commands in MVFtools.
 
 
 \section{Basic usage examples}
 \label{\detokenize{intro:basic-usage-examples}}
 \sphinxstylestrong{Case \#1: Generate phylogenies from 100kb windows using a VCF data}:
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{python3} \PYG{n}{mvftools}\PYG{o}{.}\PYG{n}{py} \PYG{n}{ConvertVCF2MVF} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{vcf} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{vcf} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{mvf} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{mvf}
 \PYG{n}{python3} \PYG{n}{mvftools}\PYG{o}{.}\PYG{n}{py} \PYG{n}{InferWindowTree} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{mvf} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{mvf} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{out} \PYG{n}{WINDOWTREES}\PYG{o}{.}\PYG{n}{txt} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{windowsize} \PYG{l+m+mi}{100000}
@@ -145,7 +152,6 @@ MVF files can be created from VCF, FASTA, and MAF files using the \sphinxcode{Co
 
 \sphinxstylestrong{Case \#2: Convert a large FASTA file, then generate window-based counts for DFOIL/D-statistic introgression testing from the first five samples}:
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{python3} \PYG{n}{mvftools}\PYG{o}{.}\PYG{n}{py} \PYG{n}{ConvertFasta2MVF} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{fasta} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{fasta} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{mvf} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{mvf}
 \PYG{n}{python3} \PYG{n}{mvftools}\PYG{o}{.}\PYG{n}{py} \PYG{n}{CalcPatternCount} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{mvf} \PYG{n}{DATA}\PYG{o}{.}\PYG{n}{mvf} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{out} \PYG{n}{PATTERNS}\PYG{o}{.}\PYG{n}{txt} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{windowsize} \PYG{l+m+mi}{100000} \PYG{o}{\PYGZhy{}}\PYG{o}{\PYGZhy{}}\PYG{n}{samples} \PYG{l+m+mi}{0}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{3}\PYG{p}{,}\PYG{l+m+mi}{4}
@@ -155,7 +161,7 @@ The file is now ready to use as an input file for with dfoil (\sphinxurl{http://
 
 
 \chapter{MVF Format Specification (version 1.2)}
-\label{\detokenize{mvf_spec::doc}}\label{\detokenize{mvf_spec:mvf-format-specification-version-1-2}}
+\label{\detokenize{mvf_spec:mvf-format-specification-version-1-2}}\label{\detokenize{mvf_spec::doc}}
 
 \section{MVF Standard History}
 \label{\detokenize{mvf_spec:mvf-standard-history}}
@@ -188,40 +194,40 @@ MVF is designed to work natively with GZIP compression and uses a formatting tha
 MVF was specifically designed as a “vertical” format for rapid filtering of \sphinxstyleemphasis{sites} in large-scale phylogenomic analyses. (rather than being “horizontal” to visually show alignment) Therefore, the following should be noted to take advantage of MVF formatting for rapid filtering (i.e. with grep/zgrep).
 \begin{itemize}
 \item {} 
-\sphinxcode{\#} is present iff. the line is in the header
+\sphinxcode{\sphinxupquote{\#}} is present iff. the line is in the header
 
 \item {} 
-\sphinxcode{@} is present iff. the position is non-reference
+\sphinxcode{\sphinxupquote{@}} is present iff. the position is non-reference
 
 \item {} 
-\sphinxcode{X} is present in the allele string iff. the positon has ambiguity data
+\sphinxcode{\sphinxupquote{X}} is present in the allele string iff. the positon has ambiguity data
 
 \item {} 
-\sphinxcode{\#:} can quickly filter by chromosome
+\sphinxcode{\sphinxupquote{\#:}} can quickly filter by chromosome
 
 \item {} 
-\sphinxcode{:\#} can quickly filter by coordinate numbers
+\sphinxcode{\sphinxupquote{:\#}} can quickly filter by coordinate numbers
 
 \item {} 
 Allele strings with one or two characters have full sample coverage (no gaps)
 
 \item {} 
-Allele strings with \sphinxcode{@{[}any{]}+} have coverage=1, \sphinxcode{{[}not@{]}{[}any{]}+} have coverage=2
+Allele strings with \sphinxcode{\sphinxupquote{@{[}any{]}+}} have coverage=1, \sphinxcode{\sphinxupquote{{[}not@{]}{[}any{]}+}} have coverage=2
 
 \item {} 
-One or two-character allele strings, or notation with \sphinxcode{{[}any{]}+} CANNOT contain homoplasy or synapomorphy (by definition).
+One or two-character allele strings, or notation with \sphinxcode{\sphinxupquote{{[}any{]}+}} CANNOT contain homoplasy or synapomorphy (by definition).
 
 \end{itemize}
 
 
 \section{Header Specification}
 \label{\detokenize{mvf_spec:header-specification}}
-All header lines begin with one or more \sphinxcode{\#} and contain single-space separated fields.
+All header lines begin with one or more \sphinxcode{\sphinxupquote{\#}} and contain single-space separated fields.
 
 
 \subsection{MVF declaration line}
 \label{\detokenize{mvf_spec:mvf-declaration-line}}
-First header line always starts with \sphinxcode{\#\#mvf}, followed by required metadata fields:
+First header line always starts with \sphinxcode{\sphinxupquote{\#\#mvf}}, followed by required metadata fields:
 \begin{itemize}
 \item {} 
 version=1.2
@@ -244,7 +250,7 @@ an arbitrary number of metadata fields in key=value format (‘mvftype’ and �
 Sample information (columns) header lines are specified by:
 \begin{itemize}
 \item {} 
-line starts with \sphinxcode{\#s} (“s” for sample) with no leading spaces
+line starts with \sphinxcode{\sphinxupquote{\#s}} (“s” for sample) with no leading spaces
 
 \item {} 
 LABEL (must be unique, no spaces)
@@ -262,19 +268,19 @@ The first entry should be the reference sequence (if aligned to reference) or ca
 Contig information header lines are specified by:
 \begin{itemize}
 \item {} 
-line starts with \sphinxcode{\#c} (“c” for contig)
+line starts with \sphinxcode{\sphinxupquote{\#c}} (“c” for contig)
 
 \item {} 
-CONTIG\_ID (must be unique, alpha-numeric strong recommended, must not contain \sphinxcode{*:;,@!+} or spaces)
+CONTIG\_ID (must be unique, alpha-numeric strong recommended, must not contain \sphinxcode{\sphinxupquote{*:;,@!+}} or spaces)
 
 \item {} 
-\sphinxcode{label={[}NAME{]}} (recommended by not required to be unique, no spaces allowed)
+\sphinxcode{\sphinxupquote{label={[}NAME{]}}} (recommended by not required to be unique, no spaces allowed)
 
 \item {} 
-\sphinxcode{len={[}LENGTH{]}} (integer \textgreater{} 0, or zero for unknown)
+\sphinxcode{\sphinxupquote{len={[}LENGTH{]}}} (integer \textgreater{} 0, or zero for unknown)
 
 \item {} 
-\sphinxcode{ref={[}0/1{]}}, indicates if contig is reference-based (=1) or not (=0)
+\sphinxcode{\sphinxupquote{ref={[}0/1{]}}}, indicates if contig is reference-based (=1) or not (=0)
 
 \item {} 
 an arbitrary number of metadata fields in key=value format (“label”, “len”, and “ref” not allowed as key)
@@ -287,20 +293,20 @@ an arbitrary number of metadata fields in key=value format (“label”, “len�
 Tree information may (optionally) be specified in header lines by:
 \begin{itemize}
 \item {} 
-line starts with \sphinxcode{\#t} (“t” for tree/topology)
+line starts with \sphinxcode{\sphinxupquote{\#t}} (“t” for tree/topology)
 
 \item {} 
-{\color{red}\bfseries{}{}`{}`}TREE\_ID={[}\#\#\#{]}{}` (must be unique, alpha-numeric)
+\sphinxcode{\sphinxupquote{TREE\_ID={[}\#\#\#{]}}} (must be unique, alpha-numeric)
 
 \item {} 
-\sphinxcode{TOPOLOGY={[}tree\_String{]}} in Newick/Phylip/parenthetical format (must end with ‘;’)
+\sphinxcode{\sphinxupquote{TOPOLOGY={[}tree\_String{]}}} in Newick/Phylip/parenthetical format (must end with ‘;’)
 
 \item {} 
 an arbitrary number of metadata fields in key=value format
 
 \end{itemize}
 
-To take full advantage of MVF tree storage, use the same sample labels as in the \sphinxcode{\#s} header lines
+To take full advantage of MVF tree storage, use the same sample labels as in the \sphinxcode{\sphinxupquote{\#s}} header lines
 
 
 \subsection{Notes}
@@ -308,7 +314,7 @@ To take full advantage of MVF tree storage, use the same sample labels as in the
 General project notes may (optionally) be specified in the header lines by:
 \begin{itemize}
 \item {} 
-line starts with \sphinxcode{\#n} (“n” for notes)
+line starts with \sphinxcode{\sphinxupquote{\#n}} (“n” for notes)
 
 \item {} 
 Text is unstructured and is not necessarily formatted as metadata
@@ -317,22 +323,21 @@ Text is unstructured and is not necessarily formatted as metadata
 
 
 \subsection{Example Header}
-\label{\detokenize{mvf_spec:example-header}}\begin{description}
-\item[{::}] \leavevmode
-\#\#mvf version=1.2 mvftype={[}MVFTYPE{]}
-\#s SAMPLE0 meta0=somevalue meta1=0 …
-\#s SAMPLE1 meta0=somethingele meta1=1 …
-\#s SAMPLE2 meta0=somesome meta1=0 …
-…
-\#c 0 label=CONTIG0 length=100 ref=1 meta0=somevalue …
-\#c 1 label=CONTIG1 length=200 ref=0 meta0=someother …
-…
-\#t 0 ((SAMPLE0,SAMPLE1),SAMPLE2); model=GTRGAMMA software=RAxML
-\#t 1 ((SAMPLE2,SAMPLE0),SAMPLE1); model=GTRGAMMA software=RAxML partition=chrom1
-…
-\#n Notes on this project.
-
-\end{description}
+\label{\detokenize{mvf_spec:example-header}}
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{}\PYGZsh{}mvf version=1.2 mvftype=[MVFTYPE]}
+\PYG{c+c1}{\PYGZsh{}s SAMPLE0 meta0=somevalue meta1=0 ...}
+\PYG{c+c1}{\PYGZsh{}s SAMPLE1 meta0=somethingele meta1=1 ...}
+\PYG{c+c1}{\PYGZsh{}s SAMPLE2 meta0=somesome meta1=0 ...}
+\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{c+c1}{\PYGZsh{}c 0 label=CONTIG0 length=100 ref=1 meta0=somevalue ...}
+\PYG{c+c1}{\PYGZsh{}c 1 label=CONTIG1 length=200 ref=0 meta0=someother ...}
+\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{c+c1}{\PYGZsh{}t 0 ((SAMPLE0,SAMPLE1),SAMPLE2); model=GTRGAMMA software=RAxML}
+\PYG{c+c1}{\PYGZsh{}t 1 ((SAMPLE2,SAMPLE0),SAMPLE1); model=GTRGAMMA software=RAxML partition=chrom1}
+\PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{c+c1}{\PYGZsh{}n Notes on this project.}
+\end{sphinxVerbatim}
 
 
 \section{Entry Specification}
@@ -343,16 +348,16 @@ all examples show an MVF entry with REF and four samples
 
 Entries are structured as two space-separated columns:
 
-\sphinxcode{ID:POSITION   ALLELES {[}ALLELES ALLELES ...{]}}
+\sphinxcode{\sphinxupquote{ID:POSITION   ALLELES {[}ALLELES ALLELES ...{]}}}
 \begin{itemize}
 \item {} 
-\sphinxcode{ID:POSITION} = chromosomal id matching the first element of a contig in the \sphinxcode{\#c} header element
+\sphinxcode{\sphinxupquote{ID:POSITION}} = chromosomal id matching the first element of a contig in the \sphinxcode{\sphinxupquote{\#c}} header element
 
 \item {} 
-\sphinxcode{POSITION} = 1-based position on the contig with matching \sphinxcode{CONTIG\_ID}
+\sphinxcode{\sphinxupquote{POSITION}} = 1-based position on the contig with matching \sphinxcode{\sphinxupquote{CONTIG\_ID}}
 
 \item {} 
-\sphinxcode{ALLELES} = one or more records of alleles at reference-based location specified by \sphinxcode{ID:POSITION} and matching the formatting below
+\sphinxcode{\sphinxupquote{ALLELES}} = one or more records of alleles at reference-based location specified by \sphinxcode{\sphinxupquote{ID:POSITION}} and matching the formatting below
 
 \end{itemize}
 
@@ -360,10 +365,10 @@ Entries are structured as two space-separated columns:
 \subsection{For mvftype=codon}
 \label{\detokenize{mvf_spec:for-mvftype-codon}}\begin{itemize}
 \item {} 
-Allele columns are \sphinxcode{PROTEIN DNA1 DNA2 DNA3} where the three DNA columns represent three codon positions in collated form
+Allele columns are \sphinxcode{\sphinxupquote{PROTEIN DNA1 DNA2 DNA3}} where the three DNA columns represent three codon positions in collated form
 
 \item {} 
-Position is the position of the lowest numbered codon position (regardless of transcript strand) and \sphinxcode{DNA1/2/3} codon columns are given in order to match the protein (again regardless of transcript orientation)
+Position is the position of the lowest numbered codon position (regardless of transcript strand) and \sphinxcode{\sphinxupquote{DNA1/2/3}} codon columns are given in order to match the protein (again regardless of transcript orientation)
 
 \end{itemize}
 
@@ -376,7 +381,7 @@ all examples show an MVF entry with five samples.
 
 For reference-anchored contigs, the first allele is assumed to be the “reference” allele by default. Each entry must either (1) contain the same number of characters as sample labels specified in the header or (2) use one of the special cases in the section below.
 
-\sphinxcode{ATCTG} =  (REF is ‘A’ samples 1\&3 are ‘T’, sample 2 is ‘C’, sample 4 is ‘G’)
+\sphinxcode{\sphinxupquote{ATCTG}} =  (REF is ‘A’ samples 1\&3 are ‘T’, sample 2 is ‘C’, sample 4 is ‘G’)
 
 
 \subsection{Special cases}
@@ -391,7 +396,7 @@ all examples show an MVF entry with five samples
 When all alleles are both present (non-gap) and all the same, this is represented by a single base.
 \begin{quote}
 
-\sphinxcode{A = AAAAA}
+\sphinxcode{\sphinxupquote{A = AAAAA}}
 \end{quote}
 
 
@@ -400,8 +405,8 @@ When all alleles are both present (non-gap) and all the same, this is represente
 When all alleles in the samples (non-REF) are the same but differ from REF, this is represented by two bases.
 \begin{quote}
 
-\sphinxcode{AT = ATTTT}
-\sphinxcode{Aa = Aaaaa}
+\sphinxcode{\sphinxupquote{AT = ATTTT}}
+\sphinxcode{\sphinxupquote{Aa = Aaaaa}}
 \end{quote}
 
 
@@ -409,7 +414,6 @@ When all alleles in the samples (non-REF) are the same but differ from REF, this
 \label{\detokenize{mvf_spec:single-variant-sites}}
 When only one of the samples varies from the others, this is specified as:
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{p}{[}\PYG{n}{reference\PYGZus{}base}\PYG{p}{,} \PYG{n}{majority\PYGZus{}base}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{+}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{unique\PYGZus{}base}\PYG{p}{,} \PYG{n}{unique\PYGZus{}position}\PYG{p}{]}
 \end{sphinxVerbatim}
@@ -417,24 +421,24 @@ When only one of the samples varies from the others, this is specified as:
 This is useful shorthand for both sites with one a single base that differs and samples with only one sample represented.  When the site only has coverage via one sample (i.e. all other bases are empty, the ‘-‘ is omitted from the second position.
 \begin{quote}
 
-\sphinxcode{AC+T2 = ACTCC}
-\sphinxcode{AA+C2 = AACAA}
-\sphinxcode{-+A2  = -{-}A-{-}}
-\sphinxcode{A+A2  = A-A-{-}}
-\sphinxcode{A+a2  = A-a-{-}}
-\sphinxcode{A+C2  = A-C-{-}}
+\sphinxcode{\sphinxupquote{AC+T2 = ACTCC}}
+\sphinxcode{\sphinxupquote{AA+C2 = AACAA}}
+\sphinxcode{\sphinxupquote{-+A2  = -{-}A-{-}}}
+\sphinxcode{\sphinxupquote{A+A2  = A-A-{-}}}
+\sphinxcode{\sphinxupquote{A+a2  = A-a-{-}}}
+\sphinxcode{\sphinxupquote{A+C2  = A-C-{-}}}
 \end{quote}
 
 
 \subsection{Non-reference aligned sites}
 \label{\detokenize{mvf_spec:non-reference-aligned-sites}}
 Added in MVF v.1.2, this facilitates using MVF for non-reference aligned sequences (e.g. aligned sets of orthologs from de novo assembled transcripts). These non-reference-anchored alignments can comprise the entire MVF file or be included in addition to reference-aligned contigs. Non-reference-contigs in their header entry should include the keyword “nonref” (see Section 1.3). Contigs labels and coordinates are labelled the same as reference-based entries. To denote that the sequence is non-reference and not simply a deletion in the reference, the character “@” should be the first character of the alignment.  In the case an entirely non-reference MVF, all contigs can be labelled as “nonref,” but one sequence should be chosen as the reference for the purposes of the allele
-string.  When this sequence is not present, \sphinxcode{@} is still used.
+string.  When this sequence is not present, \sphinxcode{\sphinxupquote{@}} is still used.
 \begin{quote}
 
-\sphinxcode{@AATT   = -AATT}
-\sphinxcode{@A+T3   = -A-T-}
-\sphinxcode{@-+A3   = -{-}-A-}
+\sphinxcode{\sphinxupquote{@AATT   = -AATT}}
+\sphinxcode{\sphinxupquote{@A+T3   = -A-T-}}
+\sphinxcode{\sphinxupquote{@-+A3   = -{-}-A-}}
 \end{quote}
 
 
@@ -444,19 +448,19 @@ string.  When this sequence is not present, \sphinxcode{@} is still used.
 \subsection{Nucleotide Notation}
 \label{\detokenize{mvf_spec:nucleotide-notation}}\begin{itemize}
 \item {} 
-Standard IUPAC nucleotide codes are used: \sphinxcode{ACGT}, and \sphinxcode{U} for uracil in RNA
+Standard IUPAC nucleotide codes are used: \sphinxcode{\sphinxupquote{ACGT}}, and \sphinxcode{\sphinxupquote{U}} for uracil in RNA
 
 \item {} 
-Standard IUPAC bialleic ambiguity codes \sphinxcode{KMRSWY} are used also.
+Standard IUPAC bialleic ambiguity codes \sphinxcode{\sphinxupquote{KMRSWY}} are used also.
 
 \item {} 
-Current MVF formatting does NOT allow triallelic ambiguity codes (\sphinxcode{BDHV}), which are converted to ambiguous (\sphinxcode{X}) instead.
+Current MVF formatting does NOT allow triallelic ambiguity codes (\sphinxcode{\sphinxupquote{BDHV}}), which are converted to ambiguous (\sphinxcode{\sphinxupquote{X}}) instead.
 
 \item {} 
-Current MVF formatting does NOT recognize rare symbols (\sphinxcode{ISOX}, or \sphinxcode{Phi})
+Current MVF formatting does NOT recognize rare symbols (\sphinxcode{\sphinxupquote{ISOX}}, or \sphinxcode{\sphinxupquote{Phi}})
 
 \item {} 
-Ambiguous nucleotide is denoted by \sphinxcode{X} instead of standard \sphinxcode{N}
+Ambiguous nucleotide is denoted by \sphinxcode{\sphinxupquote{X}} instead of standard \sphinxcode{\sphinxupquote{N}}
 
 \end{itemize}
 
@@ -464,22 +468,22 @@ Ambiguous nucleotide is denoted by \sphinxcode{X} instead of standard \sphinxcod
 \subsection{Amino Acid Notation}
 \label{\detokenize{mvf_spec:amino-acid-notation}}\begin{itemize}
 \item {} 
-Standard IUPAC amino acid codes are used: \sphinxcode{ACDEFGHIKLMNPQRSTVWY}
+Standard IUPAC amino acid codes are used: \sphinxcode{\sphinxupquote{ACDEFGHIKLMNPQRSTVWY}}
 
 \item {} 
-Standard stop codon symbol \sphinxcode{*} is used
+Standard stop codon symbol \sphinxcode{\sphinxupquote{*}} is used
 
 \item {} 
-Currently the ambiguous/rare symbols are not recognized (\sphinxcode{BZ})
+Currently the ambiguous/rare symbols are not recognized (\sphinxcode{\sphinxupquote{BZ}})
 
 \end{itemize}
 
 
-\subsection{Use of \sphinxstyleliteralintitle{X} for ambiguous nucleotides and amino acids}
+\subsection{Use of \sphinxstyleliteralintitle{\sphinxupquote{X}} for ambiguous nucleotides and amino acids}
 \label{\detokenize{mvf_spec:use-of-x-for-ambiguous-nucleotides-and-amino-acids}}
-In standard notation, “\sphinxcode{N}” is used for an ambiguous nucleotide, which could be any of A/C/G/T.
-However, in amino acid notation \sphinxcode{N} stands for “Asparagine” and is a valid character, while \sphinxcode{X} is used for an ambiguous amino acid.
-MVF v1.2 adopts \sphinxcode{X} as unified ambiguity character for both nucleotides and proteins for MVF files for two purposes:
+In standard notation, “\sphinxcode{\sphinxupquote{N}}” is used for an ambiguous nucleotide, which could be any of A/C/G/T.
+However, in amino acid notation \sphinxcode{\sphinxupquote{N}} stands for “Asparagine” and is a valid character, while \sphinxcode{\sphinxupquote{X}} is used for an ambiguous amino acid.
+MVF v1.2 adopts \sphinxcode{\sphinxupquote{X}} as unified ambiguity character for both nucleotides and proteins for MVF files for two purposes:
 1. To creates a unified ambiguity character for MVF codon files for faster processing
 2. To allow fast filtering of ambiguous lines
 Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,’ MVF currently does not support rare nucleotides.
@@ -487,11 +491,10 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 
 \chapter{Examples of the same data in MVF Format and other formats}
-\label{\detokenize{mvf_example::doc}}\label{\detokenize{mvf_example:examples-of-the-same-data-in-mvf-format-and-other-formats}}
+\label{\detokenize{mvf_example:examples-of-the-same-data-in-mvf-format-and-other-formats}}\label{\detokenize{mvf_example::doc}}
 
 \section{MVF Format}
 \label{\detokenize{mvf_example:mvf-format}}
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{c+c1}{\PYGZsh{}\PYGZsh{}mvf sourceformat=fasta version=1.2 mvftype=dna ncol=5}
 \PYG{c+c1}{\PYGZsh{}s Hsapiens}
@@ -515,7 +518,6 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 \section{FASTA Format}
 \label{\detokenize{mvf_example:fasta-format}}
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{o}{\PYGZgt{}}\PYG{n}{Hsapiens} \PYG{n}{gi}\PYG{p}{:}\PYG{l+m+mi}{1234} \PYG{n}{geneid}\PYG{p}{:}\PYG{n}{GeneOfInterest} \PYG{n}{chrom}\PYG{p}{:}\PYG{l+m+mi}{1} \PYG{n}{start}\PYG{p}{:}\PYG{l+m+mi}{100} \PYG{n}{end}\PYG{p}{:}\PYG{l+m+mi}{108}
 \PYG{n}{AAATTGAAA}
@@ -536,7 +538,6 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 \section{VCF Format}
 \label{\detokenize{mvf_example:vcf-format}}
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{c+c1}{\PYGZsh{}\PYGZsh{}fileformat=VCFv4.1}
 \PYG{c+c1}{\PYGZsh{}\PYGZsh{}samtoolsVersion=0.1.19\PYGZhy{}44428cd}
@@ -587,714 +588,178 @@ Also note that while ‘X’ in expanded IUPAC notation refers to ‘xanthosine,
 
 
 \chapter{Program Parameter Descriptions}
-\label{\detokenize{prog_desc::doc}}\label{\detokenize{prog_desc:program-parameter-descriptions}}
+\label{\detokenize{prog_desc:program-parameter-descriptions}}\label{\detokenize{prog_desc::doc}}
 
 \section{AnnotateMVF}
 \label{\detokenize{prog_desc:annotatemvf}}
 
 \subsection{Description}
 \label{\detokenize{prog_desc:description}}
-None
+Annotates a chromosomal MVF file with new contigboundaries based on genes/features from a GFF file.
 
 
 \subsection{Parameters}
 \label{\detokenize{prog_desc:parameters}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
 \label{\detokenize{prog_desc:h-help}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
 \label{\detokenize{prog_desc:mvf-required}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
 \label{\detokenize{prog_desc:out-required}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}filter-annotation/-{-}filterannotation}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}filter-annotation/-{-}filterannotation}}}
 \label{\detokenize{prog_desc:filter-annotation-filterannotation}}
 \sphinxstylestrong{Description:} Skip entries in the GFF file that contain this string in their ‘Notes’
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}gff}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}gff}}}
 \label{\detokenize{prog_desc:gff}}
 \sphinxstylestrong{Description:} Input gff annotation file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
 \label{\detokenize{prog_desc:line-buffer-linebuffer}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}nongenic-margin/-{-}nongenicmargin}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}nongenic-margin/-{-}nongenicmargin}}}
 \label{\detokenize{prog_desc:nongenic-margin-nongenicmargin}}
 \sphinxstylestrong{Description:} for \textendash{}unnanotated-mode, only retain positions that are this number of bp away from an annotated region boundary
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 0
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}nongenic-mode/-{-}nongenicmode}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}nongenic-mode/-{-}nongenicmode}}}
 \label{\detokenize{prog_desc:nongenic-mode-nongenicmode}}
 \sphinxstylestrong{Description:} Instead of returning annotated genes, return the non-genic regions without without changing contigs or coordinates
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
 \label{\detokenize{prog_desc:overwrite}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
 \label{\detokenize{prog_desc:quiet}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\section{ConvertFasta2MVF}
-\label{\detokenize{prog_desc:convertfasta2mvf}}
+\section{CalcCharacterCount}
+\label{\detokenize{prog_desc:calccharactercount}}
 
 \subsection{Description}
 \label{\detokenize{prog_desc:id1}}
-None
+Calculates the count of different character typesin an MVF file
 
 
 \subsection{Parameters}
 \label{\detokenize{prog_desc:id2}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
 \label{\detokenize{prog_desc:id3}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}fasta} (required)}
-\label{\detokenize{prog_desc:fasta-required}}
-\sphinxstylestrong{Description:} input FASTA file(s)
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
 \label{\detokenize{prog_desc:id4}}
-\sphinxstylestrong{Description:} output MVF file
+\sphinxstylestrong{Description:} Input MVF file.
 
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-by-file/-{-}contigbyfile}}
-\label{\detokenize{prog_desc:contig-by-file-contigbyfile}}
-\sphinxstylestrong{Description:} Contigs are designated by separate files.
-
-\sphinxstylestrong{Type:} boolean flag
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-field/-{-}contigfield}}
-\label{\detokenize{prog_desc:contig-field-contigfield}}
-\sphinxstylestrong{Description:} When headers are split by \textendash{}field-sep, the 0-based index of the contig id.
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:contig-ids-contigids}}
-\sphinxstylestrong{Description:} manually specify one or more contig ids as ID:LABEL
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}field-sep/-{-}fieldsep}}
-\label{\detokenize{prog_desc:field-sep-fieldsep}}
-\sphinxstylestrong{Description:} FASTA field separator; assumes ‘\textgreater{}database accession locus’ format
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-\sphinxstylestrong{Choices:} {[}‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’, ‘PIPE’, ‘AT’, ‘UNDER’, ‘DBLUNDER’{]}
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}flavor}}
-\label{\detokenize{prog_desc:flavor}}
-\sphinxstylestrong{Description:} type of file {[}dna{]} or protein
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} dna
-
-\sphinxstylestrong{Choices:} {[}‘dna’, ‘protein’{]}
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}manual-coord/-{-}manualcoord}}
-\label{\detokenize{prog_desc:manual-coord-manualcoord}}
-\sphinxstylestrong{Description:} manually specify reference coordinates for each file in the format CONTIGID:START..STOP, …
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
 \label{\detokenize{prog_desc:id5}}
-\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id6}}
-\sphinxstylestrong{Description:} Suppress screen output.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}read-buffer/-{-}readbuffer}}
-\label{\detokenize{prog_desc:read-buffer-readbuffer}}
-\sphinxstylestrong{Description:} number of lines to hold in READ buffer
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}ref-label/-{-}reflabel}}
-\label{\detokenize{prog_desc:ref-label-reflabel}}
-\sphinxstylestrong{Description:} label for reference sample
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-field/-{-}samplefield}}
-\label{\detokenize{prog_desc:sample-field-samplefield}}
-\sphinxstylestrong{Description:} when headers are split by \textendash{}field-sep, the 0-based index of the sample id
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-replace/-{-}samplereplace}}
-\label{\detokenize{prog_desc:sample-replace-samplereplace}}
-\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}write-buffer/-{-}writebuffer}}
-\label{\detokenize{prog_desc:write-buffer-writebuffer}}
-\sphinxstylestrong{Description:} number of lines to hold in WRITE buffer
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
-
-
-\section{ConvertMAF2MVF}
-\label{\detokenize{prog_desc:convertmaf2mvf}}
-
-\subsection{Description}
-\label{\detokenize{prog_desc:id7}}
-None
-
-
-\subsection{Parameters}
-\label{\detokenize{prog_desc:id8}}
-
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id9}}
-\sphinxstylestrong{Description:} show this help message and exit
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}maf} (required)}
-\label{\detokenize{prog_desc:maf-required}}
-\sphinxstylestrong{Description:} input MAF file
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id10}}
-\sphinxstylestrong{Description:} output MVF file
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-tags/-{-}sampletags} (required)}
-\label{\detokenize{prog_desc:sample-tags-sampletags-required}}
-\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id11}}
-\sphinxstylestrong{Description:} Number of entries to store in memory at a time.
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf-ref-label/-{-}mvfreflabel}}
-\label{\detokenize{prog_desc:mvf-ref-label-mvfreflabel}}
-\sphinxstylestrong{Description:} new label for reference sample (default=’REF’)
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id12}}
-\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id13}}
-\sphinxstylestrong{Description:} Suppress screen output.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}ref-tag/-{-}reftag}}
-\label{\detokenize{prog_desc:ref-tag-reftag}}
-\sphinxstylestrong{Description:} old reference tag
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\section{ConvertMVF2Fasta}
-\label{\detokenize{prog_desc:convertmvf2fasta}}
-
-\subsection{Description}
-\label{\detokenize{prog_desc:id14}}
-None
-
-
-\subsection{Parameters}
-\label{\detokenize{prog_desc:id15}}
-
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id16}}
-\sphinxstylestrong{Description:} show this help message and exit
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id17}}
-\sphinxstylestrong{Description:} Input MVF file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id18}}
-\sphinxstylestrong{Description:} Output path of FASTA file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}buffer}}
-\label{\detokenize{prog_desc:buffer}}
-\sphinxstylestrong{Description:} size (Mbp) of write buffer for each sample
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 10
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}label-type/-{-}labeltype}}
-\label{\detokenize{prog_desc:label-type-labeltype}}
-\sphinxstylestrong{Description:} Long labels with all metadata or short ids
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} long
-
-\sphinxstylestrong{Choices:} (‘long’, ‘short’)
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-data/-{-}outputdata}}
-\label{\detokenize{prog_desc:output-data-outputdata}}
-\sphinxstylestrong{Description:} Output dna, rna or prot data.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-\sphinxstylestrong{Choices:} (‘dna’, ‘rna’, ‘prot’)
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id19}}
-\sphinxstylestrong{Description:} Suppress screen output.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}regions}}
-\label{\detokenize{prog_desc:regions}}
-\sphinxstylestrong{Description:} Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:sample-indices-sampleindices}}
-\sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:sample-labels}}
-\sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}temp\_dir/-{-}tempdir}}
-\label{\detokenize{prog_desc:temp-dir-tempdir}}
-\sphinxstylestrong{Description:} directory to write temporary fasta files
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} .
-
-
-\section{ConvertMVF2Phylip}
-\label{\detokenize{prog_desc:convertmvf2phylip}}
-
-\subsection{Description}
-\label{\detokenize{prog_desc:id20}}
-None
-
-
-\subsection{Parameters}
-\label{\detokenize{prog_desc:id21}}
-
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id22}}
-\sphinxstylestrong{Description:} show this help message and exit
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id23}}
-\sphinxstylestrong{Description:} Input MVF file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id24}}
-\sphinxstylestrong{Description:} Output Phylip file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}buffer}}
-\label{\detokenize{prog_desc:id25}}
-\sphinxstylestrong{Description:} size (bp) of write buffer for each sample
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}label-type/-{-}labeltype}}
-\label{\detokenize{prog_desc:id26}}
-\sphinxstylestrong{Description:} Long labels with all metadata or short ids
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} short
-
-\sphinxstylestrong{Choices:} (‘long’, ‘short’)
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-data/-{-}outputdata}}
-\label{\detokenize{prog_desc:id27}}
-\sphinxstylestrong{Description:} Output dna, rna or prot data.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-\sphinxstylestrong{Choices:} (‘dna’, ‘rna’, ‘prot’)
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}partition}}
-\label{\detokenize{prog_desc:partition}}
-\sphinxstylestrong{Description:} Output a CSV partitions file with RAxMLformatting for use in partitioned phylogenetic methods.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id28}}
-\sphinxstylestrong{Description:} Suppress screen output.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}regions}}
-\label{\detokenize{prog_desc:id29}}
-\sphinxstylestrong{Description:} Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id30}}
-\sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id31}}
-\sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}temp\_dir/-{-}tempdir}}
-\label{\detokenize{prog_desc:id32}}
-\sphinxstylestrong{Description:} directory to write temporary fasta files
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} .
-
-
-\section{ConvertVCF2MVF}
-\label{\detokenize{prog_desc:convertvcf2mvf}}
-
-\subsection{Description}
-\label{\detokenize{prog_desc:id33}}
-None
-
-
-\subsection{Parameters}
-\label{\detokenize{prog_desc:id34}}
-
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id35}}
-\sphinxstylestrong{Description:} show this help message and exit
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id36}}
-\sphinxstylestrong{Description:} output MVF file
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}alleles-from/-{-}allelesfrom}}
-\label{\detokenize{prog_desc:alleles-from-allelesfrom}}\begin{description}
-\item[{\sphinxstylestrong{Description:} get additional alignment columns}] \leavevmode
-from INFO fields (:-separated)
-
-\end{description}
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:id37}}
-\sphinxstylestrong{Description:} manually specify one or more contig ids as ID;VCFLABE;MVFLABEL, note that VCFLABEL must match EXACTLY the contig string labels in the VCF file
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}field-sep/-{-}fieldsep}}
-\label{\detokenize{prog_desc:id38}}
-\sphinxstylestrong{Description:} VCF field separator (default=’TAB’)
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} TAB
-
-\sphinxstylestrong{Choices:} {[}‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’{]}
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id39}}
-\sphinxstylestrong{Description:} Number of entries to store in memory at a time.
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}low-depth/-{-}lowdepth}}
-\label{\detokenize{prog_desc:low-depth-lowdepth}}
-\sphinxstylestrong{Description:} below this read depth coverage, convert to lower case set to 0 to disable
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 3
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}low-qual/-{-}lowqual}}
-\label{\detokenize{prog_desc:low-qual-lowqual}}
-\sphinxstylestrong{Description:} below this quality convert to lower case set to 0 to disable
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 20
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mask-depth/-{-}maskdepth}}
-\label{\detokenize{prog_desc:mask-depth-maskdepth}}
-\sphinxstylestrong{Description:} below this read depth mask with N/n
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 1
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mask-qual/-{-}maskqual}}
-\label{\detokenize{prog_desc:mask-qual-maskqual}}
-\sphinxstylestrong{Description:} low quality cutoff, bases replaced by N/- set to 0 to disable
-
-\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 3
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}no-autoindex/-{-}noautoindex}}
-\label{\detokenize{prog_desc:no-autoindex-noautoindex}}
-\sphinxstylestrong{Description:} do not automatically index contigs from the VCF
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out-flavor/-{-}outflavor}}
-\label{\detokenize{prog_desc:out-flavor-outflavor}}
-\sphinxstylestrong{Description:} choose output MVF flavor to include quality scores and/or indels
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} dna
-
-\sphinxstylestrong{Choices:} {[}‘dna’, ‘dnaqual’, ‘dnaqual-indel’, ‘dna-indel’{]}
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id40}}
-\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}qual}}
-\label{\detokenize{prog_desc:qual}}
-\sphinxstylestrong{Description:} Include Phred genotype quality (GQ) scores
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id41}}
-\sphinxstylestrong{Description:} Suppress screen output.
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}ref-label/-{-}reflabel}}
-\label{\detokenize{prog_desc:id42}}
-\sphinxstylestrong{Description:} label for reference sample (default=’REF’)
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-replace/-{-}samplereplace}}
-\label{\detokenize{prog_desc:id43}}
-\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}vcf}}
-\label{\detokenize{prog_desc:vcf}}
-\sphinxstylestrong{Description:} VCF input file
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\section{CalcCharacterCount}
-\label{\detokenize{prog_desc:calccharactercount}}
-
-\subsection{Description}
-\label{\detokenize{prog_desc:id44}}
-None
-
-
-\subsection{Parameters}
-\label{\detokenize{prog_desc:id45}}
-
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id46}}
-\sphinxstylestrong{Description:} show this help message and exit
-
-\sphinxstylestrong{Type:} boolean flag
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id47}}
-\sphinxstylestrong{Description:} Input MVF file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id48}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}base-match/-{-}basematch}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}base-match/-{-}basematch}}}
 \label{\detokenize{prog_desc:base-match-basematch}}
 \sphinxstylestrong{Description:} String of bases to match (i.e. numerator).
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}base-total/-{-}basetotal}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}base-total/-{-}basetotal}}}
 \label{\detokenize{prog_desc:base-total-basetotal}}
 \sphinxstylestrong{Description:} String of bases for total (i.e. denominator).
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:id49}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:contig-ids-contigids}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig short ids. Must match exactly. Do not use with \textendash{}contig-labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-labels/-{-}contiglabels}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-labels/-{-}contiglabels}}}
 \label{\detokenize{prog_desc:contig-labels-contiglabels}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig full labels. Must match exactly. Do not use with \textendash{}contig-ids
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mincoverage}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mincoverage}}}
 \label{\detokenize{prog_desc:mincoverage}}
 \sphinxstylestrong{Description:} Mininum sample coverage for sites.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id50}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id6}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id51}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:sample-indices-sampleindices}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id52}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:sample-labels}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
 \label{\detokenize{prog_desc:windowsize}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
@@ -1305,78 +770,78 @@ None
 \label{\detokenize{prog_desc:calcdstatcombinations}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id53}}
-None
+\label{\detokenize{prog_desc:id7}}
+Calculates all D-statistics for all combinations ofspecified taxa in an MVF file.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id54}}
+\label{\detokenize{prog_desc:id8}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id55}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id9}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id56}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id10}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id57}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id11}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:id58}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:id12}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig short ids. Must match exactly. Do not use with \textendash{}contig-labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-labels/-{-}contiglabels}}
-\label{\detokenize{prog_desc:id59}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-labels/-{-}contiglabels}}}
+\label{\detokenize{prog_desc:id13}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig full labels. Must match exactly. Do not use with \textendash{}contig-ids
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}outgroup-indices/-{-}outgroupindices}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}outgroup-indices/-{-}outgroupindices}}}
 \label{\detokenize{prog_desc:outgroup-indices-outgroupindices}}
 \sphinxstylestrong{Description:} Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with \textendash{}outgroup\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}outgroup-labels/-{-}outgrouplabels}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}outgroup-labels/-{-}outgrouplabels}}}
 \label{\detokenize{prog_desc:outgroup-labels-outgrouplabels}}
 \sphinxstylestrong{Description:} Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}outgroup\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id60}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id14}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id61}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id15}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id62}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id16}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
@@ -1386,64 +851,64 @@ None
 \label{\detokenize{prog_desc:calcpairwisedistances}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id63}}
-None
+\label{\detokenize{prog_desc:id17}}
+Calculates pairwise sequence distances for combinations ofspecified taxa in an MVF file.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id64}}
+\label{\detokenize{prog_desc:id18}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id65}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id19}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id66}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id20}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id67}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id21}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mincoverage}}
-\label{\detokenize{prog_desc:id68}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mincoverage}}}
+\label{\detokenize{prog_desc:id22}}
 \sphinxstylestrong{Description:} Mininum sample coverage for sites.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id69}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id23}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id70}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id24}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id71}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id25}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
-\label{\detokenize{prog_desc:id72}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
+\label{\detokenize{prog_desc:id26}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -1453,71 +918,71 @@ None
 \label{\detokenize{prog_desc:calcpatterncount}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id73}}
-None
+\label{\detokenize{prog_desc:id27}}
+Counts biallelic site pattersn (AB-patterns) forspecified combinations of taxa in an MVF file.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id74}}
+\label{\detokenize{prog_desc:id28}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id75}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id29}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id76}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id30}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id77}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id31}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mincoverage}}
-\label{\detokenize{prog_desc:id78}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mincoverage}}}
+\label{\detokenize{prog_desc:id32}}
 \sphinxstylestrong{Description:} Mininum sample coverage for sites.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-lists}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-lists}}}
 \label{\detokenize{prog_desc:output-lists}}
 \sphinxstylestrong{Description:} None
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id79}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id33}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id80}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id34}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id81}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id35}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
-\label{\detokenize{prog_desc:id82}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
+\label{\detokenize{prog_desc:id36}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -1527,97 +992,694 @@ None
 \label{\detokenize{prog_desc:calcsamplecoverage}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id83}}
-None
+\label{\detokenize{prog_desc:id37}}
+Counts per-contig coverage forspecified sample columns in an MVF file.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id84}}
+\label{\detokenize{prog_desc:id38}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id85}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id39}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id86}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id40}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id87}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id41}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:id88}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:id42}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig short ids. Must match exactly. Do not use with \textendash{}contig-labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-labels/-{-}contiglabels}}
-\label{\detokenize{prog_desc:id89}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-labels/-{-}contiglabels}}}
+\label{\detokenize{prog_desc:id43}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig full labels. Must match exactly. Do not use with \textendash{}contig-ids
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id90}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id44}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id91}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id45}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id92}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id46}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\section{CheckMVF}
-\label{\detokenize{prog_desc:checkmvf}}
+\section{ConcatenateMVF}
+\label{\detokenize{prog_desc:concatenatemvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id93}}
-None
+\label{\detokenize{prog_desc:id47}}
+Combine non-overlapping contigs from one or more MVF files into asingle MVF file.  This does NOT merge columns.  Use MergeMVF to mergesample columns from multiple files.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id94}}
+\label{\detokenize{prog_desc:id48}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id95}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id49}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id96}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id50}}
+\sphinxstylestrong{Description:} One or more mvf files.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id51}}
+\sphinxstylestrong{Description:} Output file
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id52}}
+\sphinxstylestrong{Description:} Number of entries to store in memory at a time.
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}main\_header\_file/-{-}mainheaderfile}}}
+\label{\detokenize{prog_desc:main-header-file-mainheaderfile}}
+\sphinxstylestrong{Description:} Output file will use same headers as this input file (default=first in list).
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}new-contigs/-{-}newcontigs}}}
+\label{\detokenize{prog_desc:new-contigs-newcontigs}}
+\sphinxstylestrong{Description:} By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s contigs as distinct.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}newsamples}}}
+\label{\detokenize{prog_desc:newsamples}}
+\sphinxstylestrong{Description:} By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s sample columns as distinct.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id53}}
+\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id54}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\section{ConvertFasta2MVF}
+\label{\detokenize{prog_desc:convertfasta2mvf}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id55}}
+Converts a FASTA file to MVF format
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id56}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id57}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}fasta}} (required)}
+\label{\detokenize{prog_desc:fasta-required}}
+\sphinxstylestrong{Description:} input FASTA file(s)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id58}}
+\sphinxstylestrong{Description:} output MVF file
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-by-file/-{-}contigbyfile}}}
+\label{\detokenize{prog_desc:contig-by-file-contigbyfile}}
+\sphinxstylestrong{Description:} Contigs are designated by separate files.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-field/-{-}contigfield}}}
+\label{\detokenize{prog_desc:contig-field-contigfield}}
+\sphinxstylestrong{Description:} When headers are split by \textendash{}field-sep, the 0-based index of the contig id.
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:id59}}
+\sphinxstylestrong{Description:} manually specify one or more contig ids as ID:LABEL
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}field-sep/-{-}fieldsep}}}
+\label{\detokenize{prog_desc:field-sep-fieldsep}}
+\sphinxstylestrong{Description:} FASTA field separator; assumes ‘\textgreater{}database accession locus’ format
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+\sphinxstylestrong{Choices:} {[}‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’, ‘PIPE’, ‘AT’, ‘UNDER’, ‘DBLUNDER’{]}
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}flavor}}}
+\label{\detokenize{prog_desc:flavor}}
+\sphinxstylestrong{Description:} type of file {[}dna{]} or protein
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} dna
+
+\sphinxstylestrong{Choices:} {[}‘dna’, ‘protein’{]}
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}manual-coord/-{-}manualcoord}}}
+\label{\detokenize{prog_desc:manual-coord-manualcoord}}
+\sphinxstylestrong{Description:} manually specify reference coordinates for each file in the format CONTIGID:START..STOP, …
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id60}}
+\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id61}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}read-buffer/-{-}readbuffer}}}
+\label{\detokenize{prog_desc:read-buffer-readbuffer}}
+\sphinxstylestrong{Description:} number of lines to hold in READ buffer
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}ref-label/-{-}reflabel}}}
+\label{\detokenize{prog_desc:ref-label-reflabel}}
+\sphinxstylestrong{Description:} label for reference sample
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-field/-{-}samplefield}}}
+\label{\detokenize{prog_desc:sample-field-samplefield}}
+\sphinxstylestrong{Description:} when headers are split by \textendash{}field-sep, the 0-based index of the sample id
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-replace/-{-}samplereplace}}}
+\label{\detokenize{prog_desc:sample-replace-samplereplace}}
+\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}write-buffer/-{-}writebuffer}}}
+\label{\detokenize{prog_desc:write-buffer-writebuffer}}
+\sphinxstylestrong{Description:} number of lines to hold in WRITE buffer
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\section{ConvertMAF2MVF}
+\label{\detokenize{prog_desc:convertmaf2mvf}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id62}}
+Converts a MAF file to a MVF file
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id63}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id64}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}maf}} (required)}
+\label{\detokenize{prog_desc:maf-required}}
+\sphinxstylestrong{Description:} input MAF file
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id65}}
+\sphinxstylestrong{Description:} output MVF file
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-tags/-{-}sampletags}} (required)}
+\label{\detokenize{prog_desc:sample-tags-sampletags-required}}
+\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id66}}
+\sphinxstylestrong{Description:} Number of entries to store in memory at a time.
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf-ref-label/-{-}mvfreflabel}}}
+\label{\detokenize{prog_desc:mvf-ref-label-mvfreflabel}}
+\sphinxstylestrong{Description:} new label for reference sample (default=’REF’)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id67}}
+\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id68}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}ref-tag/-{-}reftag}}}
+\label{\detokenize{prog_desc:ref-tag-reftag}}
+\sphinxstylestrong{Description:} old reference tag
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\section{ConvertMVF2Fasta}
+\label{\detokenize{prog_desc:convertmvf2fasta}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id69}}
+Converts an MVF file to a FASTA file
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id70}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id71}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id72}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id97}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id73}}
+\sphinxstylestrong{Description:} Output path of FASTA file.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}buffer}}}
+\label{\detokenize{prog_desc:buffer}}
+\sphinxstylestrong{Description:} size (Mbp) of write buffer for each sample
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 10
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}label-type/-{-}labeltype}}}
+\label{\detokenize{prog_desc:label-type-labeltype}}
+\sphinxstylestrong{Description:} Long labels with all metadata or short ids
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} long
+
+\sphinxstylestrong{Choices:} (‘long’, ‘short’)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-data/-{-}outputdata}}}
+\label{\detokenize{prog_desc:output-data-outputdata}}
+\sphinxstylestrong{Description:} Output dna, rna or prot data.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+\sphinxstylestrong{Choices:} (‘dna’, ‘rna’, ‘prot’)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id74}}
 \sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}regions}}}
+\label{\detokenize{prog_desc:regions}}
+\sphinxstylestrong{Description:} Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id75}}
+\sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id76}}
+\sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}temp\_dir/-{-}tempdir}}}
+\label{\detokenize{prog_desc:temp-dir-tempdir}}
+\sphinxstylestrong{Description:} directory to write temporary fasta files
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} .
+
+
+\section{ConvertMVF2Phylip}
+\label{\detokenize{prog_desc:convertmvf2phylip}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id77}}
+Converts an MVF file to a Phylip file
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id78}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id79}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id80}}
+\sphinxstylestrong{Description:} Input MVF file.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id81}}
+\sphinxstylestrong{Description:} Output Phylip file.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}buffer}}}
+\label{\detokenize{prog_desc:id82}}
+\sphinxstylestrong{Description:} size (bp) of write buffer for each sample
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}label-type/-{-}labeltype}}}
+\label{\detokenize{prog_desc:id83}}
+\sphinxstylestrong{Description:} Long labels with all metadata or short ids
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} short
+
+\sphinxstylestrong{Choices:} (‘long’, ‘short’)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-data/-{-}outputdata}}}
+\label{\detokenize{prog_desc:id84}}
+\sphinxstylestrong{Description:} Output dna, rna or prot data.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+\sphinxstylestrong{Choices:} (‘dna’, ‘rna’, ‘prot’)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}partition}}}
+\label{\detokenize{prog_desc:partition}}
+\sphinxstylestrong{Description:} Output a CSV partitions file with RAxMLformatting for use in partitioned phylogenetic methods.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id85}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}regions}}}
+\label{\detokenize{prog_desc:id86}}
+\sphinxstylestrong{Description:} Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id87}}
+\sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id88}}
+\sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}temp\_dir/-{-}tempdir}}}
+\label{\detokenize{prog_desc:id89}}
+\sphinxstylestrong{Description:} directory to write temporary fasta files
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} .
+
+
+\section{ConvertVCF2MVF}
+\label{\detokenize{prog_desc:convertvcf2mvf}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id90}}
+Converts a VCF file to an MVF file
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id91}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id92}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id93}}
+\sphinxstylestrong{Description:} output MVF file
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}alleles-from/-{-}allelesfrom}}}
+\label{\detokenize{prog_desc:alleles-from-allelesfrom}}\begin{description}
+\item[{\sphinxstylestrong{Description:} get additional alignment columns}] \leavevmode
+from INFO fields (:-separated)
+
+\end{description}
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:id94}}
+\sphinxstylestrong{Description:} manually specify one or more contig ids as ID;VCFLABE;MVFLABEL, note that VCFLABEL must match EXACTLY the contig string labels in the VCF file
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}field-sep/-{-}fieldsep}}}
+\label{\detokenize{prog_desc:id95}}
+\sphinxstylestrong{Description:} VCF field separator (default=’TAB’)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} TAB
+
+\sphinxstylestrong{Choices:} {[}‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’{]}
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id96}}
+\sphinxstylestrong{Description:} Number of entries to store in memory at a time.
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}low-depth/-{-}lowdepth}}}
+\label{\detokenize{prog_desc:low-depth-lowdepth}}
+\sphinxstylestrong{Description:} below this read depth coverage, convert to lower case set to 0 to disable
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 3
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}low-qual/-{-}lowqual}}}
+\label{\detokenize{prog_desc:low-qual-lowqual}}
+\sphinxstylestrong{Description:} below this quality convert to lower case set to 0 to disable
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 20
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mask-depth/-{-}maskdepth}}}
+\label{\detokenize{prog_desc:mask-depth-maskdepth}}
+\sphinxstylestrong{Description:} below this read depth mask with N/n
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 1
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mask-qual/-{-}maskqual}}}
+\label{\detokenize{prog_desc:mask-qual-maskqual}}
+\sphinxstylestrong{Description:} low quality cutoff, bases replaced by N/- set to 0 to disable
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 3
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}no-autoindex/-{-}noautoindex}}}
+\label{\detokenize{prog_desc:no-autoindex-noautoindex}}
+\sphinxstylestrong{Description:} do not automatically index contigs from the VCF
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out-flavor/-{-}outflavor}}}
+\label{\detokenize{prog_desc:out-flavor-outflavor}}
+\sphinxstylestrong{Description:} choose output MVF flavor to include quality scores and/or indels
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} dna
+
+\sphinxstylestrong{Choices:} {[}‘dna’, ‘dnaqual’, ‘dnaqual-indel’, ‘dna-indel’{]}
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id97}}
+\sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}ploidy}}}
+\label{\detokenize{prog_desc:ploidy}}\begin{description}
+\item[{\sphinxstylestrong{Description:} Use for hexaploid and tetraploid}] \leavevmode
+(Experimental, use with caution
+
+\end{description}
+
+\sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 2
+
+\sphinxstylestrong{Choices:} (2, 4, 6)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}qual}}}
+\label{\detokenize{prog_desc:qual}}
+\sphinxstylestrong{Description:} Include Phred genotype quality (GQ) scores
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id98}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}ref-label/-{-}reflabel}}}
+\label{\detokenize{prog_desc:id99}}
+\sphinxstylestrong{Description:} label for reference sample (default=’REF’)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} REF
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-replace/-{-}samplereplace}}}
+\label{\detokenize{prog_desc:id100}}
+\sphinxstylestrong{Description:} one or more \sphinxurl{TAG:NEWLABEL} or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}vcf}}}
+\label{\detokenize{prog_desc:vcf}}
+\sphinxstylestrong{Description:} VCF input file
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}verbose}}}
+\label{\detokenize{prog_desc:verbose}}
+\sphinxstylestrong{Description:} Output excessive data to screen for debugging
 
 \sphinxstylestrong{Type:} boolean flag
 
@@ -1626,92 +1688,92 @@ None
 \label{\detokenize{prog_desc:filtermvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id98}}
-None
+\label{\detokenize{prog_desc:id101}}
+Filter an MVF file using various parameters.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id99}}
+\label{\detokenize{prog_desc:id102}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id100}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id103}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id101}}
-\sphinxstylestrong{Description:} Input MVF file.
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id102}}
-\sphinxstylestrong{Description:} Output file
-
-\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}actions}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}actions}}}
 \label{\detokenize{prog_desc:actions}}
 \sphinxstylestrong{Description:} set of actions:args to perform, note these are done in order as listed
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}labels}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}labels}}}
 \label{\detokenize{prog_desc:labels}}
 \sphinxstylestrong{Description:} use sample labels instead of indices
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id103}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id104}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}more-help/-{-}morehelp}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}more-help/-{-}morehelp}}}
 \label{\detokenize{prog_desc:more-help-morehelp}}
 \sphinxstylestrong{Description:} prints full module list and descriptions
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id104}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}}}
+\label{\detokenize{prog_desc:mvf}}
+\sphinxstylestrong{Description:} Input MVF file.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}}}
+\label{\detokenize{prog_desc:out}}
+\sphinxstylestrong{Description:} Output file
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id105}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id105}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id106}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}test}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}test}}}
 \label{\detokenize{prog_desc:test}}
 \sphinxstylestrong{Description:} manually input a line for testing
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}test-nchar/-{-}textnchar}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}test-nchar/-{-}textnchar}}}
 \label{\detokenize{prog_desc:test-nchar-textnchar}}
 \sphinxstylestrong{Description:} total number of samples for test string
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}verbose}}
-\label{\detokenize{prog_desc:verbose}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}verbose}}}
+\label{\detokenize{prog_desc:id107}}
 \sphinxstylestrong{Description:} report every line (for debugging)
 
 \sphinxstylestrong{Type:} boolean flag
@@ -1721,176 +1783,169 @@ None
 \label{\detokenize{prog_desc:infergroupspecificallele}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id106}}
-None
+\label{\detokenize{prog_desc:id108}}
+Infer Group-specific alleles using PAML.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id107}}
+\label{\detokenize{prog_desc:id109}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id108}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id110}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id109}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id111}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id110}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id112}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}all-sample-trees/-{-}allsampletrees}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}all-sample-trees/-{-}allsampletrees}}}
 \label{\detokenize{prog_desc:all-sample-trees-allsampletrees}}
 \sphinxstylestrong{Description:} Makes trees from all samples instead of only the most complete sequence from each species
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}allele-groups/-{-}allelegroups}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}allele-groups/-{-}allelegroups}}}
 \label{\detokenize{prog_desc:allele-groups-allelegroups}}
 \sphinxstylestrong{Description:} GROUP1:LABEL,LABEL GROUP2:LABEL,LABEL
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}branch-lrt/-{-}branchlrt}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}branch-lrt/-{-}branchlrt}}}
 \label{\detokenize{prog_desc:branch-lrt-branchlrt}}
 \sphinxstylestrong{Description:} Specify the output file for and turn on the RAxML-PAML format LRT test scan for selection on the target branch in addition to the basic patterns scan
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}chi-test/-{-}chitest}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}chi-test/-{-}chitest}}}
 \label{\detokenize{prog_desc:chi-test-chitest}}
 \sphinxstylestrong{Description:} Input two number values for expected Nonsynonymous and Synonymous expected values.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}codeml-path/-{-}codemlpath}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}codeml-path/-{-}codemlpath}}}
 \label{\detokenize{prog_desc:codeml-path-codemlpath}}
 \sphinxstylestrong{Description:} Full path for PAML codeml executable.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} codeml
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}end-contig/-{-}endcontig}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}end-contig/-{-}endcontig}}}
 \label{\detokenize{prog_desc:end-contig-endcontig}}
 \sphinxstylestrong{Description:} Numerical id for the ending contig.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000000
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}gff}}
-\label{\detokenize{prog_desc:id111}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}gff}}}
+\label{\detokenize{prog_desc:id113}}
 \sphinxstylestrong{Description:} Input gff annotation file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mincoverage}}
-\label{\detokenize{prog_desc:id112}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mincoverage}}}
+\label{\detokenize{prog_desc:id114}}
 \sphinxstylestrong{Description:} Mininum sample coverage for sites.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}num-target-species/-{-}targetspec}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}num-target-species/-{-}targetspec}}}
 \label{\detokenize{prog_desc:num-target-species-targetspec}}
 \sphinxstylestrong{Description:} Specify the minimum number of taxa in the target set that are required to conduct analysis
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 1
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}outgroup}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}outgroup}}}
 \label{\detokenize{prog_desc:outgroup}}
 \sphinxstylestrong{Description:} Specify sample name with which to root trees.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-align/-{-}outputalign}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-align/-{-}outputalign}}}
 \label{\detokenize{prog_desc:output-align-outputalign}}
 \sphinxstylestrong{Description:} Output alignment to this file path in phylip format.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}paml-tmp/-{-}pamltmp}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}paml-tmp/-{-}pamltmp}}}
 \label{\detokenize{prog_desc:paml-tmp-pamltmp}}
 \sphinxstylestrong{Description:} path for temporary folder for PAML output files
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} pamltmp
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id113}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id115}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}raxml-path/-{-}raxmlpath}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}raxml-path/-{-}raxmlpath}}}
 \label{\detokenize{prog_desc:raxml-path-raxmlpath}}
 \sphinxstylestrong{Description:} Full path to RAxML program executable.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} raxml
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}samples}}
-\label{\detokenize{prog_desc:samples}}
-\sphinxstylestrong{Description:} Specify comma-separated list of samples, Leave blank for all samples.
-
-\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
-
-
-\subsubsection{\sphinxstyleliteralintitle{-{-}species-groups/-{-}speciesgroups}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}species-groups/-{-}speciesgroups}}}
 \label{\detokenize{prog_desc:species-groups-speciesgroups}}
 \sphinxstylestrong{Description:} None
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}start-contig/-{-}startcontig}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}start-contig/-{-}startcontig}}}
 \label{\detokenize{prog_desc:start-contig-startcontig}}
 \sphinxstylestrong{Description:} Numerical ID for the starting contig.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 0
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}target}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}target}}}
 \label{\detokenize{prog_desc:target}}
 \sphinxstylestrong{Description:} Specify the taxa labels that define the target lineage-specific branch to be tested.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}use-labels/-{-}uselabels}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}use-labels/-{-}uselabels}}}
 \label{\detokenize{prog_desc:use-labels-uselabels}}
 \sphinxstylestrong{Description:} Use contig labels instead of IDs in output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}verbose}}
-\label{\detokenize{prog_desc:id114}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}verbose}}}
+\label{\detokenize{prog_desc:id116}}
 \sphinxstylestrong{Description:} additional screen output
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
-\label{\detokenize{prog_desc:id115}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
+\label{\detokenize{prog_desc:id117}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -1900,42 +1955,42 @@ None
 \label{\detokenize{prog_desc:infertree}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id116}}
-None
+\label{\detokenize{prog_desc:id118}}
+Infer phylogenies for various windows or contigs in anMVF file.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id117}}
+\label{\detokenize{prog_desc:id119}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id118}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id120}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id119}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id121}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id120}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id122}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}bootstrap}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}bootstrap}}}
 \label{\detokenize{prog_desc:bootstrap}}
 \sphinxstylestrong{Description:} turn on rapid bootstrapping for RAxML and perform specified number of replicates
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}choose-allele/-{-}chooseallele/-{-}hapmode}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}choose-allele/-{-}chooseallele/-{-}hapmode}}}
 \label{\detokenize{prog_desc:choose-allele-chooseallele-hapmode}}
 \sphinxstylestrong{Description:} Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele; minor=pick the less common allele; majorminor= pick the major in ‘a’ and minor in ‘b’
 
@@ -1944,21 +1999,21 @@ None
 \sphinxstylestrong{Choices:} {[}‘none’, ‘randomone’, ‘randomboth’, ‘major’, ‘minor’, ‘majorminor’{]}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids}}
-\label{\detokenize{prog_desc:id121}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids}}}
+\label{\detokenize{prog_desc:id123}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig short ids. Must match exactly. Do not use with \textendash{}contig-labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-labels/-{-}contiglabels}}
-\label{\detokenize{prog_desc:id122}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-labels/-{-}contiglabels}}}
+\label{\detokenize{prog_desc:id124}}
 \sphinxstylestrong{Description:} Specify comma-separated list of contig full labels. Must match exactly. Do not use with \textendash{}contig-ids
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}duplicate-seq/-{-}duplicateseq}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}duplicate-seq/-{-}duplicateseq}}}
 \label{\detokenize{prog_desc:duplicate-seq-duplicateseq}}
 \sphinxstylestrong{Description:} dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment
 
@@ -1967,187 +2022,187 @@ None
 \sphinxstylestrong{Choices:} {[}‘dontuse’, ‘keep’, ‘remove’{]}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}min-depth/-{-}mindepth}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}min-depth/-{-}mindepth}}}
 \label{\detokenize{prog_desc:min-depth-mindepth}}
 \sphinxstylestrong{Description:} minimum number of alleles per site
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 4
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}min-seq-coverage/-{-}minseqcoverage}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}min-seq-coverage/-{-}minseqcoverage}}}
 \label{\detokenize{prog_desc:min-seq-coverage-minseqcoverage}}
 \sphinxstylestrong{Description:} proportion of total alignment a sequencemust cover to be retianed {[}0.1{]}
 
 \sphinxstylestrong{Type:} float; \sphinxstylestrong{Default:} 0.1
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}min-sites/-{-}minsites}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}min-sites/-{-}minsites}}}
 \label{\detokenize{prog_desc:min-sites-minsites}}
 \sphinxstylestrong{Description:} minimum number of sites
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-contig-labels/-{-}outputcontiglabels}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-contig-labels/-{-}outputcontiglabels}}}
 \label{\detokenize{prog_desc:output-contig-labels-outputcontiglabels}}
 \sphinxstylestrong{Description:} Output will use contig labels instead of id numbers.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-empty/-{-}outputempty}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-empty/-{-}outputempty}}}
 \label{\detokenize{prog_desc:output-empty-outputempty}}
 \sphinxstylestrong{Description:} Include entries of windows with no data in output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id123}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id125}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}raxml-model/-{-}raxmlmodel}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}raxml-model/-{-}raxmlmodel}}}
 \label{\detokenize{prog_desc:raxml-model-raxmlmodel}}
 \sphinxstylestrong{Description:} choose RAxML model
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} GTRGAMMA
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}raxml-opts/-{-}raxmlopts}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}raxml-opts/-{-}raxmlopts}}}
 \label{\detokenize{prog_desc:raxml-opts-raxmlopts}}
 \sphinxstylestrong{Description:} specify additional RAxML arguments as a double-quotes encased string
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}raxml-outgroups/-{-}raxmloutgroups}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}raxml-outgroups/-{-}raxmloutgroups}}}
 \label{\detokenize{prog_desc:raxml-outgroups-raxmloutgroups}}
 \sphinxstylestrong{Description:} Comma-separated list of outgroup taxon labels to use in RAxML.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}raxml-path/-{-}raxmlpath}}
-\label{\detokenize{prog_desc:id124}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}raxml-path/-{-}raxmlpath}}}
+\label{\detokenize{prog_desc:id126}}
 \sphinxstylestrong{Description:} RAxML path for manual specification.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} raxml
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}root-with/-{-}rootwith}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}root-with/-{-}rootwith}}}
 \label{\detokenize{prog_desc:root-with-rootwith}}
 \sphinxstylestrong{Description:} Comma-separated list of taxon labels to root trees with after RAxML
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id125}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id127}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id126}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id128}}
 \sphinxstylestrong{Description:} Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}temp-dir/-{-}tempdir}}
-\label{\detokenize{prog_desc:id127}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}temp-dir/-{-}tempdir}}}
+\label{\detokenize{prog_desc:id129}}
 \sphinxstylestrong{Description:} Temporary directory path
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} ./raxmltemp
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}temp-prefix/-{-}tempprefix}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}temp-prefix/-{-}tempprefix}}}
 \label{\detokenize{prog_desc:temp-prefix-tempprefix}}
 \sphinxstylestrong{Description:} Temporary file prefix
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} mvftree
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
-\label{\detokenize{prog_desc:id128}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
+\label{\detokenize{prog_desc:id130}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\section{JoinMVF}
-\label{\detokenize{prog_desc:joinmvf}}
+\section{MergeMVF}
+\label{\detokenize{prog_desc:mergemvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id129}}
-None
+\label{\detokenize{prog_desc:id131}}
+Combines columns from multiple MVF files into a single output MVF(this is a newer module, use with caution!)
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id130}}
+\label{\detokenize{prog_desc:id132}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id131}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id133}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id132}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id134}}
 \sphinxstylestrong{Description:} One or more mvf files.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id133}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id135}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id134}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id136}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}main\_header\_file/-{-}mainheaderfile}}
-\label{\detokenize{prog_desc:main-header-file-mainheaderfile}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}main\_header\_file/-{-}mainheaderfile}}}
+\label{\detokenize{prog_desc:id137}}
 \sphinxstylestrong{Description:} Output file will use same headers as this input file (default=first in list).
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}new-contigs/-{-}newcontigs}}
-\label{\detokenize{prog_desc:new-contigs-newcontigs}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}new-contigs/-{-}newcontigs}}}
+\label{\detokenize{prog_desc:id138}}
 \sphinxstylestrong{Description:} By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s contigs as distinct.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}newsamples}}
-\label{\detokenize{prog_desc:newsamples}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}newsamples}}}
+\label{\detokenize{prog_desc:id139}}
 \sphinxstylestrong{Description:} By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s sample columns as distinct.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id135}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id140}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id136}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id141}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
@@ -2157,28 +2212,28 @@ None
 \label{\detokenize{prog_desc:plotchromoplot}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id137}}
-None
+\label{\detokenize{prog_desc:id142}}
+Plot a Chromoplot from an MVF file for all combinationsof the specified samples.
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id138}}
+\label{\detokenize{prog_desc:id143}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id139}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id144}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id140}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id145}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}colors}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}colors}}}
 \label{\detokenize{prog_desc:colors}}
 \sphinxstylestrong{Description:} three colors to use for chromoplot
 
@@ -2187,21 +2242,21 @@ None
 \sphinxstylestrong{Choices:} \{‘lgrey’: (250, 250, 250), ‘dgrey’: (192, 192, 192), ‘black’: (0, 0, 0), ‘white’: (255, 255, 255), ‘red’: (192, 0, 0), ‘orange’: (217, 95, 2), ‘yellow’: (192, 192, 0), ‘green’: (0, 192, 0), ‘blue’: (0, 0, 192), ‘teal’: (27, 158, 119), ‘puce’: (117, 112, 179), ‘purple’: (192, 0, 192), ‘none’: ()\}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-ids/-{-}contigids/-{-}contigs}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-ids/-{-}contigids/-{-}contigs}}}
 \label{\detokenize{prog_desc:contig-ids-contigids-contigs}}
 \sphinxstylestrong{Description:} Enter the labels of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF)
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}contig-labels/-{-}contiglabels}}
-\label{\detokenize{prog_desc:id141}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}contig-labels/-{-}contiglabels}}}
+\label{\detokenize{prog_desc:id146}}
 \sphinxstylestrong{Description:} Enter the ids of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF)
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}empty-mask/-{-}emptymask}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}empty-mask/-{-}emptymask}}}
 \label{\detokenize{prog_desc:empty-mask-emptymask}}
 \sphinxstylestrong{Description:} Mask empty regions with this color.
 
@@ -2210,42 +2265,42 @@ None
 \sphinxstylestrong{Choices:} \{‘lgrey’: (250, 250, 250), ‘dgrey’: (192, 192, 192), ‘black’: (0, 0, 0), ‘white’: (255, 255, 255), ‘red’: (192, 0, 0), ‘orange’: (217, 95, 2), ‘yellow’: (192, 192, 0), ‘green’: (0, 192, 0), ‘blue’: (0, 0, 192), ‘teal’: (27, 158, 119), ‘puce’: (117, 112, 179), ‘purple’: (192, 0, 192), ‘none’: ()\}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}info-track/-{-}infotrack}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}info-track/-{-}infotrack}}}
 \label{\detokenize{prog_desc:info-track-infotrack}}
 \sphinxstylestrong{Description:} Include an additional coverage information track that will show empty, uninformative, and informative loci. (Useful for ranscriptomes/RAD or other reduced sampling.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}majority}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}majority}}}
 \label{\detokenize{prog_desc:majority}}
 \sphinxstylestrong{Description:} Plot only 100\% shading in the majority track  rather than shaded proportions in all tracks.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out-prefix/-{-}outprefix}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out-prefix/-{-}outprefix}}}
 \label{\detokenize{prog_desc:out-prefix-outprefix}}
 \sphinxstylestrong{Description:} Output prefix (not required).
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}outgroup-indices/-{-}outgroupindices}}
-\label{\detokenize{prog_desc:id142}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}outgroup-indices/-{-}outgroupindices}}}
+\label{\detokenize{prog_desc:id147}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 1 or more outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with \textendash{}outgroup\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}outgroup-labels/-{-}outgrouplabels}}
-\label{\detokenize{prog_desc:id143}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}outgroup-labels/-{-}outgrouplabels}}}
+\label{\detokenize{prog_desc:id148}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 1 or more outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}outgroup\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}plot-type/-{-}plottype}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}plot-type/-{-}plottype}}}
 \label{\detokenize{prog_desc:plot-type-plottype}}
 \sphinxstylestrong{Description:} PNG image (default) or graph via matplotlib (experimental)
 
@@ -2254,42 +2309,42 @@ None
 \sphinxstylestrong{Choices:} {[}‘graph’, ‘image’{]}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id144}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id149}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-indices/-{-}sampleindices}}
-\label{\detokenize{prog_desc:id145}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-indices/-{-}sampleindices}}}
+\label{\detokenize{prog_desc:id150}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with \textendash{}sample\_labels.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}sample-labels}}
-\label{\detokenize{prog_desc:id146}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}sample-labels}}}
+\label{\detokenize{prog_desc:id151}}
 \sphinxstylestrong{Description:} Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with \textendash{}sample\_indicies.
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}windowsize}}
-\label{\detokenize{prog_desc:id147}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}windowsize}}}
+\label{\detokenize{prog_desc:id152}}
 \sphinxstylestrong{Description:} Set integer window size. Use 0 for whole file. Use -1 for whole contigs.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}xscale}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}xscale}}}
 \label{\detokenize{prog_desc:xscale}}
 \sphinxstylestrong{Description:} Width (in number of pixels) for each window
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 1
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}yscale}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}yscale}}}
 \label{\detokenize{prog_desc:yscale}}
 \sphinxstylestrong{Description:} Height (in number of pixels) for each track
 
@@ -2300,57 +2355,57 @@ None
 \label{\detokenize{prog_desc:translatemvf}}
 
 \subsection{Description}
-\label{\detokenize{prog_desc:id148}}
-None
+\label{\detokenize{prog_desc:id153}}
+Translate a DNA MVF to a protein or codon MVF
 
 
 \subsection{Parameters}
-\label{\detokenize{prog_desc:id149}}
+\label{\detokenize{prog_desc:id154}}
 
-\subsubsection{\sphinxstyleliteralintitle{-h/-{-}help}}
-\label{\detokenize{prog_desc:id150}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id155}}
 \sphinxstylestrong{Description:} show this help message and exit
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}mvf} (required)}
-\label{\detokenize{prog_desc:id151}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id156}}
 \sphinxstylestrong{Description:} Input MVF file.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}out} (required)}
-\label{\detokenize{prog_desc:id152}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}out}} (required)}
+\label{\detokenize{prog_desc:id157}}
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}filter-annotation/-{-}filterannotation}}
-\label{\detokenize{prog_desc:id153}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}filter-annotation/-{-}filterannotation}}}
+\label{\detokenize{prog_desc:id158}}
 \sphinxstylestrong{Description:} skip GFF entries with text matching this in their ‘Notes’ field
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}gff}}
-\label{\detokenize{prog_desc:id154}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}gff}}}
+\label{\detokenize{prog_desc:id159}}
 \sphinxstylestrong{Description:} Input GFF3 file. If GFF3 not provided, alignments are assumed to be in-frame coding sequences.
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}line-buffer/-{-}linebuffer}}
-\label{\detokenize{prog_desc:id155}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}line-buffer/-{-}linebuffer}}}
+\label{\detokenize{prog_desc:id160}}
 \sphinxstylestrong{Description:} Number of entries to store in memory at a time.
 
 \sphinxstylestrong{Type:} integer; \sphinxstylestrong{Default:} 100000
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}output-data/-{-}outputdata}}
-\label{\detokenize{prog_desc:id156}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}output-data/-{-}outputdata}}}
+\label{\detokenize{prog_desc:id161}}
 \sphinxstylestrong{Description:} protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3
 
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} codon
@@ -2358,22 +2413,54 @@ None
 \sphinxstylestrong{Choices:} {[}‘protein’, ‘codon’{]}
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}overwrite}}
-\label{\detokenize{prog_desc:id157}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}overwrite}}}
+\label{\detokenize{prog_desc:id162}}
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
 
 
-\subsubsection{\sphinxstyleliteralintitle{-{-}quiet}}
-\label{\detokenize{prog_desc:id158}}
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id163}}
+\sphinxstylestrong{Description:} Suppress screen output.
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\section{VerifyMVF}
+\label{\detokenize{prog_desc:verifymvf}}
+
+\subsection{Description}
+\label{\detokenize{prog_desc:id164}}
+Checks an MVF file for errors.
+
+
+\subsection{Parameters}
+\label{\detokenize{prog_desc:id165}}
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-h/-{-}help}}}
+\label{\detokenize{prog_desc:id166}}
+\sphinxstylestrong{Description:} show this help message and exit
+
+\sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mvf}} (required)}
+\label{\detokenize{prog_desc:id167}}
+\sphinxstylestrong{Description:} Input MVF file.
+
+\sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
+\label{\detokenize{prog_desc:id168}}
 \sphinxstylestrong{Description:} Suppress screen output.
 
 \sphinxstylestrong{Type:} boolean flag
 
 
 \chapter{mvf\_filter modules}
-\label{\detokenize{mvf_filter_modules::doc}}\label{\detokenize{mvf_filter_modules:mvf-filter-modules}}
+\label{\detokenize{mvf_filter_modules:mvf-filter-modules}}\label{\detokenize{mvf_filter_modules::doc}}
 
 \section{GENERAL NOTES}
 \label{\detokenize{mvf_filter_modules:general-notes}}
@@ -2406,7 +2493,6 @@ This filter requires that all members of each group contain
 valid alleles.  The groups are specified by a series of colon-separated
 groups of comma-separate columns.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{allelegroup}\PYG{p}{:}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{3}\PYG{p}{:}\PYG{l+m+mi}{4}\PYG{p}{,}\PYG{l+m+mi}{5}\PYG{p}{,}\PYG{l+m+mi}{6}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1 AA\PYGZhy{}AATA \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained* (first and second group both have alleles)}
@@ -2423,7 +2509,6 @@ low-coverage samples into a single combined sample column.
 The columns  are specified after the colon using comma-separated integers
 (or text labels with the \textendash{}labels option).
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{collapsepriority}\PYG{p}{:}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{3}\PYG{p}{,}\PYG{l+m+mi}{4}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1 ABCDE \PYGZhy{}\PYGZhy{}\PYGZgt{} ABC   (column 3 present, so column 3 used)}
@@ -2440,7 +2525,6 @@ combining haplotypes or population samples. The columns
 are specified after the colon using comma-separated integers
 (or text labels with the \textendash{}labels option).
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{collapsemerge}\PYG{p}{:}\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{l+m+mi}{3}\PYG{p}{,}\PYG{l+m+mi}{4}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1 AACAA \PYGZhy{}\PYGZhy{}\PYGZgt{} AAM (CAA becomes ambiguity code \PYGZsq{}M\PYGZsq{})}
@@ -2455,7 +2539,6 @@ This transformation returns only the specified columns.
 The columns are specified after the colon using comma-separated integers
 (or text labels with the \textendash{}labels option).
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{columns}\PYG{p}{:}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{3}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1 ABCDE \PYGZhy{}\PYGZhy{}\PYGZgt{} BD (columns 1 and 3 are returned)}
@@ -2469,7 +2552,6 @@ This transformation will replace the specified character(s) with “X”.
 Characters to be masked are specified after the column
 as a comma-separated list of single characters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{maskchar}\PYG{p}{:}\PYG{n}{K}\PYG{p}{,}\PYG{n}{M}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AAKA \PYGZhy{}\PYGZhy{}\PYGZgt{} AAXA}
@@ -2482,7 +2564,6 @@ as a comma-separated list of single characters.
 This transformation will replace all lower case characters with “X”.
 This takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{masklower}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} AXTX}
@@ -2498,7 +2579,6 @@ than the specified cutoff. This is useful before conducting scans
 number of taxa.  The action is specified by a single integer after
 the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{mincoverage}\PYG{p}{:}\PYG{l+m+mi}{3}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: A\PYGZhy{}\PYGZhy{}A \PYGZhy{}\PYGZhy{}\PYGZgt{} *filtered out* (coverage = 2)}
@@ -2515,7 +2595,6 @@ characters should be entered alongside upper-case when both are
 filtered.  The action is specified by one or more comma-separated
 characters after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{notchar}\PYG{p}{:}\PYG{n}{X}\PYG{p}{,}\PYG{n}{K}\PYG{p}{,}\PYG{n}{M}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AK\PYGZhy{}X \PYGZhy{}\PYGZhy{}\PYGZgt{} *filtered out* (contains K and X)}
@@ -2528,7 +2607,6 @@ characters after the colon.
 This transformation will change all lower-case characters to upper-case.
 This takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{promotelower}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} AATA}
@@ -2541,7 +2619,6 @@ This takes no paramters.
 This transformation will change all lower-case characters to gaps.
 This action takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{promotelower}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} A\PYGZhy{}T\PYGZhy{}}
@@ -2555,7 +2632,6 @@ This transformation will change all instances of the specified
 characters to gaps. Characters are \sphinxstyleemphasis{case sensitive}. The action is
 specified by one or more comma-separated characters after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{removechar}\PYG{p}{:}\PYG{n}{a}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} A\PYGZhy{}T\PYGZhy{}}
@@ -2569,7 +2645,6 @@ This filter will remove entries that do no contain all of the specified
 characters. Characters are \sphinxstyleemphasis{case sensitive}. The action is
 specified by one or more comma-separated characters after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqallchar}\PYG{p}{:}\PYG{n}{A}\PYG{p}{,}\PYG{n}{K}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} *filtered out* (contains \PYGZdq{}A\PYGZdq{} but not \PYGZdq{}K\PYGZdq{})}
@@ -2583,7 +2658,6 @@ specified by one or more comma-separated characters after the colon.
 This location filter removes entries not on the specified contig.
 The action is specified by a numerical contig id after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqcontig}\PYG{p}{:}\PYG{l+m+mi}{1}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: 1:100 AAA \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained*}
@@ -2598,7 +2672,6 @@ This filter removes sites without at least two instances of
 at least two alleles (phylogenetically informative sites).
 This action takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqinformative}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AATA \PYGZhy{}\PYGZhy{}\PYGZgt{} *filtered out* (only one \PYGZdq{}T\PYGZdq{})}
@@ -2612,7 +2685,6 @@ This action takes no paramters.
 This filter removes variant sites (not including gaps or ambiguities)
 This action takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqinvariant}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AATA \PYGZhy{}\PYGZhy{}\PYGZgt{} *filteredout*}
@@ -2629,7 +2701,6 @@ within in the specified bounds.
 The action is specified by a numerical contig id, then start and
 stop coordinates (inclusive) after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqregion}\PYG{p}{:}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{101}\PYG{p}{,}\PYG{l+m+mi}{110}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: 1:100 AAA \PYGZhy{}\PYGZhy{}\PYGZgt{} *filtered out*}
@@ -2645,7 +2716,6 @@ one of the of the specified  characters. Characters are
 \sphinxstyleemphasis{case sensitive}. The action is specified by one or more
 comma-separated characters after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqonechar}\PYG{p}{:}\PYG{n}{A}\PYG{p}{,}\PYG{n}{K}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AaTa \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained*}
@@ -2660,7 +2730,6 @@ This filter requires that the given sample(s) be a non-gap/ambiguous
 allele. The action is specified by one or more
 comma-separated integer column indices after the colon.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqample}\PYG{p}{:}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{l+m+mi}{2}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AAAA \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained*}
@@ -2674,7 +2743,6 @@ comma-separated integer column indices after the colon.
 This filter removes invariant sites.
 This action takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqinvariant}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AATA \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained*}
@@ -2689,7 +2757,6 @@ This action takes no paramters.
 This filter removes sites with no non-reference information.
 This action takes no paramters.
 
-\fvset{hllines={, ,}}%
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{n}{EXAMPLE} \PYG{n}{ACTION}\PYG{p}{:} \PYG{n}{reqnonrefsample}
 \PYG{n}{EXAMPLE} \PYG{c+c1}{\PYGZsh{}1: AATA \PYGZhy{}\PYGZhy{}\PYGZgt{} *retained*}
@@ -2699,14 +2766,18 @@ This action takes no paramters.
 
 
 \chapter{Frequently Asked Questions}
-\label{\detokenize{faq::doc}}\label{\detokenize{faq:frequently-asked-questions}}
+\label{\detokenize{faq:frequently-asked-questions}}\label{\detokenize{faq::doc}}
 See also our forum at: \sphinxurl{https://groups.google.com/forum/\#!forum/mvftools}
 
 Coming soon.
 
 
 \chapter{Version History}
-\label{\detokenize{version::doc}}\label{\detokenize{version:version-history}}
+\label{\detokenize{version:version-history}}\label{\detokenize{version::doc}}
+\sphinxstylestrong{v.0.5.2}
+
+2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution).  JoinMVF is now called ConcatenateMVF to avoid confusion.  CheckMVF changed to VerifyMVF to make it more clear.  ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the \textendash{}ploidy flag.  Other small fixes to the software and manual to update issues with the VCF interpreter.
+
 \sphinxstylestrong{v.0.5.1}
 
 2018-02-01: Changes to the \textendash{}sample and \textendash{}outgroup arguments for some calculations into separate \textendash{}sample-indices and \textendash{}sample-labels arguments.  This fixes an issue where if the sample labels are numerical they are misinterpreted when specified at the command line. All sample/outgroup indices or labels should be specified as a single comma-separated list.
@@ -2725,7 +2796,7 @@ Fixes to VCF conversion for compatibility
 
 \sphinxstylestrong{v.2017-04-10}
 
-Added MVF-to-Phylip output conversion \sphinxcode{mvf2phy}
+Added MVF-to-Phylip output conversion \sphinxcode{\sphinxupquote{mvf2phy}}
 
 \sphinxstylestrong{v.2017-03-25}
 

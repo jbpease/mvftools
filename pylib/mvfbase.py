@@ -151,11 +151,27 @@ class MultiVariantFile(object):
                 line = filehandler.readline()
                 while line:
                     if not line.startswith("#"):
+                        previous_contig = line.strip().split(":")[0]
                         break
                     header_lines.append(line.rstrip())
                     self.entrystart = filehandler.tell()
                     line = filehandler.readline()
+                if kwargs.get('contigindex', False) is True:
+                    line = filehandler.readline()
+                    with open(self.path + ".idx", "w") as idxfile:
+                        idxfile.write(previous_contig + "\t" +
+                                      str(self.entrystart) + "\n")
+                        while line:
+                            coord = filehandler.tell()
+                            line = filehandler.readline()
+                            if line.split(":")[0] != previous_contig:
+                                if ":" in line:
+                                    idxfile.write(line.split(":")[0] + "\t" +
+                                                  str(coord) + "\n")
+                                    previous_contig = line.split(":")[0]
                 self._process_header(header_lines)
+                if kwargs.get('contigindex', False) is True:
+                    self.read_index_file()
                 # Establish number of columns
                 self.metadata['ncol'] = len(self.metadata['labels'])
             else:
@@ -313,6 +329,13 @@ class MultiVariantFile(object):
         self.metadata['maxcontigid'] += 1
         return str(self.metadata['maxcontigid'])
 
+    def read_index_file(self):
+        with open(self.path + ".idx") as idxfile:
+            for line in idxfile:
+                entry = line.rstrip().split("\t")
+                self.metadata['contigs'][entry[0]]['idx'] = int(entry[1])
+        return ''
+
     def __iter__(self, quiet=False):
         """Simple entry iterator
            Returns (str(chrom), int(pos), list(allele entries))
@@ -463,29 +486,8 @@ class MultiVariantFile(object):
             Arguments:
                 alleles = encoded allele string
         """
-        ref = True
         ncol = self.metadata['ncol']
-        if alleles.startswith('@'):
-            alleles = alleles[1:]
-            ref = False
-            ncol -= 1
-        if len(alleles) == 1:
-            alleles = alleles[0] * ncol
-        elif len(alleles) == 2:
-            alleles = alleles[0] + (alleles[1] * (ncol - 1))
-        elif alleles[1] == '+':
-            newalleles = [alleles[0]] + ['-'] * (ncol - 1)
-            newalleles[int(alleles[3:])] = alleles[2]
-            alleles = ''.join(newalleles)
-        elif alleles[2] == '+':
-            tmp = int(alleles[4:])
-            alleles = "{}{}{}{}".format(alleles[0],
-                                        alleles[1]*(tmp - 1),
-                                        alleles[3],
-                                        alleles[1]*(ncol - tmp - 1))
-        if not ref:
-            return '@' + alleles
-        return alleles
+        return decode_mvfstring(alleles, ncol)
 
     def encode(self, alleles):
         """Internal copy of encode_mvfstring
@@ -544,6 +546,35 @@ def encode_mvfstring(alleles):
         alleles = "{}{}+{}1".format(
             alleles[0], alleles[2] if alleles[2] != '-' else '', alleles[1])
     if denovo:
+        return '@' + alleles
+    return alleles
+
+
+def decode_mvfstring(alleles, ncol):
+    """Decode entry into full-length alleles
+        Arguments:
+            alleles = encoded allele string
+    """
+    ref = True
+    if alleles.startswith('@'):
+        alleles = alleles[1:]
+        ref = False
+        ncol -= 1
+    if len(alleles) == 1:
+        alleles = alleles[0] * ncol
+    elif len(alleles) == 2:
+        alleles = alleles[0] + (alleles[1] * (ncol - 1))
+    elif alleles[1] == '+':
+        newalleles = [alleles[0]] + ['-'] * (ncol - 1)
+        newalleles[int(alleles[3:])] = alleles[2]
+        alleles = ''.join(newalleles)
+    elif alleles[2] == '+':
+        tmp = int(alleles[4:])
+        alleles = "{}{}{}{}".format(alleles[0],
+                                    alleles[1]*(tmp - 1),
+                                    alleles[3],
+                                    alleles[1]*(ncol - tmp - 1))
+    if not ref:
         return '@' + alleles
     return alleles
 

@@ -11,6 +11,7 @@
 
 import sys
 import os
+import re
 from argparse import _StoreAction, _HelpAction
 from argparse import _StoreTrueAction, _StoreFalseAction
 import importlib
@@ -27,12 +28,13 @@ def main(filepath, function_name, outfile=None):
     met = getattr(x, function_name)
     met.selfdoc = True
     for fxn in met.__dict__:
-        print(fxn)
         if fxn[0] == '_' or fxn == "selfdoc":
             continue
         print("Processing", fxn)
         xmet = getattr(met, fxn)
         parser = xmet(met)
+        description = xmet.__doc__
+        description = re.sub(r'\n\s*', '', description)
         print((".. {}:\n"
                "\n"
                "{}\n"
@@ -45,7 +47,7 @@ def main(filepath, function_name, outfile=None):
                    fxn,
                    fxn,
                    "="*len(fxn),
-                   parser.description,
+                   description,
                ), file=outfile)
         entries = []
         for y in parser._actions:

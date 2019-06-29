@@ -1,344 +1,357 @@
 \babel@toc {english}{}
-\contentsline {chapter}{\numberline {1}Getting Started}{1}{chapter.1}
-\contentsline {section}{\numberline {1.1}What is MVFtools?}{1}{section.1.1}
-\contentsline {section}{\numberline {1.2}How do I cite this?}{1}{section.1.2}
-\contentsline {section}{\numberline {1.3}Installation}{1}{section.1.3}
-\contentsline {subsection}{\numberline {1.3.1}Requirements}{1}{subsection.1.3.1}
-\contentsline {subsection}{\numberline {1.3.2}Additional Requirements for Some Modules}{2}{subsection.1.3.2}
-\contentsline {section}{\numberline {1.4}Preparing your data}{2}{section.1.4}
-\contentsline {subsection}{\numberline {1.4.1}Sequence Alignment}{2}{subsection.1.4.1}
-\contentsline {section}{\numberline {1.5}Basic usage examples}{2}{section.1.5}
-\contentsline {chapter}{\numberline {2}MVF Format Specification (version 1.2)}{3}{chapter.2}
-\contentsline {section}{\numberline {2.1}MVF Standard History}{3}{section.2.1}
-\contentsline {subsection}{\numberline {2.1.1}MVF standard v1.1.1}{3}{subsection.2.1.1}
-\contentsline {subsection}{\numberline {2.1.2}MVF standard v1.2}{3}{subsection.2.1.2}
-\contentsline {section}{\numberline {2.2}MVF General Notes and Usage}{3}{section.2.2}
-\contentsline {subsection}{\numberline {2.2.1}General Features}{3}{subsection.2.2.1}
-\contentsline {subsection}{\numberline {2.2.2}Native Gzip read/write}{3}{subsection.2.2.2}
-\contentsline {subsection}{\numberline {2.2.3}General Notes on Filtering}{4}{subsection.2.2.3}
-\contentsline {section}{\numberline {2.3}Header Specification}{4}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}MVF declaration line}{4}{subsection.2.3.1}
-\contentsline {subsection}{\numberline {2.3.2}Sample information}{4}{subsection.2.3.2}
-\contentsline {subsection}{\numberline {2.3.3}Contig information}{5}{subsection.2.3.3}
-\contentsline {subsection}{\numberline {2.3.4}Tree information}{5}{subsection.2.3.4}
-\contentsline {subsection}{\numberline {2.3.5}Notes}{5}{subsection.2.3.5}
-\contentsline {subsection}{\numberline {2.3.6}Example Header}{5}{subsection.2.3.6}
-\contentsline {section}{\numberline {2.4}Entry Specification}{6}{section.2.4}
-\contentsline {subsection}{\numberline {2.4.1}For mvftype=codon}{6}{subsection.2.4.1}
-\contentsline {subsection}{\numberline {2.4.2}Allele formatting}{6}{subsection.2.4.2}
-\contentsline {subsection}{\numberline {2.4.3}Special cases}{6}{subsection.2.4.3}
-\contentsline {subsection}{\numberline {2.4.4}Invariant sites}{6}{subsection.2.4.4}
-\contentsline {subsection}{\numberline {2.4.5}Monoallelic non-reference samples}{7}{subsection.2.4.5}
-\contentsline {subsection}{\numberline {2.4.6}Single-variant sites}{7}{subsection.2.4.6}
-\contentsline {subsection}{\numberline {2.4.7}Non-reference aligned sites}{7}{subsection.2.4.7}
-\contentsline {section}{\numberline {2.5}Character encoding}{7}{section.2.5}
-\contentsline {subsection}{\numberline {2.5.1}Nucleotide Notation}{7}{subsection.2.5.1}
-\contentsline {subsection}{\numberline {2.5.2}Amino Acid Notation}{8}{subsection.2.5.2}
-\contentsline {subsection}{\numberline {2.5.3}Use of \sphinxstyleliteralintitle {X} for ambiguous nucleotides and amino acids}{8}{subsection.2.5.3}
-\contentsline {chapter}{\numberline {3}Examples of the same data in MVF Format and other formats}{9}{chapter.3}
-\contentsline {section}{\numberline {3.1}MVF Format}{9}{section.3.1}
-\contentsline {section}{\numberline {3.2}FASTA Format}{9}{section.3.2}
-\contentsline {section}{\numberline {3.3}VCF Format}{10}{section.3.3}
-\contentsline {chapter}{\numberline {4}Program Parameter Descriptions}{13}{chapter.4}
-\contentsline {section}{\numberline {4.1}AnnotateMVF}{13}{section.4.1}
-\contentsline {subsection}{\numberline {4.1.1}Description}{13}{subsection.4.1.1}
-\contentsline {subsection}{\numberline {4.1.2}Parameters}{13}{subsection.4.1.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{13}{subsubsection*.3}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{13}{subsubsection*.4}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{13}{subsubsection*.5}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}filter-annotation/-{-}filterannotation}}{13}{subsubsection*.6}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}gff}}{14}{subsubsection*.7}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{14}{subsubsection*.8}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}nongenic-margin/-{-}nongenicmargin}}{14}{subsubsection*.9}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}nongenic-mode/-{-}nongenicmode}}{14}{subsubsection*.10}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{14}{subsubsection*.11}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{14}{subsubsection*.12}
-\contentsline {section}{\numberline {4.2}ConvertFasta2MVF}{14}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Description}{14}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Parameters}{15}{subsection.4.2.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{15}{subsubsection*.13}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}fasta} (required)}{15}{subsubsection*.14}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{15}{subsubsection*.15}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-by-file/-{-}contigbyfile}}{15}{subsubsection*.16}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-field/-{-}contigfield}}{15}{subsubsection*.17}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{15}{subsubsection*.18}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}field-sep/-{-}fieldsep}}{15}{subsubsection*.19}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}flavor}}{16}{subsubsection*.20}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}manual-coord/-{-}manualcoord}}{16}{subsubsection*.21}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{16}{subsubsection*.22}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{16}{subsubsection*.23}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}read-buffer/-{-}readbuffer}}{16}{subsubsection*.24}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}ref-label/-{-}reflabel}}{16}{subsubsection*.25}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-field/-{-}samplefield}}{16}{subsubsection*.26}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-replace/-{-}samplereplace}}{17}{subsubsection*.27}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}write-buffer/-{-}writebuffer}}{17}{subsubsection*.28}
-\contentsline {section}{\numberline {4.3}ConvertMAF2MVF}{17}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}Description}{17}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}Parameters}{17}{subsection.4.3.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{17}{subsubsection*.29}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}maf} (required)}{17}{subsubsection*.30}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{17}{subsubsection*.31}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-tags/-{-}sampletags} (required)}{17}{subsubsection*.32}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{18}{subsubsection*.33}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf-ref-label/-{-}mvfreflabel}}{18}{subsubsection*.34}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{18}{subsubsection*.35}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{18}{subsubsection*.36}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}ref-tag/-{-}reftag}}{18}{subsubsection*.37}
-\contentsline {section}{\numberline {4.4}ConvertMVF2Fasta}{18}{section.4.4}
-\contentsline {subsection}{\numberline {4.4.1}Description}{18}{subsection.4.4.1}
-\contentsline {subsection}{\numberline {4.4.2}Parameters}{18}{subsection.4.4.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{18}{subsubsection*.38}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{19}{subsubsection*.39}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{19}{subsubsection*.40}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}buffer}}{19}{subsubsection*.41}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}label-type/-{-}labeltype}}{19}{subsubsection*.42}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-data/-{-}outputdata}}{19}{subsubsection*.43}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{19}{subsubsection*.44}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}regions}}{19}{subsubsection*.45}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{20}{subsubsection*.46}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{20}{subsubsection*.47}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}temp\_dir/-{-}tempdir}}{20}{subsubsection*.48}
-\contentsline {section}{\numberline {4.5}ConvertMVF2Phylip}{20}{section.4.5}
-\contentsline {subsection}{\numberline {4.5.1}Description}{20}{subsection.4.5.1}
-\contentsline {subsection}{\numberline {4.5.2}Parameters}{20}{subsection.4.5.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{20}{subsubsection*.49}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{20}{subsubsection*.50}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{20}{subsubsection*.51}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}buffer}}{21}{subsubsection*.52}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}label-type/-{-}labeltype}}{21}{subsubsection*.53}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-data/-{-}outputdata}}{21}{subsubsection*.54}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}partition}}{21}{subsubsection*.55}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{21}{subsubsection*.56}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}regions}}{21}{subsubsection*.57}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{21}{subsubsection*.58}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{22}{subsubsection*.59}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}temp\_dir/-{-}tempdir}}{22}{subsubsection*.60}
-\contentsline {section}{\numberline {4.6}ConvertVCF2MVF}{22}{section.4.6}
-\contentsline {subsection}{\numberline {4.6.1}Description}{22}{subsection.4.6.1}
-\contentsline {subsection}{\numberline {4.6.2}Parameters}{22}{subsection.4.6.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{22}{subsubsection*.61}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{22}{subsubsection*.62}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}alleles-from/-{-}allelesfrom}}{22}{subsubsection*.63}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{22}{subsubsection*.64}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}field-sep/-{-}fieldsep}}{23}{subsubsection*.65}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{23}{subsubsection*.66}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}low-depth/-{-}lowdepth}}{23}{subsubsection*.67}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}low-qual/-{-}lowqual}}{23}{subsubsection*.68}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mask-depth/-{-}maskdepth}}{23}{subsubsection*.69}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mask-qual/-{-}maskqual}}{23}{subsubsection*.70}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}no-autoindex/-{-}noautoindex}}{23}{subsubsection*.71}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out-flavor/-{-}outflavor}}{24}{subsubsection*.72}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{24}{subsubsection*.73}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}qual}}{24}{subsubsection*.74}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{24}{subsubsection*.75}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}ref-label/-{-}reflabel}}{24}{subsubsection*.76}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-replace/-{-}samplereplace}}{24}{subsubsection*.77}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}vcf}}{24}{subsubsection*.78}
-\contentsline {section}{\numberline {4.7}CalcCharacterCount}{25}{section.4.7}
-\contentsline {subsection}{\numberline {4.7.1}Description}{25}{subsection.4.7.1}
-\contentsline {subsection}{\numberline {4.7.2}Parameters}{25}{subsection.4.7.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{25}{subsubsection*.79}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{25}{subsubsection*.80}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{25}{subsubsection*.81}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}base-match/-{-}basematch}}{25}{subsubsection*.82}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}base-total/-{-}basetotal}}{25}{subsubsection*.83}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{25}{subsubsection*.84}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-labels/-{-}contiglabels}}{26}{subsubsection*.85}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mincoverage}}{26}{subsubsection*.86}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{26}{subsubsection*.87}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{26}{subsubsection*.88}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{26}{subsubsection*.89}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{26}{subsubsection*.90}
-\contentsline {section}{\numberline {4.8}CalcDstatCombinations}{26}{section.4.8}
-\contentsline {subsection}{\numberline {4.8.1}Description}{26}{subsection.4.8.1}
-\contentsline {subsection}{\numberline {4.8.2}Parameters}{27}{subsection.4.8.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{27}{subsubsection*.91}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{27}{subsubsection*.92}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{27}{subsubsection*.93}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{27}{subsubsection*.94}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-labels/-{-}contiglabels}}{27}{subsubsection*.95}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}outgroup-indices/-{-}outgroupindices}}{27}{subsubsection*.96}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}outgroup-labels/-{-}outgrouplabels}}{27}{subsubsection*.97}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{28}{subsubsection*.98}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{28}{subsubsection*.99}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{28}{subsubsection*.100}
-\contentsline {section}{\numberline {4.9}CalcPairwiseDistances}{28}{section.4.9}
-\contentsline {subsection}{\numberline {4.9.1}Description}{28}{subsection.4.9.1}
-\contentsline {subsection}{\numberline {4.9.2}Parameters}{28}{subsection.4.9.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{28}{subsubsection*.101}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{28}{subsubsection*.102}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{28}{subsubsection*.103}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mincoverage}}{29}{subsubsection*.104}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{29}{subsubsection*.105}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{29}{subsubsection*.106}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{29}{subsubsection*.107}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{29}{subsubsection*.108}
-\contentsline {section}{\numberline {4.10}CalcPatternCount}{29}{section.4.10}
-\contentsline {subsection}{\numberline {4.10.1}Description}{29}{subsection.4.10.1}
-\contentsline {subsection}{\numberline {4.10.2}Parameters}{29}{subsection.4.10.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{29}{subsubsection*.109}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{30}{subsubsection*.110}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{30}{subsubsection*.111}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mincoverage}}{30}{subsubsection*.112}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-lists}}{30}{subsubsection*.113}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{30}{subsubsection*.114}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{30}{subsubsection*.115}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{30}{subsubsection*.116}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{31}{subsubsection*.117}
-\contentsline {section}{\numberline {4.11}CalcSampleCoverage}{31}{section.4.11}
-\contentsline {subsection}{\numberline {4.11.1}Description}{31}{subsection.4.11.1}
-\contentsline {subsection}{\numberline {4.11.2}Parameters}{31}{subsection.4.11.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{31}{subsubsection*.118}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{31}{subsubsection*.119}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{31}{subsubsection*.120}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{31}{subsubsection*.121}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-labels/-{-}contiglabels}}{31}{subsubsection*.122}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{32}{subsubsection*.123}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{32}{subsubsection*.124}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{32}{subsubsection*.125}
-\contentsline {section}{\numberline {4.12}CheckMVF}{32}{section.4.12}
-\contentsline {subsection}{\numberline {4.12.1}Description}{32}{subsection.4.12.1}
-\contentsline {subsection}{\numberline {4.12.2}Parameters}{32}{subsection.4.12.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{32}{subsubsection*.126}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{32}{subsubsection*.127}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{32}{subsubsection*.128}
-\contentsline {section}{\numberline {4.13}FilterMVF}{33}{section.4.13}
-\contentsline {subsection}{\numberline {4.13.1}Description}{33}{subsection.4.13.1}
-\contentsline {subsection}{\numberline {4.13.2}Parameters}{33}{subsection.4.13.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{33}{subsubsection*.129}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{33}{subsubsection*.130}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{33}{subsubsection*.131}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}actions}}{33}{subsubsection*.132}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}labels}}{33}{subsubsection*.133}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{33}{subsubsection*.134}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}more-help/-{-}morehelp}}{34}{subsubsection*.135}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{34}{subsubsection*.136}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{34}{subsubsection*.137}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}test}}{34}{subsubsection*.138}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}test-nchar/-{-}textnchar}}{34}{subsubsection*.139}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}verbose}}{34}{subsubsection*.140}
-\contentsline {section}{\numberline {4.14}InferGroupSpecificAllele}{34}{section.4.14}
-\contentsline {subsection}{\numberline {4.14.1}Description}{34}{subsection.4.14.1}
-\contentsline {subsection}{\numberline {4.14.2}Parameters}{35}{subsection.4.14.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{35}{subsubsection*.141}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{35}{subsubsection*.142}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{35}{subsubsection*.143}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}all-sample-trees/-{-}allsampletrees}}{35}{subsubsection*.144}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}allele-groups/-{-}allelegroups}}{35}{subsubsection*.145}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}branch-lrt/-{-}branchlrt}}{35}{subsubsection*.146}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}chi-test/-{-}chitest}}{35}{subsubsection*.147}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}codeml-path/-{-}codemlpath}}{36}{subsubsection*.148}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}end-contig/-{-}endcontig}}{36}{subsubsection*.149}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}gff}}{36}{subsubsection*.150}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mincoverage}}{36}{subsubsection*.151}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}num-target-species/-{-}targetspec}}{36}{subsubsection*.152}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}outgroup}}{36}{subsubsection*.153}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-align/-{-}outputalign}}{36}{subsubsection*.154}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}paml-tmp/-{-}pamltmp}}{36}{subsubsection*.155}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{37}{subsubsection*.156}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}raxml-path/-{-}raxmlpath}}{37}{subsubsection*.157}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}samples}}{37}{subsubsection*.158}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}species-groups/-{-}speciesgroups}}{37}{subsubsection*.159}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}start-contig/-{-}startcontig}}{37}{subsubsection*.160}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}target}}{37}{subsubsection*.161}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}use-labels/-{-}uselabels}}{37}{subsubsection*.162}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}verbose}}{37}{subsubsection*.163}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{38}{subsubsection*.164}
-\contentsline {section}{\numberline {4.15}InferTree}{38}{section.4.15}
-\contentsline {subsection}{\numberline {4.15.1}Description}{38}{subsection.4.15.1}
-\contentsline {subsection}{\numberline {4.15.2}Parameters}{38}{subsection.4.15.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{38}{subsubsection*.165}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{38}{subsubsection*.166}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{38}{subsubsection*.167}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}bootstrap}}{38}{subsubsection*.168}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}choose-allele/-{-}chooseallele/-{-}hapmode}}{38}{subsubsection*.169}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids}}{39}{subsubsection*.170}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-labels/-{-}contiglabels}}{39}{subsubsection*.171}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}duplicate-seq/-{-}duplicateseq}}{39}{subsubsection*.172}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}min-depth/-{-}mindepth}}{39}{subsubsection*.173}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}min-seq-coverage/-{-}minseqcoverage}}{39}{subsubsection*.174}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}min-sites/-{-}minsites}}{39}{subsubsection*.175}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-contig-labels/-{-}outputcontiglabels}}{40}{subsubsection*.176}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-empty/-{-}outputempty}}{40}{subsubsection*.177}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{40}{subsubsection*.178}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}raxml-model/-{-}raxmlmodel}}{40}{subsubsection*.179}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}raxml-opts/-{-}raxmlopts}}{40}{subsubsection*.180}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}raxml-outgroups/-{-}raxmloutgroups}}{40}{subsubsection*.181}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}raxml-path/-{-}raxmlpath}}{40}{subsubsection*.182}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}root-with/-{-}rootwith}}{40}{subsubsection*.183}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{41}{subsubsection*.184}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{41}{subsubsection*.185}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}temp-dir/-{-}tempdir}}{41}{subsubsection*.186}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}temp-prefix/-{-}tempprefix}}{41}{subsubsection*.187}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{41}{subsubsection*.188}
-\contentsline {section}{\numberline {4.16}JoinMVF}{41}{section.4.16}
-\contentsline {subsection}{\numberline {4.16.1}Description}{41}{subsection.4.16.1}
-\contentsline {subsection}{\numberline {4.16.2}Parameters}{41}{subsection.4.16.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{41}{subsubsection*.189}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{42}{subsubsection*.190}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{42}{subsubsection*.191}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{42}{subsubsection*.192}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}main\_header\_file/-{-}mainheaderfile}}{42}{subsubsection*.193}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}new-contigs/-{-}newcontigs}}{42}{subsubsection*.194}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}newsamples}}{42}{subsubsection*.195}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{42}{subsubsection*.196}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{43}{subsubsection*.197}
-\contentsline {section}{\numberline {4.17}PlotChromoplot}{43}{section.4.17}
-\contentsline {subsection}{\numberline {4.17.1}Description}{43}{subsection.4.17.1}
-\contentsline {subsection}{\numberline {4.17.2}Parameters}{43}{subsection.4.17.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{43}{subsubsection*.198}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{43}{subsubsection*.199}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}colors}}{43}{subsubsection*.200}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-ids/-{-}contigids/-{-}contigs}}{43}{subsubsection*.201}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}contig-labels/-{-}contiglabels}}{44}{subsubsection*.202}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}empty-mask/-{-}emptymask}}{44}{subsubsection*.203}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}info-track/-{-}infotrack}}{44}{subsubsection*.204}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}majority}}{44}{subsubsection*.205}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out-prefix/-{-}outprefix}}{44}{subsubsection*.206}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}outgroup-indices/-{-}outgroupindices}}{44}{subsubsection*.207}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}outgroup-labels/-{-}outgrouplabels}}{45}{subsubsection*.208}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}plot-type/-{-}plottype}}{45}{subsubsection*.209}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{45}{subsubsection*.210}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-indices/-{-}sampleindices}}{45}{subsubsection*.211}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}sample-labels}}{45}{subsubsection*.212}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}windowsize}}{45}{subsubsection*.213}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}xscale}}{45}{subsubsection*.214}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}yscale}}{46}{subsubsection*.215}
-\contentsline {section}{\numberline {4.18}TranslateMVF}{46}{section.4.18}
-\contentsline {subsection}{\numberline {4.18.1}Description}{46}{subsection.4.18.1}
-\contentsline {subsection}{\numberline {4.18.2}Parameters}{46}{subsection.4.18.2}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-h/-{-}help}}{46}{subsubsection*.216}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}mvf} (required)}{46}{subsubsection*.217}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}out} (required)}{46}{subsubsection*.218}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}filter-annotation/-{-}filterannotation}}{46}{subsubsection*.219}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}gff}}{46}{subsubsection*.220}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}line-buffer/-{-}linebuffer}}{47}{subsubsection*.221}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}output-data/-{-}outputdata}}{47}{subsubsection*.222}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}overwrite}}{47}{subsubsection*.223}
-\contentsline {subsubsection}{\sphinxstyleliteralintitle {-{-}quiet}}{47}{subsubsection*.224}
-\contentsline {chapter}{\numberline {5}mvf\_filter modules}{49}{chapter.5}
-\contentsline {section}{\numberline {5.1}GENERAL NOTES}{49}{section.5.1}
-\contentsline {section}{\numberline {5.2}allelegroup}{49}{section.5.2}
-\contentsline {section}{\numberline {5.3}collapsepriority}{49}{section.5.3}
-\contentsline {section}{\numberline {5.4}collapsemerge}{50}{section.5.4}
-\contentsline {section}{\numberline {5.5}columns}{50}{section.5.5}
-\contentsline {section}{\numberline {5.6}maskchar}{50}{section.5.6}
-\contentsline {section}{\numberline {5.7}masklower}{50}{section.5.7}
-\contentsline {section}{\numberline {5.8}mincoverage}{51}{section.5.8}
-\contentsline {section}{\numberline {5.9}\IeC {\textquotedblleft }notchar}{51}{section.5.9}
-\contentsline {section}{\numberline {5.10}promotelower}{51}{section.5.10}
-\contentsline {section}{\numberline {5.11}removelower}{51}{section.5.11}
-\contentsline {section}{\numberline {5.12}removechar}{51}{section.5.12}
-\contentsline {section}{\numberline {5.13}reqallchar}{52}{section.5.13}
-\contentsline {section}{\numberline {5.14}reqcontig}{52}{section.5.14}
-\contentsline {section}{\numberline {5.15}reqinformative}{52}{section.5.15}
-\contentsline {section}{\numberline {5.16}reqinvariant}{52}{section.5.16}
-\contentsline {section}{\numberline {5.17}reqregion}{53}{section.5.17}
-\contentsline {section}{\numberline {5.18}reqonechar}{53}{section.5.18}
-\contentsline {section}{\numberline {5.19}reqsample}{53}{section.5.19}
-\contentsline {section}{\numberline {5.20}reqvariant}{53}{section.5.20}
-\contentsline {section}{\numberline {5.21}reqnonrefsample}{53}{section.5.21}
-\contentsline {chapter}{\numberline {6}Frequently Asked Questions}{55}{chapter.6}
-\contentsline {chapter}{\numberline {7}Version History}{57}{chapter.7}
-\contentsline {chapter}{\numberline {8}License}{59}{chapter.8}
-\contentsline {chapter}{\numberline {9}Indices and tables}{61}{chapter.9}
+\contentsline {chapter}{\numberline {1}Getting Started}{1}{chapter.1}% 
+\contentsline {section}{\numberline {1.1}What is MVFtools?}{1}{section.1.1}% 
+\contentsline {section}{\numberline {1.2}How do I cite this?}{1}{section.1.2}% 
+\contentsline {section}{\numberline {1.3}Installation}{1}{section.1.3}% 
+\contentsline {subsection}{\numberline {1.3.1}Requirements}{1}{subsection.1.3.1}% 
+\contentsline {subsection}{\numberline {1.3.2}Additional Requirements for Some Modules}{2}{subsection.1.3.2}% 
+\contentsline {section}{\numberline {1.4}Preparing your data}{2}{section.1.4}% 
+\contentsline {subsection}{\numberline {1.4.1}Sequence Alignment}{2}{subsection.1.4.1}% 
+\contentsline {section}{\numberline {1.5}Basic usage examples}{2}{section.1.5}% 
+\contentsline {chapter}{\numberline {2}MVF Format Specification (version 1.2)}{3}{chapter.2}% 
+\contentsline {section}{\numberline {2.1}MVF Standard History}{3}{section.2.1}% 
+\contentsline {subsection}{\numberline {2.1.1}MVF standard v1.1.1}{3}{subsection.2.1.1}% 
+\contentsline {subsection}{\numberline {2.1.2}MVF standard v1.2}{3}{subsection.2.1.2}% 
+\contentsline {section}{\numberline {2.2}MVF General Notes and Usage}{3}{section.2.2}% 
+\contentsline {subsection}{\numberline {2.2.1}General Features}{3}{subsection.2.2.1}% 
+\contentsline {subsection}{\numberline {2.2.2}Native Gzip read/write}{3}{subsection.2.2.2}% 
+\contentsline {subsection}{\numberline {2.2.3}General Notes on Filtering}{4}{subsection.2.2.3}% 
+\contentsline {section}{\numberline {2.3}Header Specification}{4}{section.2.3}% 
+\contentsline {subsection}{\numberline {2.3.1}MVF declaration line}{4}{subsection.2.3.1}% 
+\contentsline {subsection}{\numberline {2.3.2}Sample information}{4}{subsection.2.3.2}% 
+\contentsline {subsection}{\numberline {2.3.3}Contig information}{5}{subsection.2.3.3}% 
+\contentsline {subsection}{\numberline {2.3.4}Tree information}{5}{subsection.2.3.4}% 
+\contentsline {subsection}{\numberline {2.3.5}Notes}{5}{subsection.2.3.5}% 
+\contentsline {subsection}{\numberline {2.3.6}Example Header}{5}{subsection.2.3.6}% 
+\contentsline {section}{\numberline {2.4}Entry Specification}{6}{section.2.4}% 
+\contentsline {subsection}{\numberline {2.4.1}For mvftype=codon}{6}{subsection.2.4.1}% 
+\contentsline {subsection}{\numberline {2.4.2}Allele formatting}{6}{subsection.2.4.2}% 
+\contentsline {subsection}{\numberline {2.4.3}Special cases}{6}{subsection.2.4.3}% 
+\contentsline {subsection}{\numberline {2.4.4}Invariant sites}{7}{subsection.2.4.4}% 
+\contentsline {subsection}{\numberline {2.4.5}Monoallelic non-reference samples}{7}{subsection.2.4.5}% 
+\contentsline {subsection}{\numberline {2.4.6}Single-variant sites}{7}{subsection.2.4.6}% 
+\contentsline {subsection}{\numberline {2.4.7}Non-reference aligned sites}{7}{subsection.2.4.7}% 
+\contentsline {section}{\numberline {2.5}Character encoding}{7}{section.2.5}% 
+\contentsline {subsection}{\numberline {2.5.1}Nucleotide Notation}{7}{subsection.2.5.1}% 
+\contentsline {subsection}{\numberline {2.5.2}Amino Acid Notation}{8}{subsection.2.5.2}% 
+\contentsline {subsection}{\numberline {2.5.3}Use of \sphinxstyleliteralintitle {\sphinxupquote {X}} for ambiguous nucleotides and amino acids}{8}{subsection.2.5.3}% 
+\contentsline {chapter}{\numberline {3}Examples of the same data in MVF Format and other formats}{9}{chapter.3}% 
+\contentsline {section}{\numberline {3.1}MVF Format}{9}{section.3.1}% 
+\contentsline {section}{\numberline {3.2}FASTA Format}{9}{section.3.2}% 
+\contentsline {section}{\numberline {3.3}VCF Format}{10}{section.3.3}% 
+\contentsline {chapter}{\numberline {4}Program Parameter Descriptions}{13}{chapter.4}% 
+\contentsline {section}{\numberline {4.1}AnnotateMVF}{13}{section.4.1}% 
+\contentsline {subsection}{\numberline {4.1.1}Description}{13}{subsection.4.1.1}% 
+\contentsline {subsection}{\numberline {4.1.2}Parameters}{13}{subsection.4.1.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{13}{subsubsection*.3}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{13}{subsubsection*.4}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{13}{subsubsection*.5}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}filter-annotation/-{-}filterannotation}}}{13}{subsubsection*.6}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}gff}}}{14}{subsubsection*.7}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{14}{subsubsection*.8}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}nongenic-margin/-{-}nongenicmargin}}}{14}{subsubsection*.9}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}nongenic-mode/-{-}nongenicmode}}}{14}{subsubsection*.10}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{14}{subsubsection*.11}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{14}{subsubsection*.12}% 
+\contentsline {section}{\numberline {4.2}CalcCharacterCount}{14}{section.4.2}% 
+\contentsline {subsection}{\numberline {4.2.1}Description}{14}{subsection.4.2.1}% 
+\contentsline {subsection}{\numberline {4.2.2}Parameters}{15}{subsection.4.2.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{15}{subsubsection*.13}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{15}{subsubsection*.14}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{15}{subsubsection*.15}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}base-match/-{-}basematch}}}{15}{subsubsection*.16}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}base-total/-{-}basetotal}}}{15}{subsubsection*.17}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{15}{subsubsection*.18}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-labels/-{-}contiglabels}}}{15}{subsubsection*.19}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mincoverage}}}{16}{subsubsection*.20}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{16}{subsubsection*.21}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{16}{subsubsection*.22}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{16}{subsubsection*.23}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{16}{subsubsection*.24}% 
+\contentsline {section}{\numberline {4.3}CalcDstatCombinations}{16}{section.4.3}% 
+\contentsline {subsection}{\numberline {4.3.1}Description}{16}{subsection.4.3.1}% 
+\contentsline {subsection}{\numberline {4.3.2}Parameters}{16}{subsection.4.3.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{16}{subsubsection*.25}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{17}{subsubsection*.26}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{17}{subsubsection*.27}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{17}{subsubsection*.28}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-labels/-{-}contiglabels}}}{17}{subsubsection*.29}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}outgroup-indices/-{-}outgroupindices}}}{17}{subsubsection*.30}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}outgroup-labels/-{-}outgrouplabels}}}{17}{subsubsection*.31}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{17}{subsubsection*.32}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{18}{subsubsection*.33}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{18}{subsubsection*.34}% 
+\contentsline {section}{\numberline {4.4}CalcPairwiseDistances}{18}{section.4.4}% 
+\contentsline {subsection}{\numberline {4.4.1}Description}{18}{subsection.4.4.1}% 
+\contentsline {subsection}{\numberline {4.4.2}Parameters}{18}{subsection.4.4.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{18}{subsubsection*.35}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{18}{subsubsection*.36}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{18}{subsubsection*.37}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mincoverage}}}{18}{subsubsection*.38}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{19}{subsubsection*.39}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{19}{subsubsection*.40}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{19}{subsubsection*.41}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{19}{subsubsection*.42}% 
+\contentsline {section}{\numberline {4.5}CalcPatternCount}{19}{section.4.5}% 
+\contentsline {subsection}{\numberline {4.5.1}Description}{19}{subsection.4.5.1}% 
+\contentsline {subsection}{\numberline {4.5.2}Parameters}{19}{subsection.4.5.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{19}{subsubsection*.43}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{19}{subsubsection*.44}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{20}{subsubsection*.45}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mincoverage}}}{20}{subsubsection*.46}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-lists}}}{20}{subsubsection*.47}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{20}{subsubsection*.48}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{20}{subsubsection*.49}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{20}{subsubsection*.50}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{20}{subsubsection*.51}% 
+\contentsline {section}{\numberline {4.6}CalcSampleCoverage}{21}{section.4.6}% 
+\contentsline {subsection}{\numberline {4.6.1}Description}{21}{subsection.4.6.1}% 
+\contentsline {subsection}{\numberline {4.6.2}Parameters}{21}{subsection.4.6.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{21}{subsubsection*.52}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{21}{subsubsection*.53}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{21}{subsubsection*.54}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{21}{subsubsection*.55}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-labels/-{-}contiglabels}}}{21}{subsubsection*.56}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{21}{subsubsection*.57}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{22}{subsubsection*.58}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{22}{subsubsection*.59}% 
+\contentsline {section}{\numberline {4.7}ConcatenateMVF}{22}{section.4.7}% 
+\contentsline {subsection}{\numberline {4.7.1}Description}{22}{subsection.4.7.1}% 
+\contentsline {subsection}{\numberline {4.7.2}Parameters}{22}{subsection.4.7.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{22}{subsubsection*.60}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{22}{subsubsection*.61}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{22}{subsubsection*.62}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{22}{subsubsection*.63}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}main\_header\_file/-{-}mainheaderfile}}}{23}{subsubsection*.64}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}new-contigs/-{-}newcontigs}}}{23}{subsubsection*.65}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}newsamples}}}{23}{subsubsection*.66}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{23}{subsubsection*.67}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{23}{subsubsection*.68}% 
+\contentsline {section}{\numberline {4.8}ConvertFasta2MVF}{23}{section.4.8}% 
+\contentsline {subsection}{\numberline {4.8.1}Description}{23}{subsection.4.8.1}% 
+\contentsline {subsection}{\numberline {4.8.2}Parameters}{23}{subsection.4.8.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{23}{subsubsection*.69}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}fasta}} (required)}{24}{subsubsection*.70}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{24}{subsubsection*.71}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-by-file/-{-}contigbyfile}}}{24}{subsubsection*.72}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-field/-{-}contigfield}}}{24}{subsubsection*.73}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{24}{subsubsection*.74}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}field-sep/-{-}fieldsep}}}{24}{subsubsection*.75}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}flavor}}}{24}{subsubsection*.76}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}manual-coord/-{-}manualcoord}}}{25}{subsubsection*.77}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{25}{subsubsection*.78}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{25}{subsubsection*.79}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}read-buffer/-{-}readbuffer}}}{25}{subsubsection*.80}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}ref-label/-{-}reflabel}}}{25}{subsubsection*.81}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-field/-{-}samplefield}}}{25}{subsubsection*.82}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-replace/-{-}samplereplace}}}{25}{subsubsection*.83}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}write-buffer/-{-}writebuffer}}}{26}{subsubsection*.84}% 
+\contentsline {section}{\numberline {4.9}ConvertMAF2MVF}{26}{section.4.9}% 
+\contentsline {subsection}{\numberline {4.9.1}Description}{26}{subsection.4.9.1}% 
+\contentsline {subsection}{\numberline {4.9.2}Parameters}{26}{subsection.4.9.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{26}{subsubsection*.85}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}maf}} (required)}{26}{subsubsection*.86}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{26}{subsubsection*.87}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-tags/-{-}sampletags}} (required)}{26}{subsubsection*.88}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{26}{subsubsection*.89}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf-ref-label/-{-}mvfreflabel}}}{27}{subsubsection*.90}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{27}{subsubsection*.91}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{27}{subsubsection*.92}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}ref-tag/-{-}reftag}}}{27}{subsubsection*.93}% 
+\contentsline {section}{\numberline {4.10}ConvertMVF2Fasta}{27}{section.4.10}% 
+\contentsline {subsection}{\numberline {4.10.1}Description}{27}{subsection.4.10.1}% 
+\contentsline {subsection}{\numberline {4.10.2}Parameters}{27}{subsection.4.10.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{27}{subsubsection*.94}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{27}{subsubsection*.95}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{28}{subsubsection*.96}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}buffer}}}{28}{subsubsection*.97}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}label-type/-{-}labeltype}}}{28}{subsubsection*.98}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-data/-{-}outputdata}}}{28}{subsubsection*.99}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{28}{subsubsection*.100}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}regions}}}{28}{subsubsection*.101}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{28}{subsubsection*.102}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{29}{subsubsection*.103}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}temp\_dir/-{-}tempdir}}}{29}{subsubsection*.104}% 
+\contentsline {section}{\numberline {4.11}ConvertMVF2Phylip}{29}{section.4.11}% 
+\contentsline {subsection}{\numberline {4.11.1}Description}{29}{subsection.4.11.1}% 
+\contentsline {subsection}{\numberline {4.11.2}Parameters}{29}{subsection.4.11.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{29}{subsubsection*.105}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{29}{subsubsection*.106}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{29}{subsubsection*.107}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}buffer}}}{29}{subsubsection*.108}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}label-type/-{-}labeltype}}}{30}{subsubsection*.109}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-data/-{-}outputdata}}}{30}{subsubsection*.110}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}partition}}}{30}{subsubsection*.111}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{30}{subsubsection*.112}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}regions}}}{30}{subsubsection*.113}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{30}{subsubsection*.114}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{30}{subsubsection*.115}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}temp\_dir/-{-}tempdir}}}{31}{subsubsection*.116}% 
+\contentsline {section}{\numberline {4.12}ConvertVCF2MVF}{31}{section.4.12}% 
+\contentsline {subsection}{\numberline {4.12.1}Description}{31}{subsection.4.12.1}% 
+\contentsline {subsection}{\numberline {4.12.2}Parameters}{31}{subsection.4.12.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{31}{subsubsection*.117}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{31}{subsubsection*.118}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}alleles-from/-{-}allelesfrom}}}{31}{subsubsection*.119}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{31}{subsubsection*.120}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}field-sep/-{-}fieldsep}}}{31}{subsubsection*.121}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{32}{subsubsection*.122}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}low-depth/-{-}lowdepth}}}{32}{subsubsection*.123}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}low-qual/-{-}lowqual}}}{32}{subsubsection*.124}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mask-depth/-{-}maskdepth}}}{32}{subsubsection*.125}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mask-qual/-{-}maskqual}}}{32}{subsubsection*.126}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}no-autoindex/-{-}noautoindex}}}{32}{subsubsection*.127}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out-flavor/-{-}outflavor}}}{32}{subsubsection*.128}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{33}{subsubsection*.129}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}ploidy}}}{33}{subsubsection*.130}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}qual}}}{33}{subsubsection*.131}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{33}{subsubsection*.132}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}ref-label/-{-}reflabel}}}{33}{subsubsection*.133}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-replace/-{-}samplereplace}}}{33}{subsubsection*.134}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}vcf}}}{33}{subsubsection*.135}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}verbose}}}{34}{subsubsection*.136}% 
+\contentsline {section}{\numberline {4.13}FilterMVF}{34}{section.4.13}% 
+\contentsline {subsection}{\numberline {4.13.1}Description}{34}{subsection.4.13.1}% 
+\contentsline {subsection}{\numberline {4.13.2}Parameters}{34}{subsection.4.13.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{34}{subsubsection*.137}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}actions}}}{34}{subsubsection*.138}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}labels}}}{34}{subsubsection*.139}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{34}{subsubsection*.140}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}more-help/-{-}morehelp}}}{34}{subsubsection*.141}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}}}{35}{subsubsection*.142}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}}}{35}{subsubsection*.143}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{35}{subsubsection*.144}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{35}{subsubsection*.145}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}test}}}{35}{subsubsection*.146}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}test-nchar/-{-}textnchar}}}{35}{subsubsection*.147}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}verbose}}}{35}{subsubsection*.148}% 
+\contentsline {section}{\numberline {4.14}InferGroupSpecificAllele}{36}{section.4.14}% 
+\contentsline {subsection}{\numberline {4.14.1}Description}{36}{subsection.4.14.1}% 
+\contentsline {subsection}{\numberline {4.14.2}Parameters}{36}{subsection.4.14.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{36}{subsubsection*.149}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{36}{subsubsection*.150}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{36}{subsubsection*.151}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}all-sample-trees/-{-}allsampletrees}}}{36}{subsubsection*.152}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}allele-groups/-{-}allelegroups}}}{36}{subsubsection*.153}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}branch-lrt/-{-}branchlrt}}}{36}{subsubsection*.154}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}chi-test/-{-}chitest}}}{37}{subsubsection*.155}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}codeml-path/-{-}codemlpath}}}{37}{subsubsection*.156}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}end-contig/-{-}endcontig}}}{37}{subsubsection*.157}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}gff}}}{37}{subsubsection*.158}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mincoverage}}}{37}{subsubsection*.159}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}num-target-species/-{-}targetspec}}}{37}{subsubsection*.160}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}outgroup}}}{37}{subsubsection*.161}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-align/-{-}outputalign}}}{37}{subsubsection*.162}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}paml-tmp/-{-}pamltmp}}}{38}{subsubsection*.163}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{38}{subsubsection*.164}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}raxml-path/-{-}raxmlpath}}}{38}{subsubsection*.165}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}species-groups/-{-}speciesgroups}}}{38}{subsubsection*.166}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}start-contig/-{-}startcontig}}}{38}{subsubsection*.167}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}target}}}{38}{subsubsection*.168}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}use-labels/-{-}uselabels}}}{38}{subsubsection*.169}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}verbose}}}{38}{subsubsection*.170}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{39}{subsubsection*.171}% 
+\contentsline {section}{\numberline {4.15}InferTree}{39}{section.4.15}% 
+\contentsline {subsection}{\numberline {4.15.1}Description}{39}{subsection.4.15.1}% 
+\contentsline {subsection}{\numberline {4.15.2}Parameters}{39}{subsection.4.15.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{39}{subsubsection*.172}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{39}{subsubsection*.173}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{39}{subsubsection*.174}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}bootstrap}}}{39}{subsubsection*.175}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}choose-allele/-{-}chooseallele/-{-}hapmode}}}{39}{subsubsection*.176}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids}}}{40}{subsubsection*.177}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-labels/-{-}contiglabels}}}{40}{subsubsection*.178}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}duplicate-seq/-{-}duplicateseq}}}{40}{subsubsection*.179}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}min-depth/-{-}mindepth}}}{40}{subsubsection*.180}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}min-seq-coverage/-{-}minseqcoverage}}}{40}{subsubsection*.181}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}min-sites/-{-}minsites}}}{40}{subsubsection*.182}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-contig-labels/-{-}outputcontiglabels}}}{41}{subsubsection*.183}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-empty/-{-}outputempty}}}{41}{subsubsection*.184}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{41}{subsubsection*.185}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}raxml-model/-{-}raxmlmodel}}}{41}{subsubsection*.186}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}raxml-opts/-{-}raxmlopts}}}{41}{subsubsection*.187}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}raxml-outgroups/-{-}raxmloutgroups}}}{41}{subsubsection*.188}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}raxml-path/-{-}raxmlpath}}}{41}{subsubsection*.189}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}root-with/-{-}rootwith}}}{41}{subsubsection*.190}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{42}{subsubsection*.191}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{42}{subsubsection*.192}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}temp-dir/-{-}tempdir}}}{42}{subsubsection*.193}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}temp-prefix/-{-}tempprefix}}}{42}{subsubsection*.194}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{42}{subsubsection*.195}% 
+\contentsline {section}{\numberline {4.16}MergeMVF}{42}{section.4.16}% 
+\contentsline {subsection}{\numberline {4.16.1}Description}{42}{subsection.4.16.1}% 
+\contentsline {subsection}{\numberline {4.16.2}Parameters}{42}{subsection.4.16.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{42}{subsubsection*.196}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{43}{subsubsection*.197}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{43}{subsubsection*.198}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{43}{subsubsection*.199}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}main\_header\_file/-{-}mainheaderfile}}}{43}{subsubsection*.200}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}new-contigs/-{-}newcontigs}}}{43}{subsubsection*.201}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}newsamples}}}{43}{subsubsection*.202}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{43}{subsubsection*.203}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{44}{subsubsection*.204}% 
+\contentsline {section}{\numberline {4.17}PlotChromoplot}{44}{section.4.17}% 
+\contentsline {subsection}{\numberline {4.17.1}Description}{44}{subsection.4.17.1}% 
+\contentsline {subsection}{\numberline {4.17.2}Parameters}{44}{subsection.4.17.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{44}{subsubsection*.205}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{44}{subsubsection*.206}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}colors}}}{44}{subsubsection*.207}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-ids/-{-}contigids/-{-}contigs}}}{44}{subsubsection*.208}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}contig-labels/-{-}contiglabels}}}{45}{subsubsection*.209}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}empty-mask/-{-}emptymask}}}{45}{subsubsection*.210}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}info-track/-{-}infotrack}}}{45}{subsubsection*.211}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}majority}}}{45}{subsubsection*.212}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out-prefix/-{-}outprefix}}}{45}{subsubsection*.213}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}outgroup-indices/-{-}outgroupindices}}}{45}{subsubsection*.214}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}outgroup-labels/-{-}outgrouplabels}}}{46}{subsubsection*.215}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}plot-type/-{-}plottype}}}{46}{subsubsection*.216}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{46}{subsubsection*.217}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-indices/-{-}sampleindices}}}{46}{subsubsection*.218}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}sample-labels}}}{46}{subsubsection*.219}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}windowsize}}}{46}{subsubsection*.220}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}xscale}}}{46}{subsubsection*.221}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}yscale}}}{47}{subsubsection*.222}% 
+\contentsline {section}{\numberline {4.18}TranslateMVF}{47}{section.4.18}% 
+\contentsline {subsection}{\numberline {4.18.1}Description}{47}{subsection.4.18.1}% 
+\contentsline {subsection}{\numberline {4.18.2}Parameters}{47}{subsection.4.18.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{47}{subsubsection*.223}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{47}{subsubsection*.224}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}out}} (required)}{47}{subsubsection*.225}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}filter-annotation/-{-}filterannotation}}}{47}{subsubsection*.226}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}gff}}}{47}{subsubsection*.227}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}line-buffer/-{-}linebuffer}}}{48}{subsubsection*.228}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}output-data/-{-}outputdata}}}{48}{subsubsection*.229}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}overwrite}}}{48}{subsubsection*.230}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{48}{subsubsection*.231}% 
+\contentsline {section}{\numberline {4.19}VerifyMVF}{48}{section.4.19}% 
+\contentsline {subsection}{\numberline {4.19.1}Description}{48}{subsection.4.19.1}% 
+\contentsline {subsection}{\numberline {4.19.2}Parameters}{48}{subsection.4.19.2}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-h/-{-}help}}}{48}{subsubsection*.232}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}mvf}} (required)}{48}{subsubsection*.233}% 
+\contentsline {subsubsection}{\sphinxstyleliteralintitle {\sphinxupquote {-{-}quiet}}}{49}{subsubsection*.234}% 
+\contentsline {chapter}{\numberline {5}mvf\_filter modules}{51}{chapter.5}% 
+\contentsline {section}{\numberline {5.1}GENERAL NOTES}{51}{section.5.1}% 
+\contentsline {section}{\numberline {5.2}allelegroup}{51}{section.5.2}% 
+\contentsline {section}{\numberline {5.3}collapsepriority}{51}{section.5.3}% 
+\contentsline {section}{\numberline {5.4}collapsemerge}{52}{section.5.4}% 
+\contentsline {section}{\numberline {5.5}columns}{52}{section.5.5}% 
+\contentsline {section}{\numberline {5.6}maskchar}{52}{section.5.6}% 
+\contentsline {section}{\numberline {5.7}masklower}{52}{section.5.7}% 
+\contentsline {section}{\numberline {5.8}mincoverage}{53}{section.5.8}% 
+\contentsline {section}{\numberline {5.9}\IeC {\textquotedblleft }notchar}{53}{section.5.9}% 
+\contentsline {section}{\numberline {5.10}promotelower}{53}{section.5.10}% 
+\contentsline {section}{\numberline {5.11}removelower}{53}{section.5.11}% 
+\contentsline {section}{\numberline {5.12}removechar}{53}{section.5.12}% 
+\contentsline {section}{\numberline {5.13}reqallchar}{54}{section.5.13}% 
+\contentsline {section}{\numberline {5.14}reqcontig}{54}{section.5.14}% 
+\contentsline {section}{\numberline {5.15}reqinformative}{54}{section.5.15}% 
+\contentsline {section}{\numberline {5.16}reqinvariant}{54}{section.5.16}% 
+\contentsline {section}{\numberline {5.17}reqregion}{55}{section.5.17}% 
+\contentsline {section}{\numberline {5.18}reqonechar}{55}{section.5.18}% 
+\contentsline {section}{\numberline {5.19}reqsample}{55}{section.5.19}% 
+\contentsline {section}{\numberline {5.20}reqvariant}{55}{section.5.20}% 
+\contentsline {section}{\numberline {5.21}reqnonrefsample}{55}{section.5.21}% 
+\contentsline {chapter}{\numberline {6}Frequently Asked Questions}{57}{chapter.6}% 
+\contentsline {chapter}{\numberline {7}Version History}{59}{chapter.7}% 
+\contentsline {chapter}{\numberline {8}License}{61}{chapter.8}% 
+\contentsline {chapter}{\numberline {9}Indices and tables}{63}{chapter.9}% 

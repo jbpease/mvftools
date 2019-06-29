@@ -1,6 +1,9 @@
 ===============
 Version History
 ===============
+**v.0.5.2**
+
+2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution).  JoinMVF is now called ConcatenateMVF to avoid confusion.  CheckMVF changed to VerifyMVF to make it more clear.  ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the --ploidy flag.  Other small fixes to the software and manual to update issues with the VCF interpreter.
 
 **v.0.5.1**
 

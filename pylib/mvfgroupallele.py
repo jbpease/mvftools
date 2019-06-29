@@ -40,6 +40,7 @@ MLIB = MvfBioLib()
 
 
 def procarg_speciesgroups(xarg, mvf):
+    """Processes the species groups"""
     groups = {}
     for elem in xarg:
         elem = elem.split(':')
@@ -56,6 +57,7 @@ def procarg_speciesgroups(xarg, mvf):
 
 
 def procarg_allelegroups(xarg, mvf):
+    """Processes the allele groups"""
     groups = {}
     for elem in xarg:
         elem = elem.split(':')
@@ -69,6 +71,7 @@ def procarg_allelegroups(xarg, mvf):
 
 
 def parse_dndsfile(dndsfile):
+    """Parses the dNdS output files"""
     entries = {}
     with open(dndsfile, 'r') as infile:
         for line in infile:
@@ -247,15 +250,15 @@ def calc_group_unique_allele_window(args):
                     outputalign = [[''.join(codons)]
                                    for x in range(mvf.metadata['ncol'])]
                 else:
-                    for ialign, xalign in enumerate(outputalign):
-                        xalign.append(''.join(codons))
+                    for subalign in outputalign:
+                        subalign.append(''.join(codons))
             if args.branch_lrt is not None:
                 if not genealign:
                     genealign = [[''.join(codons)]
                                  for x in range(ncol)]
                 else:
-                    for ialign in range(len(genealign)):
-                        genealign[ialign].append(''.join(codons))
+                    for subalign in genealign:
+                        subalign.append(''.join(codons))
             continue
         if len(proteins) > 1:
             if allelesets[0][1] == '+':
@@ -268,7 +271,7 @@ def calc_group_unique_allele_window(args):
         species_groups = [[proteins[i] for i in x
                            if proteins[i] not in '-X']
                           for x in speciesgroups]
-        if any(len(x) == 0 for x in species_groups):
+        if any(not x for x in species_groups):
             continue
         xcodons = [mvf.decode(x) for x in codons]
         codons = [''.join(x) for x in zip(*xcodons)]
@@ -288,31 +291,30 @@ def calc_group_unique_allele_window(args):
             if not outputalign:
                 outputalign = [[x] for x in codons]
             else:
-                for ialign in range(len(outputalign)):
-                    outputalign[ialign].append(codons[ialign])
+                for j, subalign in enumerate(outputalign):
+                    subalign.append(codons[j])
         if args.branch_lrt is not None:
             if not genealign:
                 genealign = [[x] for x in codons]
             else:
-                for ialign in range(len(codons)):
-                    genealign[ialign].append(codons[ialign])
+                for j, codon in enumerate(codons):
+                    genealign[j].append(codon)
         nonsyn_change = False
         synon_change = False
         codon_groups = [
-            set([codons[i] for i in x if '-' not in codons[i] and
-                 'X' not in codons[i]])
+            set(codons[i] for i in x if '-' not in codons[i] and
+                'X' not in codons[i])
             for x in groups]
         protein_groups = None
-        for i in range(len(codon_groups)):
+        for i, grp in enumerate(codon_groups):
             if any(base in codon for base in 'RYWKMS'
-                   for codon in codon_groups[i]):
-                codon_groups[i] = hapgroup(codon_groups[i])
+                   for codon in grp):
+                codon_groups[i] = hapgroup(grp)
         if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                combinations(codon_groups, 2)):
-            protein_groups = [set(
-                [MLIB.codon_tables['full'][''.join(x)]
-                 for x in codon_groups[i]])
-                              for i in range(len(codon_groups))]
+            protein_groups = [set(MLIB.codon_tables['full'][''.join(x)]
+                                  for x in codon_groups[i])
+                              for i, grp in enumerate(codon_groups)]
             if all(grp1.isdisjoint(grp0) for grp0, grp1 in
                    combinations(protein_groups, 2)):
                 nonsyn_change = True

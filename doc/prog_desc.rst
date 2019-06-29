@@ -8,7 +8,7 @@ AnnotateMVF
 
 Description
 -----------
-None
+Annotates a chromosomal MVF file with new contigboundaries based on genes/features from a GFF file.
 
 Parameters
 ----------
@@ -102,6 +102,576 @@ Parameters
 **Type:** boolean flag
 
 
+.. CalcCharacterCount:
+
+CalcCharacterCount
+==================
+
+Description
+-----------
+Calculates the count of different character typesin an MVF file
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--base-match/--basematch``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** String of bases to match (i.e. numerator).
+
+**Type:** None; **Default:** None
+
+
+
+``--base-total/--basetotal``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** String of bases for total (i.e. denominator).
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
+.. CalcDstatCombinations:
+
+CalcDstatCombinations
+=====================
+
+Description
+-----------
+Calculates all D-statistics for all combinations ofspecified taxa in an MVF file.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--outgroup-indices/--outgroupindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--outgroup-labels/--outgrouplabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. CalcPairwiseDistances:
+
+CalcPairwiseDistances
+=====================
+
+Description
+-----------
+Calculates pairwise sequence distances for combinations ofspecified taxa in an MVF file.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
+.. CalcPatternCount:
+
+CalcPatternCount
+================
+
+Description
+-----------
+Counts biallelic site pattersn (AB-patterns) forspecified combinations of taxa in an MVF file.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--output-lists``
+^^^^^^^^^^^^^^^^^^
+
+**Description:** None
+
+**Type:** boolean flag
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
+.. CalcSampleCoverage:
+
+CalcSampleCoverage
+==================
+
+Description
+-----------
+Counts per-contig coverage forspecified sample columns in an MVF file.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+.. ConcatenateMVF:
+
+ConcatenateMVF
+==============
+
+Description
+-----------
+Combine non-overlapping contigs from one or more MVF files into asingle MVF file.  This does NOT merge columns.  Use MergeMVF to mergesample columns from multiple files.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** One or more mvf files.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--line-buffer/--linebuffer``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Number of entries to store in memory at a time.
+
+**Type:** integer; **Default:** 100000
+
+
+
+``--main_header_file/--mainheaderfile``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file will use same headers as this input file (default=first in list).
+
+**Type:** None; **Default:** None
+
+
+
+``--new-contigs/--newcontigs``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's contigs as distinct.
+
+**Type:** boolean flag
+
+
+
+``--newsamples``
+^^^^^^^^^^^^^^^^
+
+**Description:** By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's sample columns as distinct.
+
+**Type:** boolean flag
+
+
+
+``--overwrite``
+^^^^^^^^^^^^^^^
+
+**Description:** USE WITH CAUTION: force overwrite of outputs
+
+**Type:** boolean flag
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
 .. ConvertFasta2MVF:
 
 ConvertFasta2MVF
@@ -109,7 +679,7 @@ ConvertFasta2MVF
 
 Description
 -----------
-None
+Converts a FASTA file to MVF format
 
 Parameters
 ----------
@@ -266,7 +836,7 @@ ConvertMAF2MVF
 
 Description
 -----------
-None
+Converts a MAF file to a MVF file
 
 Parameters
 ----------
@@ -358,7 +928,7 @@ ConvertMVF2Fasta
 
 Description
 -----------
-None
+Converts an MVF file to a FASTA file
 
 Parameters
 ----------
@@ -470,7 +1040,7 @@ ConvertMVF2Phylip
 
 Description
 -----------
-None
+Converts an MVF file to a Phylip file
 
 Parameters
 ----------
@@ -591,7 +1161,7 @@ ConvertVCF2MVF
 
 Description
 -----------
-None
+Converts a VCF file to an MVF file
 
 Parameters
 ----------
@@ -716,6 +1286,17 @@ Parameters
 
 
 
+``--ploidy``
+^^^^^^^^^^^^
+
+**Description:** Use for hexaploid and tetraploid
+                        (Experimental, use with caution
+
+**Type:** integer; **Default:** 2
+
+**Choices:** (2, 4, 6)
+
+
 ``--qual``
 ^^^^^^^^^^
 
@@ -760,518 +1341,11 @@ Parameters
 **Type:** file path; **Default:** None
 
 
-.. CalcCharacterCount:
 
-CalcCharacterCount
-==================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
+``--verbose``
 ^^^^^^^^^^^^^
 
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--base-match/--basematch``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** String of bases to match (i.e. numerator).
-
-**Type:** None; **Default:** None
-
-
-
-``--base-total/--basetotal``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** String of bases for total (i.e. denominator).
-
-**Type:** None; **Default:** None
-
-
-
-``--contig-ids/--contigids``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--contig-labels/--contiglabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
-
-**Type:** None; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-
-``--windowsize``
-^^^^^^^^^^^^^^^^
-
-**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
-
-**Type:** boolean flag
-
-
-.. CalcDstatCombinations:
-
-CalcDstatCombinations
-=====================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--contig-ids/--contigids``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--contig-labels/--contiglabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
-
-**Type:** None; **Default:** None
-
-
-
-``--outgroup-indices/--outgroupindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--outgroup-labels/--outgrouplabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies.
-
-**Type:** None; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CalcPairwiseDistances:
-
-CalcPairwiseDistances
-=====================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-
-``--windowsize``
-^^^^^^^^^^^^^^^^
-
-**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
-
-**Type:** boolean flag
-
-
-.. CalcPatternCount:
-
-CalcPatternCount
-================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--mincoverage``
-^^^^^^^^^^^^^^^^^
-
-**Description:** Mininum sample coverage for sites.
-
-**Type:** integer; **Default:** None
-
-
-
-``--output-lists``
-^^^^^^^^^^^^^^^^^^
-
-**Description:** None
-
-**Type:** boolean flag
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-
-``--windowsize``
-^^^^^^^^^^^^^^^^
-
-**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
-
-**Type:** boolean flag
-
-
-.. CalcSampleCoverage:
-
-CalcSampleCoverage
-==================
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
-
-
-
-``--contig-ids/--contigids``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--contig-labels/--contiglabels``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
-
-**Type:** None; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
-
-**Type:** boolean flag
-
-
-
-``--sample-indices/--sampleindices``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
-
-**Type:** None; **Default:** None
-
-
-
-``--sample-labels``
-^^^^^^^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
-
-**Type:** None; **Default:** None
-
-
-.. CheckMVF:
-
-CheckMVF
-========
-
-Description
------------
-None
-
-Parameters
-----------
-
-``-h/--help``
-^^^^^^^^^^^^^
-
-**Description:** show this help message and exit
-
-**Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--quiet``
-^^^^^^^^^^^
-
-**Description:** Suppress screen output.
+**Description:** Output excessive data to screen for debugging
 
 **Type:** boolean flag
 
@@ -1283,7 +1357,7 @@ FilterMVF
 
 Description
 -----------
-None
+Filter an MVF file using various parameters.
 
 Parameters
 ----------
@@ -1294,24 +1368,6 @@ Parameters
 **Description:** show this help message and exit
 
 **Type:** boolean flag
-
-
-
-``--mvf`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Input MVF file.
-
-**Type:** file path; **Default:** None
-
-
-
-``--out`` (required)
-^^^^^^^^^^^^^^^^^^^^
-
-**Description:** Output file
-
-**Type:** file path; **Default:** None
 
 
 
@@ -1348,6 +1404,24 @@ Parameters
 **Description:** prints full module list and descriptions
 
 **Type:** boolean flag
+
+
+
+``--mvf``
+^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out``
+^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
 
 
 
@@ -1402,7 +1476,7 @@ InferGroupSpecificAllele
 
 Description
 -----------
-None
+Infer Group-specific alleles using PAML.
 
 Parameters
 ----------
@@ -1560,15 +1634,6 @@ Parameters
 
 
 
-``--samples``
-^^^^^^^^^^^^^
-
-**Description:** Specify comma-separated list of samples, Leave blank for all samples.
-
-**Type:** None; **Default:** None
-
-
-
 ``--species-groups/--speciesgroups``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1629,7 +1694,7 @@ InferTree
 
 Description
 -----------
-None
+Infer phylogenies for various windows or contigs in anMVF file.
 
 Parameters
 ----------
@@ -1851,14 +1916,14 @@ Parameters
 **Type:** boolean flag
 
 
-.. JoinMVF:
+.. MergeMVF:
 
-JoinMVF
-=======
+MergeMVF
+========
 
 Description
 -----------
-None
+Combines columns from multiple MVF files into a single output MVF(this is a newer module, use with caution!)
 
 Parameters
 ----------
@@ -1950,7 +2015,7 @@ PlotChromoplot
 
 Description
 -----------
-None
+Plot a Chromoplot from an MVF file for all combinationsof the specified samples.
 
 Parameters
 ----------
@@ -2126,7 +2191,7 @@ TranslateMVF
 
 Description
 -----------
-None
+Translate a DNA MVF to a protein or codon MVF
 
 Parameters
 ----------
@@ -2201,6 +2266,44 @@ Parameters
 **Description:** USE WITH CAUTION: force overwrite of outputs
 
 **Type:** boolean flag
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+.. VerifyMVF:
+
+VerifyMVF
+=========
+
+Description
+-----------
+Checks an MVF file for errors.
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
 
 
 

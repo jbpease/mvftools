@@ -40,7 +40,7 @@ RE_CONTIG_NAME = re.compile("ID=(.*?),")
 RE_CONTIG_LENGTH = re.compile("length=(.*?)>")
 
 
-class VariantCallFile(object):
+class VariantCallFile():
     """Variant Call Format Handler
     Object Structure:
         path = file path (converted to absolute path)
@@ -82,11 +82,11 @@ class VariantCallFile(object):
                 self.metadata['sourceformat'] = line[line.find('=') + 1:]
             if line.startswith("##contig"):
                 contig_name = re.findall(RE_CONTIG_NAME, line)
-                contig_name = (contig_name[0] if len(contig_name) > 0 else
+                contig_name = (contig_name[0] if contig_name else
                                'contig{}'.format(tempid))
                 contig_length = re.findall(RE_CONTIG_LENGTH, line)
                 contig_length = (int(contig_length[0])
-                                 if len(contig_length) > 0
+                                 if contig_length
                                  else 0)
                 self.metadata['contigs'][tempid] = {
                     'label': contig_name, 'length': contig_length}
@@ -145,17 +145,22 @@ class VariantCallFile(object):
             linebuffer.append(line)
             if nline == args.line_buffer:
                 for xline in linebuffer:
+                    if args.verbose is True:
+                        print(xline)
                     vcfrecord = self._parse_entry(xline, **vars(args))
-                    if vcfrecord == -1:
+                    # vcfrecord is either (0, DATA) or (1, ERROR_MESSAGE)
+                    if vcfrecord[0] == 1:  # 1 indicates error, 0=pass
+                        if args.verbose is True:
+                            print(vcfrecord)
                         continue
-                    yield vcfrecord
+                    yield vcfrecord[1]
                 linebuffer = []
                 nline = 0
         for line in linebuffer:
             vcfrecord = self._parse_entry(line, **vars(args))
-            if vcfrecord == -1:
+            if vcfrecord[0] == 1:  # 1=error, 0=pass
                 continue
-            yield vcfrecord
+            yield vcfrecord[1]
             linebuffer = []
             nline = 0
         filehandler.close()
@@ -167,24 +172,32 @@ class VariantCallFile(object):
                 **kwargs: passthrough dict of arguments
         """
         record = {}
-        # indel = False
-        # Skip indels and zero-depth
+        # Check if Depth is Zero
         if 'DP=0' in vcfline:
-            return -1
+            return (1, "DP=0")
+        # Check for indels
         if "INDEL" in vcfline:
-            return -1
+            return (1, "INDEL")
         arr = vcfline.rstrip().split(kwargs.get('fieldsep', '\t'))
+        # Check for too few fields
         if len(arr) < 9:
-            return -1
-        if len(arr[3]) > 1:  # and not indel:
-            return -1
+            return (1, "VCF FIELDS < 9")
+        # Check for indels by altnerative allele length
+        if len(arr[3]) > 1:
+            return (1, "ALTERNATE ALLELE LENGTH > 1")
+        # Check for no depth where N followed by *
+        if arr[3] == 'N' and arr[4] == '*':
+            return (1, "N and *, NO DEPTH")
+        # Check for a heterozygous deletion call
+        if "*" in arr[4]:
+            return (1, "HETEROZYGOUS INDEL")
         record['contig'] = arr[0]
         record['coord'] = int(arr[1])
         record['alleles'] = [arr[3]]
         if arr[4] != '.':
             for altbase in arr[4].split(','):
-                if len(altbase) > 1 or altbase == '*':  # and not indel:
-                    return -1
+                if len(altbase) > 1:
+                    return (1, "AN ALTBASE HAS LEN>1")
                 record['alleles'].append(altbase)
         record['tagindex'] = {}
         tags = arr[8].split(':')
@@ -192,8 +205,6 @@ class VariantCallFile(object):
         for elem in arr[9:]:
             record['samples'].append(dict(
                 zip(tags, elem.split(':'))))
-        if "INDEL" in vcfline:  # and indel:
-            pass
         if record['alleles'][0] in 'NnXxBbDdHhVv':
             record['genotypes'] = ['X']
             record['qscores'] = ['@']
@@ -212,7 +223,8 @@ class VariantCallFile(object):
             info = dict(field.split('=') for field in arr[7].split(';'))
             record['genotypes'].extend(
                 info.get(label, '-') for label in kwargs.get("alleles_from"))
-        return record
+        # Returns zero as non-error code, 0th element is 1 if error
+        return (0, record)
 
     def _call_allele(self, sample, alleles, **kwargs):
         """Determine the allele from a VCF entry
@@ -282,10 +294,17 @@ class VariantCallFile(object):
                       plvalues.index(maxpl))
             if imaxpl == -1:
                 allele = "X"
-            elif kwargs['hex'] is True:
-                alleles = ''.join(list(set(
-                    [alleles[x] for x in MLIB.vcf_gtcodeshex[imaxpl]])
-                    - set("-")))
+            elif kwargs['ploidy'] > 2:
+                if kwargs['ploidy'] == 4:
+                    alleles = ''.join(list(set(
+                        [alleles[x] for x in MLIB.vcf_gtcodes_tetra[imaxpl]])
+                                           - set("-")))
+                elif kwargs['ploidy'] == 6:
+                    alleles = ''.join(list(set(
+                        [alleles[x] for x in MLIB.vcf_gtcodes_hex[imaxpl]])
+                                           - set("-")))
+                else:
+                    raise RuntimeError("Ploidy is not 2, 4 or 6")
                 if alleles == "":
                     allele = "-"
                 else:
@@ -293,23 +312,23 @@ class VariantCallFile(object):
             else:
                 alleles = ''.join(list(set(
                     [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
-                    - set("-")))
+                                       - set("-")))
                 if alleles == "":
                     allele = "-"
                 else:
                     allele = MLIB.joinbases[alleles]
             quality = sample['GQ'] if sample.get('GQ', -1) != -1 else -1
-        # Fail-safe check (you should never see a ! in the MVF)
         else:
+            # Fail-safe check (you should never see a ! in the MVF output)
             allele = '!'
             quality = -1
         quality = int(float(quality)) if quality != '.' else 60
         if -1 < quality < kwargs.get("mask_qual", 10):
             return ('X', quality, sample_depth)
-        elif (-1 < quality < kwargs.get("low_qual", 20) or
-              (-1 < sample_depth < kwargs.get("low_depth", 3))):
+        if (-1 < quality < kwargs.get("low_qual", 20) or
+                (-1 < sample_depth < kwargs.get("low_depth", 3))):
             allele = allele.lower()
-        if kwargs['hex'] is True:
+        if kwargs['ploidy'] > 2:
             if allele in 'NnXx':
                 allele = 'X'
         else:
@@ -324,10 +343,13 @@ def vcf2mvf(args=None):
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.field_sep]
     # ESTABLISH VCF
+    print("Opening", args.vcf)
     vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
+    print("Establishing", args.out)
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
+    print("Processing VCF headers")
     vcfcontigs = vcf.metadata['contigs'].copy()
     contig_translate = {}
     if args.contig_ids:
@@ -349,34 +371,38 @@ def vcf2mvf(args=None):
                             'Contig label {} is not unique'.format(cmvf))
                     mvf.metadata['contigs'][cid]['label'] = cmvf[:]
     mvf.reset_max_contig_id()
+    print("Processing Contigs")
+    static_contig_ids = mvf.get_contig_ids()
     for vcid in vcfcontigs:
         vlabel = vcfcontigs[vcid]['label']
-        if vlabel not in mvf.get_contig_labels():
+        if vlabel not in static_contig_ids:
             if ((is_int(vlabel) or len(vlabel) < 3) and
-                    vlabel not in mvf.get_contig_ids()):
+                    vlabel not in static_contig_ids):
                 newid = vlabel[:]
             else:
                 newid = mvf.get_next_contig_id()
             mvf.metadata['contigs'][newid] = vcfcontigs[vcid].copy()
+            static_contig_ids = mvf.get_contig_ids()
             contig_translate[vlabel] = [newid, vlabel]
     mvf.reset_max_contig_id()
     new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
                    for x in mvf.metadata['contigs']]
+    print("Checking Contigs for Label/ID Overlap Errors")
+    xids = [x[0] for x in new_contigs]
+    xlabels = [x[1] for x in new_contigs]
     for i, (newid, newlabel) in enumerate(new_contigs):
-        for j, (xid, xlabel) in enumerate(new_contigs):
-            if i == j:
-                continue
-            if newid == xlabel:
-                raise RuntimeError("Error contig id {} is the same as"
-                                   " the label for another contig"
-                                   " ({} {})".format(
-                                       newid, xid, xlabel))
-            if newlabel == xid:
-                raise RuntimeError("Error contig label {} is the same"
-                                   "as the id for another contig"
-                                   "({} {})".format(
-                                       newlabel, xid, xlabel))
+        if newid in xlabels[:i] + xlabels[i+1:]:
+            raise RuntimeError("Error contig id {} is the same as"
+                               " the label for another contig"
+                               " ({})".format(
+                                   newid, xlabels))
+        if newlabel in xids[:i] + xids[i+1:]:
+            raise RuntimeError("Error contig label {} is the same"
+                               "as the id for another contig"
+                               "({})".format(
+                                   newlabel, xlabels))
     # PROCESS SAMPLE INFO
+    print("Processing Samples")
     samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
     if args.alleles_from:
         args.alleles_from = args.alleles_from.split(':')
@@ -403,6 +429,7 @@ def vcf2mvf(args=None):
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0
+    print("Processing VCF entries")
     for vcfrecord in vcf.iterentries(args):
         # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))

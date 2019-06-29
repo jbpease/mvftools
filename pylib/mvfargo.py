@@ -32,6 +32,7 @@ import argparse
 
 
 class MvfArgumentParser(argparse.ArgumentParser):
+    """Creates common argparse elements for various MVF modules"""
 
     def __init__(self):
         super(MvfArgumentParser, self).__init__()
@@ -44,53 +45,57 @@ class MvfArgumentParser(argparse.ArgumentParser):
             "--quiet", action="store_true",
             help="Suppress screen output.")
 
-    def addarg_contigs(self):
-        self.add_argument(
-            "--contigs",
-            help="Specify comma-separated list of contigs.")
-
     def addarg_contig_ids(self):
+        """Contig ids arguments"""
         self.add_argument(
             "--contig-ids", "--contigids", nargs=1,
             help=("Specify comma-separated list of contig short ids. "
                   "Must match exactly. Do not use with --contig-labels."))
 
     def addarg_contig_labels(self):
+        """Contig labels arguments"""
         self.add_argument(
             "--contig-labels", "--contiglabels", nargs=1,
             help=("Specify comma-separated list of contig full labels. "
                   "Must match exactly. Do not use with --contig-ids"))
 
     def addarg_gff(self):
+        """GFF argument"""
         self.add_argument("--gff", type=os.path.abspath,
                           help="Input gff annotation file.")
 
     def addarg_linebuffer(self):
+        """Linebuffer argument"""
         self.add_argument(
             "--line-buffer", "--linebuffer", type=int, default=100000,
             help="Number of entries to store in memory at a time.")
 
     def addarg_mincoverage(self):
+        """Minimum coverage argument"""
         self.add_argument(
             "--mincoverage", type=int,
             help="Mininum sample coverage for sites.")
 
     def addarg_mvf(self, required=True):
+        """MVF file argument"""
         self.add_argument(
             "--mvf", type=os.path.abspath, required=required,
             help="Input MVF file.")
 
     def addarg_overwrite(self):
+        """Overwrite argument"""
         self.add_argument(
             "--overwrite", action="store_true",
             help="USE WITH CAUTION: force overwrite of outputs")
 
     def addarg_out(self, required=True):
+        """Output argument"""
         self.add_argument(
             "--out", help="Output file",
             required=required, type=os.path.abspath)
 
     def addarg_outgroup_indices(self, nmin=None):
+        """Outgroup indices argument"""
         self.add_argument(
             "--outgroup-indices", "--outgroupindices",
             nargs=1,
@@ -98,10 +103,11 @@ class MvfArgumentParser(argparse.ArgumentParser):
                   "sample numerical indices (first column is 0). "
                   "Leave blank for all samples. "
                   "Do not use with --outgroup_labels.".format(
-                    str(nmin) + " or more " if nmin is not None
-                    else "")))
+                      str(nmin) + " or more " if nmin is not None
+                      else "")))
 
     def addarg_outgroup_labels(self, nmin=None):
+        """Outgroup labels argument"""
         self.add_argument(
             "--outgroup-labels", "--outgrouplabels",
             nargs=1,
@@ -110,16 +116,11 @@ class MvfArgumentParser(argparse.ArgumentParser):
                   "Labels must be exact (case-sensitive). "
                   "Leave blank for all samples."
                   "Do not use with --outgroup_indicies.".format(
-                    str(nmin) + " or more " if nmin is not None
-                    else "")))
-
-    def addarg_samples(self):
-        self.add_argument(
-            "--samples",
-            help=("Specify comma-separated list of samples, "
-                  "Leave blank for all samples."))
+                      str(nmin) + " or more " if nmin is not None
+                      else "")))
 
     def addarg_sample_indices(self, nmin=None):
+        """Sample indices argument"""
         self.add_argument(
             "--sample-indices", "--sampleindices",
             nargs=1,
@@ -127,10 +128,11 @@ class MvfArgumentParser(argparse.ArgumentParser):
                   "numerical indices (first sample is 0). "
                   "Leave blank for all samples. "
                   "Do not use with --sample_labels.".format(
-                    str(nmin) + " or more " if nmin is not None
-                    else "")))
+                      str(nmin) + " or more " if nmin is not None
+                      else "")))
 
     def addarg_sample_labels(self, nmin=None):
+        """Sample labels argument"""
         self.add_argument(
             "--sample-labels",
             nargs=1,
@@ -138,10 +140,11 @@ class MvfArgumentParser(argparse.ArgumentParser):
                   "Labels must be exact (case-sensitive). "
                   "Leave blank for all samples."
                   "Do not use with --sample_indicies.".format(
-                    str(nmin) + " or more " if nmin is not None
-                    else "")))
+                      str(nmin) + " or more " if nmin is not None
+                      else "")))
 
     def addarg_windowsize(self):
+        """Window size argument"""
         self.add_argument(
             "--windowsize", default=100000,
             action=int_range_action(-1, 'Inf'),
@@ -150,6 +153,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
                   "Use -1 for whole contigs. "))
 
     def addarg_regions(self):
+        """Regions argument"""
         self.add_argument(
             "--regions", type=os.path.abspath,
             help=("Path of a plain text file containing one more lines "
@@ -159,6 +163,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
 
 
 def int_range_action(min_value, max_value):
+    """Reformats a range of integers"""
     class _IntRangeAction(argparse.Action):
 
         def __init__(self, option_strings, dest, nargs=None, **kwargs):

@@ -14,10 +14,9 @@ from pylib.mvffasphy import fasta2mvf, mvf2fasta, mvf2phy
 from pylib.mvfmaf import maf2mvf
 from pylib import mvfanalysis
 from pylib.mvfargo import MvfArgumentParser, mutex_check
-from pylib.mvfcheck import check_mvf
 from pylib.mvfwindowtree import infer_window_tree
 from pylib.mvftranslate import annotate_mvf, translate_mvf
-from pylib.mvfjoin import mvf_join
+from pylib.mvfmerge import concatenate_mvf, merge_mvf, verify_mvf
 from pylib.mvfgroupallele import calc_group_unique_allele_window
 from pylib.mvffilter import filter_mvf
 
@@ -26,7 +25,8 @@ If you use this software please cite:
 Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics.
+15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -45,7 +45,13 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-class MVFcall(object):
+OLDCOMMAND = {
+    "CheckMVF": "VerifyMVF",  # Backward compatible
+    "JoinMVF": "ConcatenateMVF",  # Backward compatible
+    }
+
+
+class MVFcall():
     """Main MVF Invocation Class
     """
 
@@ -62,7 +68,7 @@ class MVFcall(object):
             CalcPairwiseDistances
             CalcPatternCount
             CalcSampleCoverage
-            CheckMVF
+            CheckMVF (now VerifyMVF)
             ConvertFasta2MVF
             ConvertMAF2MVF
             ConvertMVF2Fasta
@@ -71,16 +77,21 @@ class MVFcall(object):
             FilterMVF
             InferGroupSpecificAllele
             InferTree
+            JoinMVF (now ConcatenateMVF)
+            MergeMVF
             PlotChromoplot
             TranslateMVF
+            VerifyMVF
             """,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.1.5",
+                            version="0.5.2",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
+        if args.command in OLDCOMMAND:
+            args.command = OLDCOMMAND[args.command]
         if not hasattr(self, args.command):
             print('Unrecognized command')
             parser.print_help()
@@ -124,8 +135,180 @@ class MVFcall(object):
         annotate_mvf(args)
         return ''
 
+    def CalcCharacterCount(self):
+        """Calculates the count of different character types
+           in an MVF file
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
+            parser.addarg_mincoverage()
+            parser.addarg_windowsize()
+            parser.add_argument(
+                "--base-match", "--basematch",
+                help="String of bases to match (i.e. numerator).")
+            parser.add_argument(
+                "--base-total", "--basetotal",
+                help="String of bases for total (i.e. denominator).")
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        mvfanalysis.calc_character_count(args)
+        return ''
+
+    def CalcDstatCombinations(self):
+        """Calculates all D-statistics for all combinations of
+           specified taxa in an MVF file.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_sample_indices(nmin=3)
+            parser.addarg_sample_labels(nmin=3)
+            parser.addarg_outgroup_indices()
+            parser.addarg_outgroup_labels()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        mvfanalysis.calc_dstat_combinations(args)
+        return ''
+
+    def CalcPairwiseDistances(self):
+        """Calculates pairwise sequence distances for combinations of
+           specified taxa in an MVF file.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_sample_indices(nmin=2)
+            parser.addarg_sample_labels(nmin=2)
+            parser.addarg_windowsize()
+            parser.addarg_mincoverage()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        mvfanalysis.calc_pairwise_distances(args)
+        return ''
+
+    def CalcPatternCount(self):
+        """Counts biallelic site pattersn (AB-patterns) for
+           specified combinations of taxa in an MVF file.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
+            parser.addarg_windowsize()
+            parser.addarg_mincoverage()
+            parser.add_argument("--output-lists",
+                                action="store_true")
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        mvfanalysis.calc_pattern_count(args)
+        return ''
+
+    def CalcSampleCoverage(self):
+        """Counts per-contig coverage for
+           specified sample columns in an MVF file.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        mvfanalysis.calc_sample_coverage(args)
+        return ''
+
+    def ConcatenateMVF(self):
+        """Combine non-overlapping contigs from one or more MVF files into a
+           single MVF file.  This does NOT merge columns.  Use MergeMVF to merge
+           sample columns from multiple files.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.add_argument(
+                "--mvf", nargs="*", type=os.path.abspath, required=True,
+                help="One or more mvf files.")
+            parser.addarg_out()
+            parser.add_argument(
+                "--new-contigs", "--newcontigs", action="store_true",
+                help=("By default, contigs are matched between files "
+                      "using their text labels in the header. "
+                      "Use this option to turn matching off and treat "
+                      "each file's contigs as distinct."))
+            parser.add_argument(
+                "--newsamples", action="store_true",
+                help=("By default, samples are matched between files "
+                      "using their text labels in the header. "
+                      "Use this option to turn matching off and treat "
+                      "each file's sample columns as distinct."))
+            parser.add_argument(
+                "--main_header_file", "--mainheaderfile",
+                help=("Output file will use same headers as "
+                      "this input file (default=first in list)."))
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        concatenate_mvf(args)
+        return ''
+
     def ConvertFasta2MVF(self):
-        """Converts a FastA file to MVF format"""
+        """Converts a FASTA file to MVF format"""
 
         def generate_argparser():
             """Generate argparse parser
@@ -141,9 +324,9 @@ class MVFcall(object):
                 "--flavor", choices=['dna', 'protein'],
                 help="type of file [dna] or protein", default='dna')
             parser.add_argument(
-                  "--contig-ids", "--contigids", nargs='*',
-                  help=("manually specify one or more contig ids "
-                        "as ID:LABEL"))
+                "--contig-ids", "--contigids", nargs='*',
+                help=("manually specify one or more contig ids "
+                      "as ID:LABEL"))
             parser.add_argument(
                 "--sample-replace", "--samplereplace", nargs="*",
                 help=("one or more TAG:NEWLABEL or TAG, items, "
@@ -227,7 +410,7 @@ class MVFcall(object):
         return ''
 
     def ConvertMVF2Fasta(self):
-        """Converts an MVF file to a FastA file
+        """Converts an MVF file to a FASTA file
         """
 
         def generate_argparser():
@@ -375,9 +558,12 @@ class MVFcall(object):
                 "--qual", action="store_true",
                 help="""Include Phred genotype quality (GQ) scores""")
             parser.add_argument(
-                "--hex", action="store_true",
-                help="""Interpret hexaploid VCF (Experimental, use with
-                        caution""")
+                "--ploidy", default=2, type=int, choices=(2, 4, 6),
+                help="""Use for hexaploid and tetraploid
+                        (Experimental, use with caution""")
+            parser.add_argument(
+                "--verbose", action="store_true",
+                help="""Output excessive data to screen for debugging""")
             parser.addarg_overwrite()
             return parser
         parser = generate_argparser()
@@ -386,156 +572,6 @@ class MVFcall(object):
         args = parser.parse_args(self.arguments[1:])
         from pylib.mvfvcf import vcf2mvf
         vcf2mvf(args)
-        return ''
-
-    def CalcCharacterCount(self):
-        """Calculates the count of different character types
-           in an MVF file
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_contig_ids()
-            parser.addarg_contig_labels()
-            parser.addarg_sample_indices()
-            parser.addarg_sample_labels()
-            parser.addarg_mincoverage()
-            parser.addarg_windowsize()
-            parser.add_argument(
-                "--base-match", "--basematch",
-                help="String of bases to match (i.e. numerator).")
-            parser.add_argument(
-                "--base-total", "--basetotal",
-                help="String of bases for total (i.e. denominator).")
-            return parser
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        mutex_check(args)
-        mvfanalysis.calc_character_count(args)
-        return ''
-
-    def CalcDstatCombinations(self):
-        """Calculates all D-statistics for all combinations of
-           specified taxa in an MVF file.
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_sample_indices(nmin=3)
-            parser.addarg_sample_labels(nmin=3)
-            parser.addarg_outgroup_indices()
-            parser.addarg_outgroup_labels()
-            parser.addarg_contig_ids()
-            parser.addarg_contig_labels()
-            return parser
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        mutex_check(args)
-        mvfanalysis.calc_dstat_combinations(args)
-        return ''
-
-    def CalcPairwiseDistances(self):
-        """Calculates pairwise sequence distances for combinations of
-           specified taxa in an MVF file.
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_sample_indices(nmin=2)
-            parser.addarg_sample_labels(nmin=2)
-            parser.addarg_windowsize()
-            parser.addarg_mincoverage()
-            return parser
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        mutex_check(args)
-        mvfanalysis.calc_pairwise_distances(args)
-        return ''
-
-    def CalcPatternCount(self):
-        """Counts biallelic site pattersn (AB-patterns) for
-           specified combinations of taxa in an MVF file.
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_sample_indices()
-            parser.addarg_sample_labels()
-            parser.addarg_windowsize()
-            parser.addarg_mincoverage()
-            parser.add_argument("--output-lists",
-                                action="store_true")
-            return parser
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        mutex_check(args)
-        mvfanalysis.calc_pattern_count(args)
-        return ''
-
-    def CalcSampleCoverage(self):
-        """Counts per-contig coverage for
-           specified sample columns in an MVF file.
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            parser.addarg_out()
-            parser.addarg_contig_ids()
-            parser.addarg_contig_labels()
-            parser.addarg_sample_indices()
-            parser.addarg_sample_labels()
-            return parser
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        mutex_check(args)
-        mvfanalysis.calc_sample_coverage(args)
-        return ''
-
-    def CheckMVF(self):
-        """Checks an MVF file for errors.
-        """
-
-        def generate_argparser():
-            """Generate argparse parser
-            """
-            parser = MvfArgumentParser()
-            parser.addarg_mvf()
-            return parser
-
-        parser = generate_argparser()
-        if self.selfdoc is True:
-            return parser
-        args = parser.parse_args(self.arguments[1:])
-        check_mvf(args)
         return ''
 
     def FilterMVF(self):
@@ -587,7 +623,6 @@ class MVFcall(object):
             parser.addarg_mvf()
             parser.addarg_gff()
             parser.addarg_out()
-            parser.addarg_samples()
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
             parser.add_argument(
@@ -758,8 +793,9 @@ class MVFcall(object):
         infer_window_tree(args)
         return ''
 
-    def JoinMVF(self):
-        """Combine one or more MVF files.
+    def MergeMVF(self):
+        """Combines columns from multiple MVF files into a single output MVF
+           (this is a newer module, use with caution!)
         """
 
         def generate_argparser():
@@ -793,7 +829,7 @@ class MVFcall(object):
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
-        mvf_join(args)
+        merge_mvf(args)
         return ''
 
     def PlotChromoplot(self):
@@ -899,6 +935,24 @@ class MVFcall(object):
             return parser
         args = parser.parse_args(self.arguments[1:])
         translate_mvf(args)
+        return ''
+
+    def VerifyMVF(self):
+        """Checks an MVF file for errors.
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            return parser
+
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        verify_mvf(args)
         return ''
 
 
