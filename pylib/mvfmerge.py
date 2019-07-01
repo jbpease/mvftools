@@ -43,13 +43,16 @@ class MvfTransformer():
     """
 
     def __init__(self, labels=None, contigs=None):
-        self.contigs = contigs or {}
-        self.labels = labels or {}
+        self.contigs = contigs if contigs else {}
+        self.labels = labels if labels else {}
+        self.labels_rev = (dict((v, k) for k, v in labels.items()) if
+                           labels else {})
 
     def set_label(self, localindex, consensusindex):
         """Set label transform
         """
         self.labels[consensusindex] = localindex
+        self.labels_rev[localindex] = consensusindex
         return ''
 
     def set_contig(self, localid, consensusid):
@@ -57,6 +60,7 @@ class MvfTransformer():
         """
         self.contigs[consensusid] = localid
         return ''
+
 
 def verify_mvf(args):
     """Main method"""
@@ -235,14 +239,16 @@ def merge_mvf(args):
     # Open each MVF file, read headers to make unified header
     transformers = []
     mvfmetadata = []
-    concatmvf_reverse_contig = {
-        (x['label'], k) for (k, x) in concatmvf.metadata['contigs'].items()}
+    concatmvf_reverse_contig = dict(
+        (x['label'], k) for (k, x) in concatmvf.metadata['contigs'].items())
     for mvfname in args.mvf:
         # This will create a dictionary of samples{old:new}, contigs{old:new}
         if not args.quiet:
             print("Processing Headers and Indexing: ", mvfname)
         transformer = MvfTransformer()
-        mvf = MultiVariantFile(mvfname, 'read', contigindex=True)
+        mvf = MultiVariantFile(mvfname, 'read', contigindex=(not args.skip_index))
+        if args.skip_index:
+            mvf.read_index_file()
         mvf.reset_max_contig_id()
         mvfmetadata.append(mvf.metadata)
         for i, label in enumerate(mvf.get_sample_labels()):
@@ -294,7 +300,16 @@ def merge_mvf(args):
                 if coord not in mdict:
                     mdict[coord] = '-' * len(concatmvf.metadata['samples'])
                 for j, base in enumerate(bases):
-                    xcoord = transformers[ifile].labels[j]
+                    xcoord = transformers[ifile].labels_rev[j]
+                    if mdict[coord][xcoord] != '-':
+                        if mdict[coord][xcoord] == base:
+                            #print(coord, mdict[coord][xcoord], base)
+                            continue
+                        if base == '-' or base == 'X':
+                            continue
+                        raise RuntimeError(
+                            "Merging columns have two different bases: {} {} {}".format(
+                                coord, mdict[coord][xcoord], base))
                     mdict[coord] = (mdict[coord][:xcoord] + base +
                                     mdict[coord][xcoord+1:])
             mvffile.close()
