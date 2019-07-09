@@ -824,6 +824,9 @@ class MVFcall():
                       "this input file (default=first in list)."))
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
+            parser.add_argument("--skip-index", "--skipindex",
+                                action='store_true',
+                                help="Skip index because index exists")
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
