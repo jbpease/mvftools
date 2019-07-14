@@ -186,6 +186,7 @@ class MvfBioLib():
 
     def _populate_codon_tables(self):
         self.codon_tables['standard'] = {
+            "": "", "---": '-',
             "AAA": "K", "AAC": "N", "AAG": "K", "AAT": "N",
             "ACA": "T", "ACC": "T", "ACG": "T", "ACT": "T",
             "AGA": "R", "AGC": "S", "AGG": "R", "AGT": "S",
@@ -209,15 +210,18 @@ class MvfBioLib():
                 ('GC', 'A'), ('GG', 'G'), ('GT', 'V'), ('TC', 'S')]
              for ambig in 'KMRYWSBDHVX'] +
             [(bases + 'R', aa) for bases, aa in [
-                ('AA', 'K'), ('AG', 'R'), ('CA', 'Q'),
-                ('GA', 'E'), ('TA', '*'), ('TT', 'L')]] +
+                ('AA', 'K'), ('AG', 'R'),
+                ('CA', 'Q'), ('GA', 'E'),
+                ('TA', '*'), ('TT', 'L')]] +
             [(bases + 'Y', aa) for bases, aa in [
-                ('AA', 'N'), ('AG', 'S'), ('AT', 'I'),
-                ('CA', 'H'), ('GA', 'D'), ('TA', 'Y'),
-                ('TG', 'C'), ('TT', 'F')]] +
-            [('MGA', 'R'), ('MGG', 'R'), ('MGR', 'R'), ('YTA', 'L'),
-             ('YTG', 'L'), ('YTR', 'L'), ('TRA', '*'),
-             ('ATH', 'I')])
+                ('AA', 'N'), ('AG', 'S'),
+                ('CA', 'H'), ('GA', 'D'),
+                ('TA', 'Y'), ('TG', 'C'), ('TT', 'F')]] +
+            [('ATH', 'I'), ('ATW', 'I'), ('ATM', 'I'), ('ATY', 'I'),
+             ('MGA', 'R'), ('MGG', 'R'), ('MGR', 'R'),
+             ('YTA', 'L'), ('YTG', 'L'), ('YTR', 'L'),
+             ('TRA', '*'),
+             ])
         self.codon_tables['full'] = self.codon_tables['standard'].copy()
         self.codon_tables['full'].update(self.codon_tables['ambig'])
         return ''

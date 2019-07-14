@@ -31,6 +31,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 from copy import deepcopy
+from itertools import chain
 from pylib.mvfbase import MultiVariantFile
 from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
@@ -85,14 +86,8 @@ def translate_single_codon(seq):
     """Returns translated amino acid from single codon
         Arguments:
     """
-    seq = seq.upper().replace('U', 'T')
-    if not seq:
-        amino_acid = ''
-    elif seq == '---':
-        amino_acid = '-'
-    else:
-        amino_acid = MLIB.codon_tables['full'].get(seq, 'X')
-    return amino_acid
+    return MLIB.codon_tables['full'].get(
+        seq.upper().replace('U', 'T'), 'X')
 
 
 def iter_codons(inputbuffer, mvf):
@@ -384,26 +379,25 @@ def translate_mvf(args):
             mvf_entries = {}
             contigname = outmvf.metadata['contigs'][xcontigid]['label']
             if contigname not in gff:
-                args.qprint("No entries in GFF, skipping contig: {} {}".format(
-                    xcontigid, contigname))
+                if args.verbose:
+                    print("No entries in GFF, skipping contig: {} {}".format(
+                        xcontigid, contigname))
                 continue
             if not int(xcontigid) % 100:
                 args.qprint("Processing contig: {} {}".format(
                     xcontigid, contigname))
+            #contig_cds_bases = chain(x[:3] for x in gff[contigname])
             for contigid, pos, allelesets in mvf.itercontigentries(
                     xcontigid, decode=False):
-                mvf_entries[pos] = allelesets[0]
+               # if pos in contig_cds_bases:
+               mvf_entries[pos] = allelesets[0]
             for coords in sorted(gff[contigname]):
-                reverse_strand = False
-                if coords[3] == '-':
-                    reverse_strand = True
-                    alleles = tuple(
-                        mvf_entries.get(x, '-') for x in coords[2::-1])
-                else:
-                    alleles = tuple(
-                        mvf_entries.get(x, '-') for x in coords[0:3])
-                #print("alleles", alleles)
-                #print("raw", alleles)
+
+                reverse_strand = coords[3] == '-'
+                alleles = (tuple(mvf_entries.get(x, '-')
+                                for x in coords[2::-1]) if
+                           reverse_strand else tuple(mvf_entries.get(x, '-')
+                                                     for x in coords[0:3]))
                 if all(len(x) == 1 for x in alleles):
                     if reverse_strand:
                         alleles = tuple(
@@ -423,10 +417,10 @@ def translate_mvf(args):
                                         for x in zip(*decoded_alleles))
                     #print("aminx", amino_acids)
                     amino_acids = mvf.encode(''.join(amino_acids))
-                if all(x in '-X' for x in amino_acids):
-                    continue
-                #print("amino", amino_acids)
-                #print("translated", amino_acids, alleles)
+                # if all(x in '-X' for x in amino_acids):
+                #    continue
+                # print("amino", amino_acids)
+                # print("translated", amino_acids, alleles)
                 if args.output_data == 'protein':
                     entrybuffer.append((xcontigid, coords[0], (amino_acids,)))
                 else:
@@ -434,7 +428,7 @@ def translate_mvf(args):
                         xcontigid, coords[0], (
                             amino_acids, alleles[0], alleles[1], alleles[2])))
                 nentry += 1
-                if nentry == args.line_buffer:
+                if nentry >= args.line_buffer:
                     args.qprint("Writing a block of {} entries.".format(
                         args.line_buffer))
                     outmvf.write_entries(entrybuffer)

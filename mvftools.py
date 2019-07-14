@@ -988,6 +988,9 @@ class MVFcall():
                                       "to make empty."))
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
+            parser.add_argument(
+                "--verbose", action="store_true",
+                help="""Output excessive data to screen for debugging""")
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:

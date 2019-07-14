@@ -277,15 +277,13 @@ def merge_mvf(args):
     # Write output header
     args.qprint("Writing headers to merge output")
     concatmvf.reset_ncol()
-    print(concatmvf.metadata['samples'])
     concatmvf.write_data(concatmvf.get_header())
-
     contigs = concatmvf.metadata['contigs']
     # Now loop through each file
+    blank_entry = '-' * len(concatmvf.metadata['samples'])
     for current_contig in contigs:
         contig_merged_entries = {}
-        if not args.quiet:
-            args.qprint("Merging Contig: {}".format(current_contig))
+        args.qprint("Merging Contig: {}".format(current_contig))
         for ifile, mvffile in enumerate(inputfiles):
             if current_contig not in transformers[ifile].contigs:
                 continue
@@ -293,7 +291,7 @@ def merge_mvf(args):
             for chrom, pos, allelesets in mvffile.itercontigentries(
                     localcontig, decode=True):
                 if pos not in contig_merged_entries:
-                    contig_merged_entries[pos] = '-' * len(concatmvf.metadata['samples'])
+                    contig_merged_entries[pos] = blank_entry[:]
                 for j, base in enumerate(allelesets[0]):
                     xcoord = transformers[ifile].labels_rev[j]
                     if contig_merged_entries[pos][xcoord] != '-':
@@ -307,10 +305,9 @@ def merge_mvf(args):
                     contig_merged_entries[pos] = (
                         contig_merged_entries[pos][:xcoord] + base +
                         contig_merged_entries[pos][xcoord+1:])
-        concatmvf.write_entries([
-            (current_contig, coord, (entry,))
-            for coord, entry in sorted(contig_merged_entries.items())],
-                                encoded=False)
+        concatmvf.write_entries(((current_contig, coord, (entry,))
+            for coord, entry in sorted(contig_merged_entries.items())
+                                ),encoded=False)
         args.qprint("Entries written for contig {}: {}".format(
                 current_contig, len(contig_merged_entries)))
     return ''
