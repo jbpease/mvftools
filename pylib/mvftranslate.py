@@ -409,7 +409,7 @@ def translate_mvf(args):
                         alleles = tuple(
                             MLIB.complement_bases[x] for x in alleles)
                     decoded_alleles = alleles
-                    amino_acids = (translate_single_codon(''.join(alleles)),)
+                    amino_acids = translate_single_codon(''.join(alleles))
                 else:
                     if reverse_strand:
                         decoded_alleles = tuple(tuple(MLIB.complement_bases[y]
