@@ -49,6 +49,15 @@ Parameters
 
 
 
+``--gene-prefix/--geneprefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Gene entry prefix when interpretingGFF files.  For GFF3 files, 'mRNA:' is standard, but for older or custom GFF files this may vary.  Use 'none' to make empty.
+
+**Type:** None; **Default:** mRNA:
+
+
+
 ``--gff``
 ^^^^^^^^^
 
@@ -359,6 +368,26 @@ Parameters
 
 **Type:** file path; **Default:** None
 
+
+
+``--ambig``
+^^^^^^^^^^^
+
+**Description:** By default, ambiguous nucleotides are excluded.  This option will include sets of ambiguous characters by randomly choosing one of the options for: RYMKWS ('random2') or RYMKWS+BDHV ('random3')
+
+**Type:** None; **Default:** None
+
+**Choices:** ('random2', 'random3')
+
+
+``--data-type/--datatype``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Data type to compare.(This option is only needed for codon  MVF files, others will default.)
+
+**Type:** None; **Default:** None
+
+**Choices:** ('dna', 'prot')
 
 
 ``--mincoverage``
@@ -2008,6 +2037,15 @@ Parameters
 **Type:** boolean flag
 
 
+
+``--skip-index/--skipindex``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Skip index because index exists
+
+**Type:** boolean flag
+
+
 .. PlotChromoplot:
 
 PlotChromoplot
@@ -2266,6 +2304,15 @@ Parameters
 **Description:** USE WITH CAUTION: force overwrite of outputs
 
 **Type:** boolean flag
+
+
+
+``--parent-gene-prefix/--parentgeneprefix``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Parent genes prefix when interpretingGFF files.  For GFF3 files, 'gene:' is standard, but for older or custom GFF files this may vary.  Use 'none' to make empty.
+
+**Type:** None; **Default:** gene:
 
 
 

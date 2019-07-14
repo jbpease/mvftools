@@ -1,6 +1,11 @@
 ===============
 Version History
 ===============
+**v.0.5.3**
+
+2019-07-14: Critial update, strongly recommend updating to this version.  Major efficiency fix in the base iteration modules.  Several key bug fixes implemented in FilterMVF, MergeMVF.  Enhanced support for ambiguous sequences and polyploids in several modules including CalcPairwiseDistance.  Restructuring of FilterMVF for cleaner syntax.
+
+
 **v.0.5.2**
 
 2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution).  JoinMVF is now called ConcatenateMVF to avoid confusion.  CheckMVF changed to VerifyMVF to make it more clear.  ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the --ploidy flag.  Other small fixes to the software and manual to update issues with the VCF interpreter.

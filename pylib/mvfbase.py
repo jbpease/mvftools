@@ -32,7 +32,6 @@ import sys
 import gzip
 from itertools import groupby
 
-
 # ==== Math Functions ====
 
 def is_int(num):
@@ -55,18 +54,17 @@ def interpret_param(string):
     """Check if value is a bool, then int, then float, or returns string"""
     if string.lower() in ['true', 't', 'yes']:
         return True
-    elif string.lower() in ['false', 'f', 'no']:
+    if string.lower() in ['false', 'f', 'no']:
         return False
-    else:
+    try:
+        if not bool(float(string) % 1):
+            return int(string)
+        raise ValueError
+    except ValueError:
         try:
-            if not bool(float(string) % 1):
-                return int(string)
-            raise ValueError
+            return float(string)
         except ValueError:
-            try:
-                return float(string)
-            except ValueError:
-                return string
+            return string
 
 
 # FASTA FILE HANDLER
@@ -89,26 +87,26 @@ def same_window(coords1, coords2, windowsize):
     """
     if windowsize == 0:
         return True
-    elif windowsize > 0:
+    if windowsize > 0:
         if coords1[0] != coords2[0]:
             return False
-        elif coords2[1] > coords1[1] + windowsize:
+        if coords2[1] > coords1[1] + windowsize:
             return False
         return True
-    else:
-        return coords1[0] == coords2[0]
+    return coords1[0] == coords2[0]
 
 
-def mixed_sorter(x):
-    if isinstance(x[0], int) is True:
-        return (str(x[0]).zfill(20), x[1])
-    else:
-        return x
+def mixed_sorter(elem):
+    """sort a mix of strings and integers
+    """
+    if isinstance(elem[0], int) is True:
+        return (str(elem[0]).zfill(20), elem[1])
+    return elem
 
 
 # MVF Class Object
 
-class MultiVariantFile(object):
+class MultiVariantFile():
     """Multisample Variant Format Handler
     Object Structure:
         path = file path (converted to absolute path)
@@ -142,9 +140,9 @@ class MultiVariantFile(object):
         # READ MODE
         if filemode in ('read', 'r', 'rb'):
             if os.path.exists(self.path):
-                filehandler = (self.metadata.get('isgzip', False) and
-                               gzip.open(self.path, 'rt') or
-                               open(self.path, 'rt'))
+                filehandler = (gzip.open(self.path, 'rt') if
+                               self.metadata.get('isgzip', False)
+                               else open(self.path, 'rt'))
                 # Process header lines
                 header_lines = []
                 self.entrystart = filehandler.tell()
@@ -156,7 +154,14 @@ class MultiVariantFile(object):
                     header_lines.append(line.rstrip())
                     self.entrystart = filehandler.tell()
                     line = filehandler.readline()
-                if kwargs.get('contigindex', False) is True:
+                index_mvf = kwargs.get('contigindex', False)
+                if os.path.exists(self.path + ".idx"):
+                    # Checks if index file is newer than mvf file
+                    if os.path.getmtime(self.path + '.idx') > (
+                            os.path.getmtime(self.path)):
+                        print("Index file is newer than source, skipping indexing...")
+                        index_mvf = False
+                if index_mvf is True:
                     line = filehandler.readline()
                     with open(self.path + ".idx", "w") as idxfile:
                         idxfile.write(previous_contig + "\t" +
@@ -183,8 +188,8 @@ class MultiVariantFile(object):
                 raise IOError(
                     """MVF path {} already exists, use --overwrite
                     to replace""".format(self.path))
-            filehandler = (self.metadata.get('isgzip', False) and
-                           gzip.open(self.path, 'wt') or
+            filehandler = (gzip.open(self.path, 'wt') if
+                           self.metadata.get('isgzip', False) else
                            open(self.path, 'wt'))
             self.metadata['ncol'] = kwargs.get('ncol', 2)
         filehandler.close()
@@ -213,9 +218,8 @@ class MultiVariantFile(object):
                                 raise(RuntimeError(
                                     "ERROR: flavor '{}' is not valid!".format(
                                         self.flavor)))
-                        else:
-                            self.metadata[elem[0]] = (
-                                interpret_param(elem[1]))
+                        self.metadata[elem[0]] = (
+                            interpret_param(elem[1]))
                 # Sample column information header lines
                 elif entry[0].startswith('#s'):
                     self.metadata['samples'][sample_index] = {
@@ -263,8 +267,7 @@ class MultiVariantFile(object):
         try:
             if hasattr(labels, '__iter__'):
                 return [self.metadata['labels'].index(x) for x in labels]
-            else:
-                return self.metadata['labels'].index(labels)
+            return self.metadata['labels'].index(labels)
         except IndexError:
             raise IndexError(labels, "contains invalid label")
 
@@ -278,8 +281,7 @@ class MultiVariantFile(object):
         try:
             if hasattr(indices, '__iter__'):
                 return [self.metadata['labels'][x] for x in indices]
-            else:
-                return self.metadata['labels'][indices]
+            return self.metadata['labels'][indices]
         except IndexError:
             raise IndexError(indices, "contains invalid label index")
 
@@ -289,14 +291,13 @@ class MultiVariantFile(object):
         if labels is None:
             return [x for x in self.metadata['contigs']]
         try:
-            if (isinstance(labels, list) or
-                isinstance(labels, tuple) or
-                    isinstance(labels, set)):
+            if isinstance(labels, (list, tuple, set)):
                 return [str(x) for x in self.metadata['contigs']
                         if self.metadata['contigs'][x]['label'] in labels]
-            elif isinstance(labels, str) or isinstance(labels, int):
+            if isinstance(labels, (str, int)):
                 return [x for x in self.metadata['contigs']
                         if self.metadata['contigs'][x]['label'] == str(labels)]
+            raise TypeError("contig labels not correct datatype")
         except IndexError:
             raise IndexError("contig labels '{}' not found".format(labels))
 
@@ -307,21 +308,34 @@ class MultiVariantFile(object):
             return [self.metadata['contigs'][x]['label']
                     for x in self.metadata['contigs']]
         try:
-            if (isinstance(ids, list) or
-                isinstance(ids, tuple) or
-                    isinstance(ids, set)):
+            if isinstance(ids, (list, tuple, set)):
                 return [self.metadata['contigs'][x]['label'] for x in ids]
-            elif isinstance(ids, str) or isinstance(ids, int):
+            if isinstance(ids, (str, int)):
                 return self.metadata['contigs'][str(ids)]['label']
+            raise TypeError("contig labels not correct datatype")
         except IndexError:
             raise IndexError("contig ids '{}' not found".format(ids))
 
+    def get_contig_reverse_dict(self):
+        """Returns a dict[label] = id for contigs
+        """
+        return dict((self.metadata['contigs'][x]['label'], x)
+                    for x in self.metadata['contigs'])
+
     def reset_max_contig_id(self):
+        """Requeries the max contig id after modification
+        """
         maxid = 0
-        if len(self.metadata['contigs']) > 0:
+        if self.metadata['contigs']:
             maxid = max([int(contigid) if is_int(contigid) else 0 for
                          contigid in self.metadata['contigs']])
             self.metadata['maxcontigid'] = maxid
+        return ''
+
+    def reset_ncol(self):
+        """Resets the ncol metadata after modifying columns
+        """
+        self.metadata['ncol'] = len(self.metadata['samples'])
         return ''
 
     def get_next_contig_id(self):
@@ -330,6 +344,8 @@ class MultiVariantFile(object):
         return str(self.metadata['maxcontigid'])
 
     def read_index_file(self):
+        """Reads the mvf.idx file with contig coordinates
+        """
         with open(self.path + ".idx") as idxfile:
             for line in idxfile:
                 entry = line.rstrip().split("\t")
@@ -359,9 +375,90 @@ class MultiVariantFile(object):
                         linecount, line))
         filehandler.close()
 
+
+    def itercontigentries(self, target_contig, decode=True, no_invariant=False,
+                          no_gap=False, no_ambig=False,
+                          onlyalleles=False, subset=None):
+        """
+        Fully-optioned iterator for MVF entries that only returns a
+        specific contig.  Intended to be used with indexed mode.
+        Returns (str(chrom), int(pos), list(allele entries))
+                 or list(allele entries) with 'onlyalleles'
+
+        Arguments:
+            decode:fully decode the allele sets (T/F)
+            no_invariant: set to false to skip invariant sites
+            no_ambig: set to false to skip positions with 'N'
+            no_gap: set to false to skip positions with '-'
+            onlyalleles: return only list of alleles
+            quiet: suppress progress meter (default=False)
+            subset: list of column indices
+
+        Note: for codons, filters must apply to all allele strings
+        Note: using subset without decode returns encoded subset
+        """
+        subset = subset or ''
+        linecount = 0
+        if self.metadata['isgzip']:
+            filehandler = gzip.open(self.path, 'rb')
+        else:
+            filehandler = open(self.path, 'r')
+        filehandler.seek(self.metadata['contigs'][target_contig]['idx'])
+        for line in filehandler:
+            try:
+                if self.metadata['isgzip']:
+                    arr = line.decode().rstrip().split()
+                else:
+                    arr = line.rstrip().split()
+                loc = str(arr[0]).split(':')
+                contigid = loc[0]
+                pos = int(loc[1])
+                allelesets = arr[1:]
+                if contigid != target_contig:
+                    break
+                if subset:
+                    try:
+                        allelesets = [''.join([alleles[j] for j in subset])
+                                      for alleles in [self.decode(x)
+                                                      for x in allelesets]]
+                    except IndexError:
+                        raise RuntimeError(allelesets)
+                if no_gap:
+                    if any(x in allelesets[0] for x in '-@'):
+                        continue
+                if no_ambig:
+                    if any('X' in x for x in allelesets):
+                        continue
+                if no_invariant:
+                    if all(len(x) == 1 for x in allelesets):
+                        continue
+                    elif len(allelesets[0]) > 1 and (
+                            allelesets[0][1] == '+' and
+                            allelesets[0][2] == allelesets[0][0]):
+                        continue
+                    elif subset:
+                        if all(x == allelesets[0][0]
+                               for x in allelesets[0][1:]):
+                            continue
+
+                if subset and not decode:
+                    allelesets = [self.encode(x) for x in allelesets]
+                if decode and not subset:
+                    allelesets = [self.decode(x) for x in allelesets]
+                if onlyalleles:
+                    yield allelesets
+                else:
+                    yield (contigid, pos, allelesets)
+            except:
+                raise RuntimeError(
+                    "Error processing MVF at line# {} = {} ".format(
+                        linecount, line))
+        filehandler.close()
+
+
     def iterentries(self, decode=True, contigs=None, no_invariant=False,
                     no_gap=False, no_ambig=False, no_nonref=False,
-                    onlyalleles=False, subset=None, quiet=False):
+                    onlyalleles=False, subset=None):
         """
         Fully-optioned iterator for MVF entries with filtering
         Returns (str(chrom), int(pos), list(allele entries))
@@ -386,8 +483,9 @@ class MultiVariantFile(object):
                 contigs = sorted([x for x in self.metadata['contigs']
                                   if self.metadata['contigs'][x].get(
                                       'ref', False)])
-            else:
-                contigs = sorted(self.metadata['contigs'].keys())
+            # This was turned off in order to speed up
+            #else:
+               # contigs = sorted(self.metadata['contigs'].keys())
         subset = subset or ''
         current_contigid = ''
         linecount = 0
@@ -406,14 +504,17 @@ class MultiVariantFile(object):
                 contigid = loc[0]
                 pos = int(loc[1])
                 allelesets = arr[1:]
-                if contigid != current_contigid:
-                    if current_contigid in contigs:
-                        contigs.remove(current_contigid)
-                        if not contigs:
-                            break
-                    current_contigid = contigid[:]
-                if contigid not in contigs:
-                    continue
+                # The below line was added to speed up checking when you
+                # are looking at all contigs with a large number
+                if contigs is not None:
+                    if contigid != current_contigid:
+                        if current_contigid in contigs:
+                            contigs.remove(current_contigid)
+                            if not contigs:
+                                break
+                        current_contigid = contigid[:]
+                    if contigid not in contigs:
+                        continue
                 if subset:
                     try:
                         allelesets = [''.join([alleles[j] for j in subset])
@@ -473,11 +574,11 @@ class MultiVariantFile(object):
             cid, cdata['label'], cdata['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
                 sorted(cdata.items(), key=mixed_sorter))
-                if k not in ['length', 'label']]))
+                      if k not in ['length', 'label', 'idx']]))
                        for cid, cdata in sorted(contigs, key=mixed_sorter)])
-        if len(self.metadata["trees"]) > 0:
+        if self.metadata["trees"]:
             header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
-        if len(self.metadata["notes"]) > 0:
+        if self.metadata["notes"]:
             header.extend(["#n {}".format(x) for x in self.metadata["notes"]])
         return '\n'.join(header) + '\n'
 
@@ -497,8 +598,7 @@ class MultiVariantFile(object):
         if self.flavor == 'dna':
             return encode_mvfstring(alleles).replace(
                 'N', 'X').replace('n', 'X')
-        else:
-            return encode_mvfstring(alleles)
+        return encode_mvfstring(alleles)
 
     def write_data(self, data):
         """Writes datastring to the MVF file
@@ -608,7 +708,7 @@ class Counter(dict):
                 yield "{} {}\n".format(k, val)
 
 
-class OutputFile(object):
+class OutputFile():
     """Set up Output File
         Params:
             path: file path
@@ -644,7 +744,7 @@ class OutputFile(object):
         return ''
 
 
-class AnalysisModule(object):
+class AnalysisModule():
     """General Functions for Analysis Modules
         Params:
             data = data dict

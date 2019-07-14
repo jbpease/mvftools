@@ -59,8 +59,8 @@
 
 
 \title{MVFtools}
-\date{Jun 29, 2019}
-\release{0.5.2}
+\date{Jul 14, 2019}
+\release{0.5.3}
 \author{James B. Pease\\Ben K. Rosenzweig\\Roddra J. Johnson}
 \newcommand{\sphinxlogo}{\sphinxincludegraphics{logo.png}\par}
 \renewcommand{\releasename}{Release}
@@ -629,6 +629,13 @@ Annotates a chromosomal MVF file with new contigboundaries based on genes/featur
 \sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
 
 
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}gene-prefix/-{-}geneprefix}}}
+\label{\detokenize{prog_desc:gene-prefix-geneprefix}}
+\sphinxstylestrong{Description:} Gene entry prefix when interpretingGFF files.  For GFF3 files, ‘mRNA:’ is standard, but for older or custom GFF files this may vary.  Use ‘none’ to make empty.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} mRNA:
+
+
 \subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}gff}}}
 \label{\detokenize{prog_desc:gff}}
 \sphinxstylestrong{Description:} Input gff annotation file.
@@ -877,6 +884,24 @@ Calculates pairwise sequence distances for combinations ofspecified taxa in an M
 \sphinxstylestrong{Description:} Output file
 
 \sphinxstylestrong{Type:} file path; \sphinxstylestrong{Default:} None
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}ambig}}}
+\label{\detokenize{prog_desc:ambig}}
+\sphinxstylestrong{Description:} By default, ambiguous nucleotides are excluded.  This option will include sets of ambiguous characters by randomly choosing one of the options for: RYMKWS (‘random2’) or RYMKWS+BDHV (‘random3’)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+\sphinxstylestrong{Choices:} (‘random2’, ‘random3’)
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}data-type/-{-}datatype}}}
+\label{\detokenize{prog_desc:data-type-datatype}}
+\sphinxstylestrong{Description:} Data type to compare.(This option is only needed for codon  MVF files, others will default.)
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} None
+
+\sphinxstylestrong{Choices:} (‘dna’, ‘prot’)
 
 
 \subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}mincoverage}}}
@@ -2208,6 +2233,13 @@ Combines columns from multiple MVF files into a single output MVF(this is a newe
 \sphinxstylestrong{Type:} boolean flag
 
 
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}skip-index/-{-}skipindex}}}
+\label{\detokenize{prog_desc:skip-index-skipindex}}
+\sphinxstylestrong{Description:} Skip index because index exists
+
+\sphinxstylestrong{Type:} boolean flag
+
+
 \section{PlotChromoplot}
 \label{\detokenize{prog_desc:plotchromoplot}}
 
@@ -2418,6 +2450,13 @@ Translate a DNA MVF to a protein or codon MVF
 \sphinxstylestrong{Description:} USE WITH CAUTION: force overwrite of outputs
 
 \sphinxstylestrong{Type:} boolean flag
+
+
+\subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}parent-gene-prefix/-{-}parentgeneprefix}}}
+\label{\detokenize{prog_desc:parent-gene-prefix-parentgeneprefix}}
+\sphinxstylestrong{Description:} Parent genes prefix when interpretingGFF files.  For GFF3 files, ‘gene:’ is standard, but for older or custom GFF files this may vary.  Use ‘none’ to make empty.
+
+\sphinxstylestrong{Type:} None; \sphinxstylestrong{Default:} gene:
 
 
 \subsubsection{\sphinxstyleliteralintitle{\sphinxupquote{-{-}quiet}}}
@@ -2774,6 +2813,10 @@ Coming soon.
 
 \chapter{Version History}
 \label{\detokenize{version:version-history}}\label{\detokenize{version::doc}}
+\sphinxstylestrong{v.0.5.3}
+
+2019-07-14: Critial update, strongly recommend updating to this version.  Major efficiency fix in the base iteration modules.  Several key bug fixes implemented in FilterMVF, MergeMVF.  Enhanced support for ambiguous sequences and polyploids in several modules including CalcPairwiseDistance.  Restructuring of FilterMVF for cleaner syntax.
+
 \sphinxstylestrong{v.0.5.2}
 
 2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution).  JoinMVF is now called ConcatenateMVF to avoid confusion.  CheckMVF changed to VerifyMVF to make it more clear.  ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the \textendash{}ploidy flag.  Other small fixes to the software and manual to update issues with the VCF interpreter.

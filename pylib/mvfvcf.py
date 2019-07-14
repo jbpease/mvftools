@@ -254,11 +254,11 @@ class VariantCallFile():
             allele = sample.get('GT', 'X')
             if '/' in allele:
                 allele = [int(x) for x in allele.split('/')]
-                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = ''.join(list(set(alleles[x] for x in allele)))
                 allele = MLIB.joinbases[allele]
             elif '|' in allele:
                 allele = [int(x) for x in allele.split('|')]
-                allele = ''.join(list(set([alleles[x] for x in allele])))
+                allele = ''.join(list(set(alleles[x] for x in allele)))
                 allele = MLIB.joinbases[allele]
             else:
                 allele = 'X'
@@ -297,11 +297,11 @@ class VariantCallFile():
             elif kwargs['ploidy'] > 2:
                 if kwargs['ploidy'] == 4:
                     alleles = ''.join(list(set(
-                        [alleles[x] for x in MLIB.vcf_gtcodes_tetra[imaxpl]])
+                        alleles[x] for x in MLIB.vcf_gtcodes_tetra[imaxpl])
                                            - set("-")))
                 elif kwargs['ploidy'] == 6:
                     alleles = ''.join(list(set(
-                        [alleles[x] for x in MLIB.vcf_gtcodes_hex[imaxpl]])
+                        alleles[x] for x in MLIB.vcf_gtcodes_hex[imaxpl])
                                            - set("-")))
                 else:
                     raise RuntimeError("Ploidy is not 2, 4 or 6")
@@ -311,7 +311,7 @@ class VariantCallFile():
                     allele = MLIB.joinbasespoly[alleles]
             else:
                 alleles = ''.join(list(set(
-                    [alleles[x] for x in MLIB.vcf_gtcodes[imaxpl]])
+                    alleles[x] for x in MLIB.vcf_gtcodes[imaxpl])
                                        - set("-")))
                 if alleles == "":
                     allele = "-"
@@ -343,13 +343,13 @@ def vcf2mvf(args=None):
                      ("COMMA", ","), ("MIXED", None)])
     args.fieldsep = sepchars[args.field_sep]
     # ESTABLISH VCF
-    print("Opening", args.vcf)
+    args.qprint("Opening input VCF: {}".format(args.vcf))
     vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
-    print("Establishing", args.out)
+    args.print("Establishing output MVF: {}".format(args.out))
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
-    print("Processing VCF headers")
+    args.qprint("Processing VCF headers.")
     vcfcontigs = vcf.metadata['contigs'].copy()
     contig_translate = {}
     if args.contig_ids:
@@ -371,7 +371,7 @@ def vcf2mvf(args=None):
                             'Contig label {} is not unique'.format(cmvf))
                     mvf.metadata['contigs'][cid]['label'] = cmvf[:]
     mvf.reset_max_contig_id()
-    print("Processing Contigs")
+    args.qprint("Processing contigs.")
     static_contig_ids = mvf.get_contig_ids()
     for vcid in vcfcontigs:
         vlabel = vcfcontigs[vcid]['label']
@@ -387,7 +387,7 @@ def vcf2mvf(args=None):
     mvf.reset_max_contig_id()
     new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
                    for x in mvf.metadata['contigs']]
-    print("Checking Contigs for Label/ID Overlap Errors")
+    args.qprint("Checking contigs for label/id overlap errors.")
     xids = [x[0] for x in new_contigs]
     xlabels = [x[1] for x in new_contigs]
     for i, (newid, newlabel) in enumerate(new_contigs):
@@ -402,7 +402,7 @@ def vcf2mvf(args=None):
                                "({})".format(
                                    newlabel, xlabels))
     # PROCESS SAMPLE INFO
-    print("Processing Samples")
+    args.qprint("Processing samples.")
     samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
     if args.alleles_from:
         args.alleles_from = args.alleles_from.split(':')
@@ -429,7 +429,7 @@ def vcf2mvf(args=None):
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0
-    print("Processing VCF entries")
+    args.qprint("Processing VCF entries.")
     for vcfrecord in vcf.iterentries(args):
         # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))

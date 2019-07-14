@@ -27,7 +27,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from random import randint
+from random import sample as rsample
 from itertools import combinations
 from pylib.mvfbase import MultiVariantFile, OutputFile, zerodiv, same_window
 from pylib.mvfbiolib import MvfBioLib
@@ -52,9 +52,8 @@ def pi_diversity(seq):
         return 'nodata'
     if any(x == total for x in base_count):
         return 0.0
-    else:
-        return total / (total - 1) * (1 - sum([(x / total)**2
-                                               for x in base_count]))
+    return total / (
+        (total - 1) * (1 - sum([(x / total)**2 for x in base_count])))
 
 
 def calc_sample_coverage(args):
@@ -64,6 +63,7 @@ def calc_sample_coverage(args):
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
     # Set up sample indices
+
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -80,15 +80,15 @@ def calc_sample_coverage(args):
         contig_ids = mvf.get_contig_ids(
             labels=args.contig_labels[0].split(","))
     else:
-        contig_ids = mvf.get_contig_ids()
+        contig_ids = None
     for contig, _, allelesets in mvf.iterentries(
             contigs=contig_ids, subset=sample_indices,
             decode=True):
         if contig not in data:
             data[contig] = dict.fromkeys(sample_labels, 0)
             data[contig]['contig'] = contig
-        for j, x in enumerate(sample_indices):
-            data[contig][sample_labels[x]] += int(
+        for j, elem in enumerate(sample_indices):
+            data[contig][sample_labels[elem]] += int(
                 allelesets[0][j] not in 'Xx-')
     outfile = OutputFile(path=args.out,
                          headers=(["contig"] + [sample_labels[x] for x in
@@ -126,7 +126,7 @@ def calc_dstat_combinations(args):
         contig_ids = mvf.get_contig_ids(
             labels=args.contig_labels[0].split(","))
     else:
-        contig_ids = mvf.get_contig_ids()
+        contig_ids = None
     if any(x in outgroup_indices for x in sample_indices):
         raise RuntimeError("Sample and Outgroup column lists cannot overlap.")
     for contig, _, allelesets in mvf:
@@ -148,7 +148,7 @@ def calc_dstat_combinations(args):
                        1 * (subset[0] == subset[3]) +
                        2 * (subset[1] == subset[3]) +
                        4 * (subset[2] == subset[3]))
-                if val == 1 or val == 2:
+                if val in (1, 2):
                     val -= 1
                 elif val == 4:
                     val = 2
@@ -174,9 +174,9 @@ def calc_dstat_combinations(args):
             tetrad = tuple([i, j, k, outgroup])
             if tetrad not in data:
                 continue
-            entry = dict([('sample{}'.format(i),
-                           sample_labels[x])
-                          for i, x in enumerate(tetrad[:3])])
+            entry = dict(('sample{}'.format(i),
+                          sample_labels[x])
+                         for i, x in enumerate(tetrad[:3]))
             entry['outgroup'] = sample_labels[outgroup]
             for contig in contig_ids:
                 if contig not in data[tetrad]:
@@ -215,6 +215,7 @@ def calc_pattern_count(args):
     current_contig = None
     current_position = 0
     sitepatterns = {}
+
     # sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -323,7 +324,22 @@ def calc_character_count(args):
     current_position = 0
     all_match = 0
     all_total = 0
-    data_in_buffer = 0
+    data_in_buffer = False
+    # Set up base matching from special words
+    def proc_special_word(argx):
+        if argx == 'dna':
+            argx = MLIB.validchars['dna']
+        elif argx == 'dnaambig2':
+            argx = MLIB.validchars['dna+ambig2']
+        elif argx == 'dnaambig3':
+            argx = MLIB.validchars['dna+ambig3']
+        elif argx == 'dnaambigall':
+            argx = MLIB.validchars['dna+ambigall']
+        elif argx == 'prot':
+            argx = MLIB.validchars['amino']
+        return argx
+    args.base_match = proc_special_word(args.base_match)
+    args.base_total = proc_special_word(args.base_total)
     # Set up sample indices
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
@@ -341,18 +357,19 @@ def calc_character_count(args):
         contig_ids = mvf.get_contig_ids(
             labels=args.contig_labels[0].split(","))
     else:
-        contig_ids = mvf.get_contig_ids()
+        contig_ids = None
     match_counts = dict().fromkeys(
         [sample_labels[i] for i in sample_indices], 0)
     total_counts = dict().fromkeys(
         [sample_labels[i] for i in sample_indices], 0)
-    for contig, pos, allelesets in mvf:
+    for contig, pos, allelesets in mvf.iterentries(decode=False,
+                                                   contigs=contig_ids):
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage,
                              allelesets[0]) is False:
             continue
-        if contig not in contig_ids:
-            continue
+        #if contig not in contig_ids:
+         #   continue
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
@@ -384,7 +401,7 @@ def calc_character_count(args):
                 [sample_labels[i] for i in sample_indices], 0)
             all_total = 0
             all_match = 0
-            data_in_buffer = 0
+            data_in_buffer = False
         else:
             alleles = allelesets[0]
             if len(alleles) == 1:
@@ -407,7 +424,7 @@ def calc_character_count(args):
                         total_counts[sample_labels[i]] += 1
                     elif alleles[i] in args.base_total:
                         total_counts[sample_labels[i]] += 1
-            data_in_buffer = 1
+            data_in_buffer = True
     if data_in_buffer:
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
@@ -436,7 +453,9 @@ def calc_pairwise_distances(args):
     """Count the pairwise nucleotide distance between
        combinations of samples in a window
     """
+    args.qprint("Running CalcPairwiseDistances")
     mvf = MultiVariantFile(args.mvf, 'read')
+    args.qprint("Input MVF: Read")
     data = {}
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
@@ -447,13 +466,31 @@ def calc_pairwise_distances(args):
             labels=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    args.qprint("Calculating for samples: {}".format(list(sample_indices)))
     current_contig = None
     current_position = 0
     data_in_buffer = False
     sample_pairs = [tuple(x) for x in combinations(sample_indices, 2)]
-    base_matches = dict([(x, {}) for x in sample_pairs])
+    base_matches = dict((x, {}) for x in sample_pairs)
     all_match = {}
-    for contig, pos, allelesets in mvf:
+    if mvf.flavor == 'dna':
+        allele_frames = (0, )
+        args.data_type = 'dna'
+    elif mvf.flavor == 'prot':
+        allele_frames = (0, )
+        args.data_type = 'dna'
+    elif mvf.flavor == 'codon':
+        if args.data_type == 'prot':
+            allele_frames = (0, )
+        else:
+            allele_frames = (1, 2, 3)
+            args.data_type = 'dna'
+    args.qprint("MVF flavor is: {}".format(mvf.flavor))
+    args.qprint("Data type is: {}".format(args.data_type))
+    args.qprint("Ambiguous mode: {}".format(args.ambig))
+    args.qprint("Processing MVF Records")
+    pwdistance_function = get_pairwise_function(args.data_type, args.ambig)
+    for contig, pos, allelesets in mvf.iterentries(decode=None):
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage, allelesets[0]) is False:
             continue
@@ -468,17 +505,9 @@ def calc_pairwise_distances(args):
                            (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
-            if mvf.flavor == 'dna':
-                all_diff, all_total = pairwise_distance_nuc(all_match)
-            elif mvf.flavor == 'prot':
-                all_diff, all_total = pairwise_distance_prot(all_match)
+            all_diff, all_total = pwdistance_function(all_match)
             for samplepair in base_matches:
-                if mvf.flavor == 'dna':
-                    ndiff, ntotal = pairwise_distance_nuc(
-                        base_matches[samplepair])
-                elif mvf.flavor == 'prot':
-                    ndiff, ntotal = pairwise_distance_prot(
-                        base_matches[samplepair])
+                ndiff, ntotal = pwdistance_function(base_matches[samplepair])
                 taxa = "{};{}".format(sample_labels[samplepair[0]],
                                       sample_labels[samplepair[1]])
                 data[(current_contig, current_position)].update({
@@ -494,38 +523,37 @@ def calc_pairwise_distances(args):
                         current_position += args.windowsize
             else:
                 current_position += args.windowsize
-            base_matches = dict([(x, {}) for x in sample_pairs])
+            base_matches = dict((x, {}) for x in sample_pairs)
             all_match = {}
             data_in_buffer = False
-        alleles = allelesets[0]
-        if len(alleles) == 1:
-            all_match["{}{}".format(alleles, alleles)] = (
-                all_match.get("{}{}".format(alleles, alleles),
-                              0) + 1)
+        for iframe in allele_frames:
+            alleles = allelesets[iframe]
+            if len(alleles) == 1:
+                all_match["{0}{0}".format(alleles)] = (
+                    all_match.get("{0}{0}".format(alleles), 0) + 1)
+                data_in_buffer = True
+                continue
+            if alleles[1] == '+':
+                if 'X' in alleles or '-' in alleles:
+                    continue
+                samplepair = (0, int(alleles[3:]))
+                if any(x not in sample_indices for x in samplepair):
+                    continue
+                basepair = "{}{}".format(alleles[0], alleles[2])
+                base_matches[samplepair][basepair] = (
+                    base_matches[samplepair].get(basepair, 0) + 1)
+                data_in_buffer = True
+                continue
+            alleles = mvf.decode(alleles)
+            valid_positions = [i for i, x in enumerate(alleles)
+                               if x not in 'X-' and i in sample_indices]
+            for i, j in combinations(valid_positions, 2):
+                samplepair = (i, j)
+                basepair = "{}{}".format(alleles[i], alleles[j])
+                base_matches[samplepair][basepair] = (
+                    base_matches[samplepair].get(basepair, 0) + 1)
             data_in_buffer = True
-            continue
-        if alleles[1] == '+':
-            if 'X' in alleles or '-' in alleles:
-                continue
-            samplepair = (0, int(alleles[3:]))
-            if any(x not in sample_indices for x in samplepair):
-                continue
-            basepair = "{}{}".format(alleles[0], alleles[2])
-            base_matches[samplepair][basepair] = (
-                base_matches[samplepair].get(basepair, 0) + 1)
-            data_in_buffer = True
-            continue
-        alleles = mvf.decode(alleles)
-        valid_positions = [i for i, x in enumerate(alleles)
-                           if x not in 'X-']
-        for i, j in combinations(valid_positions, 2):
-            samplepair = (i, j)
-            if any(x not in sample_indices for x in samplepair):
-                continue
-            basepair = "{}{}".format(alleles[i], alleles[j])
-            base_matches[samplepair][basepair] = (
-                base_matches[samplepair].get(basepair, 0) + 1)
-        data_in_buffer = True
+        #print(base_matches)
     if data_in_buffer is True:
         # Check whether, windows, contigs, or total
         if args.windowsize == 0:
@@ -535,16 +563,9 @@ def calc_pairwise_distances(args):
             current_position = 0
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
-        if mvf.flavor == 'dna':
-            all_diff, all_total = pairwise_distance_nuc(all_match)
-        elif mvf.flavor == 'prot':
-            all_diff, all_total = pairwise_distance_prot(all_match)
+        all_diff, all_total = pwdistance_function(all_match)
         for samplepair in base_matches:
-            if mvf.flavor == 'dna':
-                ndiff, ntotal = pairwise_distance_nuc(base_matches[samplepair])
-            elif mvf.flavor == 'prot':
-                ndiff, ntotal = pairwise_distance_prot(
-                    base_matches[samplepair])
+            ndiff, ntotal = pwdistance_function(base_matches[samplepair])
             taxa = "{};{}".format(sample_labels[samplepair[0]],
                                   sample_labels[samplepair[1]])
             data[(current_contig, current_position)].update({
@@ -552,6 +573,7 @@ def calc_pairwise_distances(args):
                 '{};ntotal'.format(taxa): ntotal + all_total,
                 '{};dist'.format(taxa): zerodiv(ndiff + all_diff,
                                                 ntotal + all_total)})
+    args.qprint("Writing Output")
     headers = ['contig', 'position']
     for samplepair in sample_pairs:
         headers.extend(['{};{};{}'.format(
@@ -567,45 +589,93 @@ def calc_pairwise_distances(args):
     return ''
 
 
-def pairwise_distance_nuc(basepairs, strict=False):
+def get_pairwise_function(datatype, ambig):
+    if ambig and datatype == 'dna':
+        def pairwise_distance_func(basepairs, random=ambig):
+            """Calculates pairwise distances between two sequences
+                strict = only use ATGC if True,
+                choose random heterozygous base if False.
+            """
+            total = 0
+            diff = 0
+            valid_characters = MLIB.validchars['dna']
+            if random == 'random2':
+                valid_characters = MLIB.validchars['dna+ambig2']
+            elif random == 'random3':
+                valid_characters = MLIB.validchars['dna+ambig3']
+            for pairbases, paircount in basepairs.items():
+                if any(x not in valid_characters for x in pairbases):
+                    continue
+                base0 = (pairbases[0] if pairbases[0] in 'ATGC' else
+                         rsample(MLIB.splitbases[pairbases[0]], 1)[0])
+                base1 = (pairbases[1] if pairbases[1] in 'ATGC' else
+                         rsample(MLIB.splitbases[pairbases[1]], 1)[0])
+                print(pairbases, base0, base1, diff)
+                diff += int(base0 != base1) * paircount
+                total += paircount
+            return diff, total
+    else:
+        def pairwise_distance_func(basepairs, mode=datatype):
+            """Calculates strict pairwise distances between two sequences
+               with no ambiguous characters or stop codons allowed.
+            """
+            total = 0
+            diff = 0
+            valid_characters = []
+            assert mode in ('dna', 'prot')
+            if mode == 'dna':
+                valid_characters = MLIB.validchars['dna']
+            elif mode == 'prot':
+                valid_characters = MLIB.validchars['amino']
+            for pairbases, paircount in basepairs.items():
+                if any(x not in valid_characters for x in pairbases):
+                    continue
+                diff += int(pairbases[0] != pairbases[1]) * paircount
+                total += paircount
+            return diff, total
+    return pairwise_distance_func
+
+def pairwise_distance_strict(basepairs, mode='dna'):
+    """Calculates strict pairwise distances between two sequences
+       with no ambiguous characters or stop codons allowed.
+    """
+    total = 0
+    diff = 0
+    valid_characters = []
+    assert mode in ('dna', 'prot')
+    if mode == 'dna':
+        valid_characters = MLIB.validchars['dna']
+    elif mode == 'prot':
+        valid_characters = MLIB.validchars['amino']
+    for pairbases, paircount in basepairs.items():
+        if any(x not in valid_characters for x in pairbases):
+            continue
+        diff += int(pairbases[0] != pairbases[1]) * paircount
+        total += paircount
+    return diff, total
+
+
+
+def pairwise_distance_nuc_ambig(basepairs, random=None):
     """Calculates pairwise distances between two sequences
         strict = only use ATGC if True,
         choose random heterozygous base if False.
     """
     total = 0
     diff = 0
+    if random == 'random2':
+        valid_characters = MLIB.validchars['dna+ambig2']
+    elif random == 'random3':
+        valid_characters = MLIB.validchars['dna+ambig3']
+    else:
+        return pairwise_distance_strict(basepairs)
     for pairbases, paircount in basepairs.items():
-        base0, base1 = pairbases[0], pairbases[1]
-        if base0 not in MLIB.validchars['dna+ambig'] or (
-                base1 not in MLIB.validchars['dna+ambig']):
+        if any(x not in valid_characters for x in pairbases):
             continue
-        if base0 in MLIB.validchars['dnaambig2']:
-            if strict is True:
-                continue
-            base0 = MLIB.splitbases[base0][randint(0, 1)]
-        if base1 in MLIB.validchars['dnaambig2']:
-            if strict is True:
-                continue
-            base1 = MLIB.splitbases[base1][randint(0, 1)]
-        if base0 != base1:
-            diff += paircount
-        total += paircount
-    return diff, total
-
-
-def pairwise_distance_prot(basepairs):
-    """Calculates pairwise distances between two sequences
-        strict = only use ACDEFGHIKLMNPQRSTVXY if True,
-        choose random heterozygous base if False.
-    """
-    total = 0
-    diff = 0
-    for pairbases, paircount in basepairs.items():
-        base0, base1 = pairbases[0], pairbases[1]
-        if base0 not in MLIB.validchars['amino'] or (
-                base1 not in MLIB.validchars['amino']):
-            continue
-        if base0 != base1:
-            diff += paircount
+        base0 = (pairbases[0] if pairbases[0] in 'ATGC' else
+                 rsample(MLIB.splitbases[pairbases[0]], 1)[0])
+        base1 = (pairbases[1] if pairbases[1] in 'ATGC' else
+                 rsample(MLIB.splitbases[pairbases[1]], 1)[0])
+        diff += int(base0 != base1) * paircount
         total += paircount
     return diff, total

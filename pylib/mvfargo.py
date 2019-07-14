@@ -39,7 +39,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
         setattr(self, 'formatter_class',
                 argparse.ArgumentDefaultsHelpFormatter)
         self.add_argument("--version", action="version",
-                          version="0.8.0",
+                          version="0.5.3",
                           help="Display version information.")
         self.add_argument(
             "--quiet", action="store_true",

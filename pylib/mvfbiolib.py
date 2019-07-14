@@ -34,7 +34,7 @@ from itertools import combinations, permutations
 from random import randint
 
 
-class MvfBioLib(object):
+class MvfBioLib():
     """MVF Biological Information Library Object
     """
 
@@ -46,10 +46,13 @@ class MvfBioLib(object):
         self.validchars = {
             'dna': 'ACGT',
             'amino': 'ACDEFGHIKLMNPQRSTVWY',
-            'dnaambig2': 'KMRYWS',
-            'dna+ambig': 'ACGTKMRYWS',
-            'dnaambigall': 'KMRYWSBDHVN',
-            'dna+ambigall': 'ACGTKMRYWSBDHVN'
+            'dnaambig2': 'KMRSWY',
+            'dnaambig3': 'BDHV',
+            'dnaambig4': 'NX',
+            'dna+ambig2': 'ACGTKMRSWY',
+            'dna+ambig3': 'ACGTKMRSWYBDHV',
+            'dnaambigall': 'KMRSWYBDHVNX',
+            'dna+ambigall': 'ACGTKMRYWSBDHVNX'
             }
         self.stop_codons = (
             'TAA', 'TAG', 'TGA', 'WGA', 'WAG', 'WAA',
@@ -62,6 +65,7 @@ class MvfBioLib(object):
             'A': 'AA', 'C': 'CC', 'G': 'GG', 'T': 'TT',
             'R': 'AG', 'Y': 'CT', 'M': 'AC', 'K': 'GT',
             'S': 'CG', 'W': 'AT',
+            'B': 'CGT', 'D': 'AGT', 'H': 'ACT', 'V': 'ACG',
             'N': 'XX', '-': '--', 'X': 'XX'}
         # Joinbases for diploid
         self.joinbases = dict(
@@ -83,11 +87,11 @@ class MvfBioLib(object):
             [(w + x + y + z, 'X') for (w, x, y, z) in permutations('ATGC', 4)]
             )
         self.joinbases.update([(k.lower(), v.lower())
-                              for k, v in self.joinbases.items()])
+                               for k, v in self.joinbases.items()])
         # Joinbases for polyploid
         self.joinbasespoly = self.joinbases.copy()
-        self.joinbasespoly.update([
-             ("ACG", "V"), ("AGC", "V"), ("GCA", "V"),
+        self.joinbasespoly.update(
+            [("ACG", "V"), ("AGC", "V"), ("GCA", "V"),
              ("GAC", "V"), ("CAG", "V"), ("CGA", "V"),
              ("ACT", "H"), ("ATC", "H"), ("TCA", "H"),
              ("TAC", "H"), ("CAT", "H"), ("CTA", "H"),
@@ -107,65 +111,65 @@ class MvfBioLib(object):
         # VCF genotype index codes for PL order for tetraploid
         self.vcf_gtcodes_tetra = [tuple(
             [0] * x[0] + [1] * x[1] + [2] * x[2] + [3] * x[3]) for x in [
-            # Stanza 0
-            (4, 0, 0, 0), (3, 1, 0, 0), (2, 2, 0, 0), (1, 3, 0, 0), (0, 4, 0, 0),
-            (3, 0, 1, 0), (2, 1, 1, 0), (1, 2, 1, 0), (0, 3, 1, 0),
-            (2, 0, 2, 0), (1, 1, 2, 0), (0, 2, 2, 0),
-            (1, 0, 3, 0), (0, 1, 3, 0),
-            (0, 0, 4, 0),
-            # Stanza 1
-            (3, 0, 0, 1), (2, 1, 0, 1), (1, 2, 0, 1), (0, 3, 0, 1),
-            (2, 0, 1, 1), (1, 1, 1, 1), (0, 2, 1, 1),
-            (1, 0, 2, 1), (0, 1, 2, 1),
-            (0, 0, 3, 1),
-            # Stanza 2
-            (2, 0, 0, 2), (1, 1, 0, 2), (0, 2, 0, 2),
-            (1, 0, 1, 2), (0, 1, 1, 2),
-            (0, 0, 2, 2),
-            # Stanza 3
-            (1, 0, 0, 3), (0, 1, 0, 3),
-            (0, 0, 1, 3),
-            # Stanza 4
-            (0, 0, 0, 4)]]
+                # Stanza 0
+                (4, 0, 0, 0), (3, 1, 0, 0), (2, 2, 0, 0), (1, 3, 0, 0), (0, 4, 0, 0),
+                (3, 0, 1, 0), (2, 1, 1, 0), (1, 2, 1, 0), (0, 3, 1, 0),
+                (2, 0, 2, 0), (1, 1, 2, 0), (0, 2, 2, 0),
+                (1, 0, 3, 0), (0, 1, 3, 0),
+                (0, 0, 4, 0),
+                # Stanza 1
+                (3, 0, 0, 1), (2, 1, 0, 1), (1, 2, 0, 1), (0, 3, 0, 1),
+                (2, 0, 1, 1), (1, 1, 1, 1), (0, 2, 1, 1),
+                (1, 0, 2, 1), (0, 1, 2, 1),
+                (0, 0, 3, 1),
+                # Stanza 2
+                (2, 0, 0, 2), (1, 1, 0, 2), (0, 2, 0, 2),
+                (1, 0, 1, 2), (0, 1, 1, 2),
+                (0, 0, 2, 2),
+                # Stanza 3
+                (1, 0, 0, 3), (0, 1, 0, 3),
+                (0, 0, 1, 3),
+                # Stanza 4
+                (0, 0, 0, 4)]]
         # VCF genotype index codes for PL order for hexaploid
         self.vcf_gtcodes_hex = [tuple(
             [0] * x[0] + [1] * x[1] +
             [2] * x[2] + [3] * x[3]) for x in [
-            # Stanza 0
-            (6, 0, 0, 0), (5, 1, 0, 0), (4, 2, 0, 0), (3, 3, 0, 0), (2, 4, 0, 0), (1, 5, 0, 0), (0, 6, 0, 0),
-            (5, 0, 1, 0), (4, 1, 1, 0), (3, 2, 1, 0), (2, 3, 1, 0), (1, 4, 1, 0), (0, 5, 1, 0),
-            (4, 0, 2, 0), (3, 1, 2, 0), (2, 2, 2, 0), (1, 3, 2, 0), (0, 4, 2, 0),
-            (3, 0, 3, 0), (2, 1, 3, 0), (1, 2, 3, 0), (0, 3, 3, 0),
-            (2, 0, 4, 0), (1, 1, 4, 0), (0, 2, 4, 0),
-            (1, 0, 5, 0), (0, 1, 5, 0),
-            (0, 0, 6, 0),
-            # Stanza 1
-            (5, 0, 0, 1), (4, 1, 0, 1), (3, 2, 0, 1), (2, 3, 0, 1), (1, 4, 0, 1), (0, 5, 0, 1),
-            (4, 0, 1, 1), (3, 1, 1, 1), (2, 2, 1, 1), (1, 3, 1, 1), (0, 4, 1, 1),
-            (3, 0, 2, 1), (2, 1, 2, 1), (1, 2, 2, 1), (0, 3, 2, 1),
-            (2, 0, 3, 1), (1, 1, 3, 1), (0, 2, 3, 1),
-            (1, 0, 4, 1), (0, 1, 4, 1),
-            (0, 0, 5, 1),
-            # Stanza 2
-            (4, 0, 0, 2), (3, 1, 0, 2), (2, 2, 0, 2), (1, 3, 0, 2), (0, 4, 0, 2),
-            (3, 0, 1, 2), (2, 1, 1, 2), (1, 2, 1, 2), (0, 3, 1, 2),
-            (2, 0, 2, 2), (1, 1, 2, 2), (0, 2, 2, 2),
-            (1, 0, 3, 2), (0, 1, 3, 2),
-            (0, 0, 4, 2),
-            # Stanza 3
-            (3, 0, 0, 3), (2, 1, 0, 3), (1, 2, 0, 3), (0, 3, 0, 3),
-            (2, 0, 1, 3), (1, 1, 1, 3), (0, 2, 1, 3),
-            (1, 0, 2, 3), (0, 1, 2, 3),
-            (0, 0, 3, 3),
-            # Stanza 4
-            (2, 0, 0, 4), (1, 1, 0, 4), (0, 2, 0, 4),
-            (1, 0, 1, 4), (0, 1, 1, 4),
-            (0, 0, 2, 4),
-            # Stanza 5
-            (1, 0, 0, 5), (0, 1, 0, 5),
-            (0, 0, 1, 5),
-            # Stanza 6
-            (0, 0, 0, 6)]]
+                # Stanza 0
+                (6, 0, 0, 0), (5, 1, 0, 0), (4, 2, 0, 0), (3, 3, 0, 0), (2, 4, 0, 0), (1, 5, 0, 0), (0, 6, 0, 0),
+                (5, 0, 1, 0), (4, 1, 1, 0), (3, 2, 1, 0), (2, 3, 1, 0), (1, 4, 1, 0), (0, 5, 1, 0),
+                (4, 0, 2, 0), (3, 1, 2, 0), (2, 2, 2, 0), (1, 3, 2, 0), (0, 4, 2, 0),
+                (3, 0, 3, 0), (2, 1, 3, 0), (1, 2, 3, 0), (0, 3, 3, 0),
+                (2, 0, 4, 0), (1, 1, 4, 0), (0, 2, 4, 0),
+                (1, 0, 5, 0), (0, 1, 5, 0),
+                (0, 0, 6, 0),
+                # Stanza 1
+                (5, 0, 0, 1), (4, 1, 0, 1), (3, 2, 0, 1), (2, 3, 0, 1), (1, 4, 0, 1), (0, 5, 0, 1),
+                (4, 0, 1, 1), (3, 1, 1, 1), (2, 2, 1, 1), (1, 3, 1, 1), (0, 4, 1, 1),
+                (3, 0, 2, 1), (2, 1, 2, 1), (1, 2, 2, 1), (0, 3, 2, 1),
+                (2, 0, 3, 1), (1, 1, 3, 1), (0, 2, 3, 1),
+                (1, 0, 4, 1), (0, 1, 4, 1),
+                (0, 0, 5, 1),
+                # Stanza 2
+                (4, 0, 0, 2), (3, 1, 0, 2), (2, 2, 0, 2), (1, 3, 0, 2), (0, 4, 0, 2),
+                (3, 0, 1, 2), (2, 1, 1, 2), (1, 2, 1, 2), (0, 3, 1, 2),
+                (2, 0, 2, 2), (1, 1, 2, 2), (0, 2, 2, 2),
+                (1, 0, 3, 2), (0, 1, 3, 2),
+                (0, 0, 4, 2),
+                # Stanza 3
+                (3, 0, 0, 3), (2, 1, 0, 3), (1, 2, 0, 3), (0, 3, 0, 3),
+                (2, 0, 1, 3), (1, 1, 1, 3), (0, 2, 1, 3),
+                (1, 0, 2, 3), (0, 1, 2, 3),
+                (0, 0, 3, 3),
+                # Stanza 4
+                (2, 0, 0, 4), (1, 1, 0, 4), (0, 2, 0, 4),
+                (1, 0, 1, 4), (0, 1, 1, 4),
+                (0, 0, 2, 4),
+                # Stanza 5
+                (1, 0, 0, 5), (0, 1, 0, 5),
+                (0, 0, 1, 5),
+                # Stanza 6
+                (0, 0, 0, 6)]]
 
     def _populate_complement(self):
         compbases = [
@@ -203,16 +207,17 @@ class MvfBioLib(object):
             [(bases + ambig, aa) for bases, aa in [
                 ('AC', 'T'), ('CC', 'P'), ('CG', 'R'), ('CT', 'L'),
                 ('GC', 'A'), ('GG', 'G'), ('GT', 'V'), ('TC', 'S')]
-             for ambig in 'KMRYWSN'] +
+             for ambig in 'KMRYWSBDHVX'] +
             [(bases + 'R', aa) for bases, aa in [
-                ('AA', 'K'), ('AC', 'R'), ('CA', 'Q'),
+                ('AA', 'K'), ('AG', 'R'), ('CA', 'Q'),
                 ('GA', 'E'), ('TA', '*'), ('TT', 'L')]] +
             [(bases + 'Y', aa) for bases, aa in [
                 ('AA', 'N'), ('AG', 'S'), ('AT', 'I'),
                 ('CA', 'H'), ('GA', 'D'), ('TA', 'Y'),
                 ('TG', 'C'), ('TT', 'F')]] +
             [('MGA', 'R'), ('MGG', 'R'), ('MGR', 'R'), ('YTA', 'L'),
-             ('YTG', 'L'), ('YTR', 'L'), ('TRA', '*')])
+             ('YTG', 'L'), ('YTR', 'L'), ('TRA', '*'),
+             ('ATH', 'I')])
         self.codon_tables['full'] = self.codon_tables['standard'].copy()
         self.codon_tables['full'].update(self.codon_tables['ambig'])
         return ''
@@ -226,7 +231,7 @@ class MvfBioLib(object):
         if all(x not in 'RYMKWS' for x in alleles):
             if mode in ['major', 'minor', 'randomone']:
                 return alleles
-            elif mode in ['majorminor', 'randomboth']:
+            if mode in ['majorminor', 'randomboth']:
                 return ''.join([base*2 for base in alleles])
         if mode in ['major', 'minor', 'majorminor']:
             hapleles = ''.join([self.splitbases[x] for x in alleles])
@@ -292,7 +297,7 @@ class MvfBioLib(object):
         5 = h-h partial match
         6 = h-h double mismatch
         """
-        PWCODE = dict([(x + x, 0) for x in 'ATGC'] +
+        pwcode = dict([(x + x, 0) for x in 'ATGC'] +
                       [(x + y, 1) for (x, y) in permutations('ATGC', 2)] +
                       [('A' + x, 2) for x in 'MRW'] +
                       [('T' + x, 2) for x in 'KYW'] +
@@ -310,8 +315,8 @@ class MvfBioLib(object):
                       [('W' + x, 5) for x in 'KMRY'] +
                       [('Y' + x, 5) for x in 'KMWS'] +
                       [('KM', 6), ('RY', 6), ('WS', 6)])
-        PWCODE.update([(k[::-1], v) for (k, v) in PWCODE.items()])
-        return PWCODE
+        pwcode.update([(k[::-1], v) for (k, v) in pwcode.items()])
+        return pwcode
 
     def merge_bases(self, bases):
         """Merges bases in a list or string"""

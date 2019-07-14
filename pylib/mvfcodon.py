@@ -3,23 +3,6 @@
 MVFtools: Multisample Variant Format Toolkit
 James B. Pease and Ben K. Rosenzweig
 http://www.github.org/jbpease/mvftools
-"""
-
-import os
-import sys
-import argparse
-import re
-from random import randint
-from itertools import combinations
-from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, Counter
-from mvfbiolib import MvfBioLib  # HAPSPLIT, FULL_CODON_TABLE, AMBIGSTOPS
-from mvfpaml import paml_branchsite, paml_pwcalc_dnds
-MLIB = MvfBioLib()
-
-_LICENSE = """
-MVFtools: Multisample Variant Format Toolkit
-James B. Pease and Ben K. Rosenzweig
-http://www.github.org/jbpease/mvftools
 
 If you use this software please cite:
 Pease, James B. and Benjamin K. Rosenzweig. 2018.
@@ -41,240 +24,249 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 
+import os
+import sys
+import argparse
+import re
+from random import randint
+from itertools import combinations
+from mvfbase import MultiVariantFile, AnalysisModule, OutputFile, Counter
+from mvfbiolib import MvfBioLib  # HAPSPLIT, FULL_CODON_TABLE, AMBIGSTOPS
+from mvfpaml import paml_branchsite, paml_pwcalc_dnds
+from pylib.mvftranslate import parse_gff_annotate
+MLIB = MvfBioLib()
 
 
 MODULENAMES = ("Coverage", "GroupUniqueAlleleWindow", "PiDiversityWindow",
                "PairwiseNS")
 
 
-class PairwiseDNDS(AnalysisModule):
-    """Count the number of and relative rate of uniquely held alleles
-       spatially along chromosomes (i.e. Lineage-specific rates)"""
-
-    def analyze(self, mvf):
-        """Analyze Entries for GroupUniqueAlleleWindow Module
-        """
-        annotations = {}
-        coordinates = {}
-        if self.params['gff']:
-            annotations, coordinates = (parse_gff(self.params['gff']))
-        self.params['labels'] = mvf.get_sample_labels()[:]
-        ncol = len(self.params['labels'])
-        current_contig = None
-        current_position = 0
-        counts = Counter()
-        totals = Counter()
-        if self.params['output_align']:
-            outputalign = []
-        fieldtags = ['likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a',
-                     'bgdnds2b', 'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b',
-                     'dndstree', 'errorstate']
-        with open(self.params['branchlrt'], 'w') as branchlrt:
-            genealign = []
-            branchlrt.write("\t".join(
-               ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
-               ["null.{}".format(x) for x in fieldtags] +
-               ["test.{}".format(x) for x in fieldtags] +
-               ['tree']) + "\n")
-        groups = self.params['allele_groups'].values()
-        speciesgroups = self.params['speciesgroups'].values()
-        allsets = set([])
-        for group in groups:
-            allsets.update(group)
-        allsets = list(sorted(allsets))
-        speciesrev = {}
-        for species in self.params['speciesgroups']:
-            speciesrev.update([(x, species)
-                               for x in self.params['speciesgroups'][species]])
-        if self.params['mincoverage']:
-            if self.params['mincoverage'] < len(groups) * 2:
-                raise RuntimeError("""
-                    Error: GroupUniqueAlleleWindow:
-                    --mincoverage cannot be lower than the twice the number
-                    of specified groups in --allele-groups
-                    """)
-        for contig, pos, allelesets in mvf:
-            if not current_contig:
+def calc_pairwise_dnds(args):
+    """Calculates Pairwise dNdS using PAML among pairse of sequences
+       """
+    mvf = MultiVariantFile(args.mvf, 'read')
+    annotations = {}
+    coordinates = {}
+    if args.gff:
+        annotations, coordinates = (parse_gff_annotate(args.gff))
+    labels = mvf.get_sample_labels()[:]
+    ncol = len(labels)
+    current_contig = None
+    current_position = 0
+    counts = Counter()
+    totals = Counter()
+    if self.params['output_align']:
+        outputalign = []
+    fieldtags = ['likelihood', 'bgdnds0', 'bgdnds1', 'bgdnds2a',
+                 'bgdnds2b', 'fgdnds0', 'fgdnds1', 'fgdnds2a', 'fgdnds2b',
+                 'dndstree', 'errorstate']
+    with open(self.params['branchlrt'], 'w') as branchlrt:
+        genealign = []
+        branchlrt.write("\t".join(
+           ['contig', 'ntaxa', 'alignlength', 'lrtscore'] +
+           ["null.{}".format(x) for x in fieldtags] +
+           ["test.{}".format(x) for x in fieldtags] +
+           ['tree']) + "\n")
+    groups = self.params['allele_groups'].values()
+    speciesgroups = self.params['speciesgroups'].values()
+    allsets = set([])
+    for group in groups:
+        allsets.update(group)
+    allsets = list(sorted(allsets))
+    speciesrev = {}
+    for species in self.params['speciesgroups']:
+        speciesrev.update([(x, species)
+                           for x in self.params['speciesgroups'][species]])
+    if self.params['mincoverage']:
+        if self.params['mincoverage'] < len(groups) * 2:
+            raise RuntimeError("""
+                Error: GroupUniqueAlleleWindow:
+                --mincoverage cannot be lower than the twice the number
+                of specified groups in --allele-groups
+                """)
+    for contig, pos, allelesets in mvf:
+        if not current_contig:
+            current_contig = contig[:]
+        if contig != current_contig or (
+                self.params['windowsize'] != -1 and
+                pos > current_position + self.params['windowsize']):
+            xkey = (current_contig, current_position,)
+            self.data[xkey] = counts.copy()
+            self.data[xkey].update([
+                ('contig', (self.params['uselabels'] and
+                            mvf.get_contig_label(current_contig))),
+                ('position', current_position),
+                ('nonsynyonymous_changes',
+                 counts.get('nonsynonymous_changes', 0) or 0),
+                ('synyonymous_changes',
+                 counts.get('synonymous_changes', 0) or 0)
+                ])
+            self.data[xkey].update([
+                ('ns_ratio', (float(self.data[xkey].get(
+                    'nonsynonymous_changes', 0)) / (
+                    self.data[xkey].get('synonymous_changes', 1.0)))),
+                ('annotation',
+                 annotations.get(self.data[xkey]['contig'], '.')),
+                ('coordinates',
+                 coordinates.get(self.data[xkey]['contig'], '.'))
+                ])
+            if genealign:
+                if (self.params.get('endcontig', 1000000) >=
+                        int(current_contig)) and (
+                            self.params.get('startcontig', 0) <=
+                        int(current_contig)):
+                    # print(current_contig)
+                    (dnval, dsval) = paml_pwcalc_dnds(genealign)
+                    with open(self.params['branchlrt'],
+                              'a') as branchlrt:
+                        branchlrt.write("\t".join([str(x) for x in [
+                            self.data[xkey]['contig'],
+                            len(genealign),
+                            len(genealign[0]) * 3,
+                            dnval, dsval]]
+                            ) + "\n")
+            genealign = None
+            totals.add('genes_total')
+            if counts.get('total_codons', 0) > 0:
+                totals.add('genes_tested')
+            if counts.get('total_nsyn_codons', 0) > 0:
+                totals.add('genes_with_nsyn')
+            if contig != current_contig:
                 current_contig = contig[:]
-            if contig != current_contig or (
-                    self.params['windowsize'] != -1 and
-                    pos > current_position + self.params['windowsize']):
-                xkey = (current_contig, current_position,)
-                self.data[xkey] = counts.copy()
-                self.data[xkey].update([
-                    ('contig', (self.params['uselabels'] and
-                                mvf.get_contig_label(current_contig))),
-                    ('position', current_position),
-                    ('nonsynyonymous_changes',
-                     counts.get('nonsynonymous_changes', 0) or 0),
-                    ('synyonymous_changes',
-                     counts.get('synonymous_changes', 0) or 0)
-                    ])
-                self.data[xkey].update([
-                    ('ns_ratio', (float(self.data[xkey].get(
-                        'nonsynonymous_changes', 0)) / (
-                        self.data[xkey].get('synonymous_changes', 1.0)))),
-                    ('annotation',
-                     annotations.get(self.data[xkey]['contig'], '.')),
-                    ('coordinates',
-                     coordinates.get(self.data[xkey]['contig'], '.'))
-                    ])
-                if genealign:
-                    if (self.params.get('endcontig', 1000000) >=
-                            int(current_contig)) and (
-                                self.params.get('startcontig', 0) <=
-                            int(current_contig)):
-                        # print(current_contig)
-                        (dnval, dsval) = paml_pwcalc_dnds(genealign)
-                        with open(self.params['branchlrt'],
-                                  'a') as branchlrt:
-                            branchlrt.write("\t".join([str(x) for x in [
-                                self.data[xkey]['contig'],
-                                len(genealign),
-                                len(genealign[0]) * 3,
-                                dnval, dsval]]
-                                ) + "\n")
-                genealign = None
-                totals.add('genes_total')
-                if counts.get('total_codons', 0) > 0:
-                    totals.add('genes_tested')
-                if counts.get('total_nsyn_codons', 0) > 0:
-                    totals.add('genes_with_nsyn')
-                if contig != current_contig:
-                    current_contig = contig[:]
-                    current_position = 0
-                elif self.params['windowsize'] != -1:
-                    current_position += self.params['windowsize']
-                counts = Counter()
-            proteins = allelesets[0]
-            codons = allelesets[1:4]
-            if len(proteins) == 1 and all(len(x) == 1 for x in codons):
-                if proteins == '*' or ''.join(codons) in MLIB.stop_codons:
-                    continue
-                counts.add('total_codons')
-                totals.add('total_codons')
-                if self.params['output_align']:
-                    if not outputalign:
-                        outputalign = [[''.join(codons)]
-                                       for x in range(mvf.metadata['ncol'])]
-                    else:
-                        for ialign in range(len(outputalign)):
-                            outputalign[ialign].append(''.join(codons))
-                if self.params['branchlrt']:
-                    if not genealign:
-                        genealign = [[''.join(codons)]
-                                     for x in range(ncol)]
-                    else:
-                        for ialign in range(len(genealign)):
-                            genealign[ialign].append(''.join(codons))
+                current_position = 0
+            elif self.params['windowsize'] != -1:
+                current_position += self.params['windowsize']
+            counts = Counter()
+        proteins = allelesets[0]
+        codons = allelesets[1:4]
+        if len(proteins) == 1 and all(len(x) == 1 for x in codons):
+            if proteins == '*' or ''.join(codons) in MLIB.stop_codons:
                 continue
-            if len(proteins) > 1:
-                if allelesets[0][1] == '+':
-                    continue
-            proteins = mvf.decode(proteins)
-            if self.params['mincoverage']:
-                if sum([int(x not in 'X-') for x in proteins]) < (
-                        self.params['mincoverage']):
-                    continue
-            species_groups = [[proteins[i] for i in x
-                               if proteins[i] not in '-X']
-                              for x in speciesgroups]
-            if any(len(x) == 0 for x in species_groups):
-                continue
-            xcodons = [mvf.decode(x) for x in codons]
-            codons = [''.join(x) for x in zip(*xcodons)]
-            if any(codons[x] in MLIB.stop_codons for x in allsets):
-                continue
-            if any(any(x != species_groups[0][0] for x in y)
-                    for y in species_groups):
-                totals.add('total_nsyn_codons')
-                counts.add('total_nsyn_codons')
-            totals.add('total_codons')
-            totals.add('tested_codons')
             counts.add('total_codons')
-            totals.add('variable_codons',
-                       val=int(sum([int(len(set(x) - set('X-')) > 1)
-                                    for x in xcodons]) > 0))
+            totals.add('total_codons')
             if self.params['output_align']:
                 if not outputalign:
-                    outputalign = [[x] for x in codons]
+                    outputalign = [[''.join(codons)]
+                                   for x in range(mvf.metadata['ncol'])]
                 else:
                     for ialign in range(len(outputalign)):
-                        outputalign[ialign].append(codons[ialign])
+                        outputalign[ialign].append(''.join(codons))
             if self.params['branchlrt']:
                 if not genealign:
-                    genealign = [[x] for x in codons]
+                    genealign = [[''.join(codons)]
+                                 for x in range(ncol)]
                 else:
-                    for ialign in range(len(codons)):
-                        genealign[ialign].append(codons[ialign])
-            nonsyn_change = False
-            synon_change = False
-            codon_groups = [
-                set([codons[i] for i in x if '-' not in codons[i] and
-                     'X' not in codons[i]])
-                for x in groups]
-            protein_groups = None
-            for i in range(len(codon_groups)):
-                if any(base in codon for base in 'RYWKMS'
-                       for codon in codon_groups[i]):
-                    codon_groups[i] = hapgroup(codon_groups[i])
-            if all(grp1.isdisjoint(grp0) for grp0, grp1 in
-                   combinations(codon_groups, 2)):
-                protein_groups = [set(
-                    [MLIB.codon_table['full'][''.join(x)]
-                     for x in codon_groups[i]])
-                     for i in range(len(codon_groups))]
-                if all(grp1.isdisjoint(grp0) for grp0, grp1 in
-                       combinations(protein_groups, 2)):
-                    nonsyn_change = True
-                elif all(grp1 == grp0 for grp0, grp1 in combinations(
-                        protein_groups, 2)):
-                    synon_change = True
-            if nonsyn_change:
-                print('NON', contig, pos, allelesets, codon_groups,
-                      protein_groups, groups, mvf.get_contig_label(contig))
-                counts.add('nonsynonymous_changes')
-                totals.add('nonsynonymous_changes')
-            elif synon_change:
-                print('SYN', contig, pos, allelesets, codon_groups,
-                      protein_groups, groups, mvf.get_contig_label(contig))
-                counts.add('synonymous_changes')
-                totals.add('synonymous_changes')
-        self.params['totals'] = totals
-        self.write()
+                    for ialign in range(len(genealign)):
+                        genealign[ialign].append(''.join(codons))
+            continue
+        if len(proteins) > 1:
+            if allelesets[0][1] == '+':
+                continue
+        proteins = mvf.decode(proteins)
+        if self.params['mincoverage']:
+            if sum([int(x not in 'X-') for x in proteins]) < (
+                    self.params['mincoverage']):
+                continue
+        species_groups = [[proteins[i] for i in x
+                           if proteins[i] not in '-X']
+                          for x in speciesgroups]
+        if any(len(x) == 0 for x in species_groups):
+            continue
+        xcodons = [mvf.decode(x) for x in codons]
+        codons = [''.join(x) for x in zip(*xcodons)]
+        if any(codons[x] in MLIB.stop_codons for x in allsets):
+            continue
+        if any(any(x != species_groups[0][0] for x in y)
+                for y in species_groups):
+            totals.add('total_nsyn_codons')
+            counts.add('total_nsyn_codons')
+        totals.add('total_codons')
+        totals.add('tested_codons')
+        counts.add('total_codons')
+        totals.add('variable_codons',
+                   val=int(sum([int(len(set(x) - set('X-')) > 1)
+                                for x in xcodons]) > 0))
         if self.params['output_align']:
-            with open(self.params['output_align'], 'w') as alignfile:
-                alignfile.write(
-                    "\n".join([">{}\n{}".format(mvf.metadata['labels'][i],
-                                                ''.join(outputalign[i]))
-                               for i in range(len(outputalign))]))
-        return ''
+            if not outputalign:
+                outputalign = [[x] for x in codons]
+            else:
+                for ialign in range(len(outputalign)):
+                    outputalign[ialign].append(codons[ialign])
+        if self.params['branchlrt']:
+            if not genealign:
+                genealign = [[x] for x in codons]
+            else:
+                for ialign in range(len(codons)):
+                    genealign[ialign].append(codons[ialign])
+        nonsyn_change = False
+        synon_change = False
+        codon_groups = [
+            set([codons[i] for i in x if '-' not in codons[i] and
+                 'X' not in codons[i]])
+            for x in groups]
+        protein_groups = None
+        for i in range(len(codon_groups)):
+            if any(base in codon for base in 'RYWKMS'
+                   for codon in codon_groups[i]):
+                codon_groups[i] = hapgroup(codon_groups[i])
+        if all(grp1.isdisjoint(grp0) for grp0, grp1 in
+               combinations(codon_groups, 2)):
+            protein_groups = [set(
+                [MLIB.codon_table['full'][''.join(x)]
+                 for x in codon_groups[i]])
+                 for i in range(len(codon_groups))]
+            if all(grp1.isdisjoint(grp0) for grp0, grp1 in
+                   combinations(protein_groups, 2)):
+                nonsyn_change = True
+            elif all(grp1 == grp0 for grp0, grp1 in combinations(
+                    protein_groups, 2)):
+                synon_change = True
+        if nonsyn_change:
+            print('NON', contig, pos, allelesets, codon_groups,
+                  protein_groups, groups, mvf.get_contig_label(contig))
+            counts.add('nonsynonymous_changes')
+            totals.add('nonsynonymous_changes')
+        elif synon_change:
+            print('SYN', contig, pos, allelesets, codon_groups,
+                  protein_groups, groups, mvf.get_contig_label(contig))
+            counts.add('synonymous_changes')
+            totals.add('synonymous_changes')
+    self.params['totals'] = totals
+    self.write()
+    if self.params['output_align']:
+        with open(self.params['output_align'], 'w') as alignfile:
+            alignfile.write(
+                "\n".join([">{}\n{}".format(mvf.metadata['labels'][i],
+                                            ''.join(outputalign[i]))
+                           for i in range(len(outputalign))]))
+    return ''
 
-    def write(self):
-        """Write Output"""
-        headers = ["contig", "position", "nonsynonymous_changes",
-                   "synonymous_changes", "ns_ratio",
-                   "nonsynonymous_total", "synonymous_total",
-                   "pvalue",
-                   "total_codons", "annotation", "coordinates"]
-        if self.params['windowsize'] == -1:
-            headers.remove('position')
-        if not self.params['chi_test']:
-            headers.remove('pvalue')
-        outfile = OutputFile(path=self.params['out'], headers=headers)
-        sorted_entries = sorted([
-            (self.data[k]['ns_ratio'], k)
-            for k in self.data
-            if self.data[k].get('nonsynonymous_changes', 0) > 0],
-            reverse=True)
-        for _, k in sorted_entries:
-            outfile.write_entry(self.data[k])
-        with open(self.params['out'] + '.total', 'w') as totalfile:
-            for entry in self.params['totals'].iter_sorted():
-                totalfile.write(entry)
-        return ''
+def write(self):
+    """Write Output"""
+    headers = ["contig", "position", "nonsynonymous_changes",
+               "synonymous_changes", "ns_ratio",
+               "nonsynonymous_total", "synonymous_total",
+               "pvalue",
+               "total_codons", "annotation", "coordinates"]
+    if self.params['windowsize'] == -1:
+        headers.remove('position')
+    if not self.params['chi_test']:
+        headers.remove('pvalue')
+    outfile = OutputFile(path=self.params['out'], headers=headers)
+    sorted_entries = sorted([
+        (self.data[k]['ns_ratio'], k)
+        for k in self.data
+        if self.data[k].get('nonsynonymous_changes', 0) > 0],
+        reverse=True)
+    for _, k in sorted_entries:
+        outfile.write_entry(self.data[k])
+    with open(self.params['out'] + '.total', 'w') as totalfile:
+        for entry in self.params['totals'].iter_sorted():
+            totalfile.write(entry)
+    return ''
 
 
 class PiDiversityWindow(AnalysisModule):
@@ -357,89 +349,6 @@ class PiDiversityWindow(AnalysisModule):
             outfile.write_entry(self.data[k])
         return ''
 
-
-class PairwiseProtein(AnalysisModule):
-    """Count the number of and relative rate of uniquely held alleles
-       spatially along chromosomes"""
-
-    def analyze(self, mvf):
-        """Analyze Entries for GroupUniqueAlleleWindow Module"""
-        current_contig = None
-        current_position = 0
-        site_count = 0
-        var_count = 0
-        total_count = 0
-        groups = self.params['allele_groups'].values()
-        for contig, pos, allelesets in mvf:
-            if not current_contig:
-                current_contig = contig[:]
-            if contig != current_contig or (
-                    self.params['windowsize'] != -1 and
-                    pos > current_position + self.params['windowsize']):
-                self.data[(current_contig, current_position)] = {
-                    'nsites': site_count,
-                    'nvar': var_count,
-                    'ntotal': total_count,
-                    'ratio': (var_count and
-                              float(site_count) / float(var_count) or
-                              0.),
-                    'psites': (total_count and
-                               float(site_count)/float(total_count) or
-                               0.),
-                    'contig': (self.params['uselabels'] and
-                               mvf.get_contig_label(current_contig) or
-                               current_contig),
-                    'position': current_position,
-                    }
-                if contig != current_contig:
-                    current_contig = contig[:]
-                    current_position = 0
-                elif self.params['windowsize'] != -1:
-                    current_position += self.params['windowsize']
-                site_count = 0
-                var_count = 0
-                total_count = 0
-            else:
-                alleles = allelesets[0]
-                if len(alleles) in (1, 2):
-                    total_count += 1
-                    continue
-                if alleles[1] == '+':
-                    continue
-                var_count += 1
-                if alleles[2] == '+':
-                    alleles = mvf.decode(alleles)
-                if self.params['mincoverage']:
-                    if sum([int(x not in 'X-') for x in alleles]) < (
-                            self.params['mincoverage']):
-                        continue
-                allele_groups = [[alleles[i] for i in x
-                                  if alleles[i] not in '-X']
-                                 for x in groups]
-                if not all((len(groups[i]) == 1 and len(x) == 1) or len(x) > 1
-                           for i, x in enumerate(allele_groups)):
-                    continue
-                total_count += 1
-                if any(any(x in grp1 for x in grp0) for grp0, grp1 in
-                       combinations(allele_groups, 2)):
-                    continue
-                site_count += 1
-        self.write()
-        return ''
-
-    def write(self):
-        """Write Output"""
-        outfile = OutputFile(path=self.params['out'],
-                             headers=('ratio', 'psites', 'nsites', 'nvar',
-                                      'ntotal', 'contig',
-                                      'position'))
-        sorted_entries = sorted([(self.data[k]['ratio'], k)
-                                 for k in self.data
-                                 if self.data[k]['nsites'] > 0],
-                                reverse=True)
-        for _, k in sorted_entries:
-            outfile.write_entry(self.data[k])
-        return ''
 
 
 class PairwiseNS(AnalysisModule):

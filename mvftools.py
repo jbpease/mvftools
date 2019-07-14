@@ -19,6 +19,7 @@ from pylib.mvftranslate import annotate_mvf, translate_mvf
 from pylib.mvfmerge import concatenate_mvf, merge_mvf, verify_mvf
 from pylib.mvfgroupallele import calc_group_unique_allele_window
 from pylib.mvffilter import filter_mvf
+from pylib.mvfvcf import vcf2mvf
 
 _LICENSE = """
 If you use this software please cite:
@@ -50,15 +51,29 @@ OLDCOMMAND = {
     "JoinMVF": "ConcatenateMVF",  # Backward compatible
     }
 
+def make_qprint(quiet, time0):
+    """Creates a running time-stamped print statement that executes
+       only if args.quiet is False
+    """
+    if quiet is False:
+        def qprint(message):
+            print("{:.2f}: {}".format(time() - time0, message))
+            return ''
+    else:
+        def qprint(message):
+            return ''
+    return qprint
+
 
 class MVFcall():
     """Main MVF Invocation Class
     """
 
-    def __init__(self, arguments=None):
+    def __init__(self, arguments=None, time0=None):
         """Main method for vcf2mvf"""
         self.arguments = arguments if arguments is not None else sys.argv[1:]
         self.selfdoc = False
+        self.time0 = time0
         parser = argparse.ArgumentParser(
             prog="mvftools.py",
             usage="""Choose from the following commands:
@@ -87,7 +102,7 @@ class MVFcall():
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.2",
+                            version="0.5.3",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if args.command in OLDCOMMAND:
@@ -97,6 +112,7 @@ class MVFcall():
             parser.print_help()
             exit(1)
         getattr(self, args.command)()
+
 
     def AnnotateMVF(self):
         """Annotates a chromosomal MVF file with new contig
@@ -125,6 +141,14 @@ class MVFcall():
                 help=("for --unnanotated-mode, only retain "
                       "positions that are this number of bp away "
                       "from an annotated region boundary"))
+            parser.add_argument(
+                "--gene-prefix", "--geneprefix",
+                default="mRNA:",
+                help=("Gene entry prefix when interpreting"
+                      "GFF files.  For GFF3 files, 'mRNA:' "
+                      "is standard, but for older or custom "
+                      "GFF files this may vary.  Use 'none' "
+                      "to make empty."))
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
             return parser
@@ -132,6 +156,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         annotate_mvf(args)
         return ''
 
@@ -190,6 +215,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_dstat_combinations(args)
         return ''
 
@@ -208,12 +234,25 @@ class MVFcall():
             parser.addarg_sample_labels(nmin=2)
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
+            parser.add_argument("--data-type", "--datatype",
+                                choices=("dna", "prot"),
+                                help=("Data type to compare."
+                                      "(This option is only needed for codon "
+                                      " MVF files, others will default.)"))
+            parser.add_argument("--ambig", choices=("random2", "random3"),
+                                help=("By default, ambiguous nucleotides are "
+                                      "excluded.  This option will include "
+                                      "sets of ambiguous characters by "
+                                      "randomly choosing one of the options "
+                                      "for: RYMKWS ('random2') or "
+                                      "RYMKWS+BDHV ('random3')"))
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_pairwise_distances(args)
         return ''
 
@@ -240,6 +279,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_pattern_count(args)
         return ''
 
@@ -304,6 +344,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         concatenate_mvf(args)
         return ''
 
@@ -372,6 +413,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         fasta2mvf(args)
         return ''
 
@@ -406,6 +448,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         maf2mvf(args)
         return ''
 
@@ -443,6 +486,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvf2fasta(args)
         mutex_check(args)
         return ''
@@ -483,8 +527,8 @@ class MVFcall():
         parser = generate_argparser()
         if self.selfdoc is True:
             return parser
-
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         mutex_check(args)
         mvf2phy(args)
         return ''
@@ -570,7 +614,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
-        from pylib.mvfvcf import vcf2mvf
+        args.qprint = make_qprint(args.quiet, self.time0)
         vcf2mvf(args)
         return ''
 
@@ -609,6 +653,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         filter_mvf(args)
         return ''
 
@@ -693,6 +738,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         calc_group_unique_allele_window(args)
         return ''
 
@@ -790,6 +836,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         infer_window_tree(args)
         return ''
 
@@ -832,6 +879,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         merge_mvf(args)
         return ''
 
@@ -900,6 +948,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         plot_chromoplot(args)
         return ''
 
@@ -930,6 +979,13 @@ class MVFcall():
                 "--filter-annotation", "--filterannotation",
                 help=("skip GFF entries with text "
                       "matching this in their 'Notes' field"))
+            parser.add_argument("--parent-gene-prefix", "--parentgeneprefix",
+                                default="gene:",
+                                help=("Parent genes prefix when interpreting"
+                                      "GFF files.  For GFF3 files, 'gene:' "
+                                      "is standard, but for older or custom "
+                                      "GFF files this may vary.  Use 'none' "
+                                      "to make empty."))
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
             return parser
@@ -937,6 +993,7 @@ class MVFcall():
         if self.selfdoc is True:
             return parser
         args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
         translate_mvf(args)
         return ''
 
@@ -961,5 +1018,11 @@ class MVFcall():
 
 if __name__ == "__main__":
     TIME0 = time()
-    MVFcall()
-    print("Total time: ", time() - TIME0, "seconds.")
+    MVFcall(time0=TIME0)
+    DTIME = time() - TIME0
+    if DTIME > 3600:
+        print("Total time: {:.2f} hours.".format(DTIME/3600))
+    elif DTIME > 60:
+        print("Total time: {:.2f} minutes.".format(DTIME/60))
+    else:
+        print("Total time: {:.2f} seconds.".format(DTIME))

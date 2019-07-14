@@ -64,6 +64,7 @@ class MvfTransformer():
 
 def verify_mvf(args):
     """Main method"""
+    args.qprint("Running VerifyMVF")
     mvf = MultiVariantFile(args.mvf, 'read')
     contigs = mvf.metadata['contigs']
     ncol = mvf.metadata['ncol']
@@ -134,11 +135,12 @@ def verify_mvf(args):
             if errmsg:
                 print(contigid, pos, allelesets, errmsg)
     elif mvf.metadata['mvftype'] == 'codon':
-        print("codon checking coming soon")
+        args.qprint("codon checking coming soon")
     return ''
 
 def concatenate_mvf(args):
     """Main method"""
+    args.qprint("Running ConcatenateMVF")
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
     if args.main_header_file:
@@ -190,12 +192,10 @@ def concatenate_mvf(args):
     entries = []
     nentries = 0
     for ifile, mvfname in enumerate(args.mvf):
-        if not args.quiet:
-            sys.stderr.write("Processing {} ...\n".format(mvfname))
+        args.qprint("Processing {} ...\n".format(mvfname))
         transformer = transformers[ifile]
         mvf = MultiVariantFile(mvfname, 'read')
-        for contigid, pos, allelesets in mvf.iterentries(decode=False,
-                                                         quiet=args.quiet):
+        for contigid, pos, allelesets in mvf.iterentries(decode=False):
             if transformer.labels:
                 allelesets = [mvf.decode(x) for x in allelesets]
                 for j, alleles in enumerate(allelesets):
@@ -217,15 +217,15 @@ def concatenate_mvf(args):
             concatmvf.write_entries(entries)
             entries = []
             nentries = 0
-        if not args.quiet:
-            sys.stderr.write("done\n")
     return ''
 
 
 def merge_mvf(args):
     """Main method"""
+    args.qprint("Running MergeMVF")
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
+    args.qprint("Reading First File and Establishing Output")
     if args.main_header_file:
         if args.main_header_file not in args.mvf:
             raise RuntimeError("{} not found in files".format(
@@ -241,12 +241,14 @@ def merge_mvf(args):
     mvfmetadata = []
     concatmvf_reverse_contig = dict(
         (x['label'], k) for (k, x) in concatmvf.metadata['contigs'].items())
+    inputfiles = []
     for mvfname in args.mvf:
+        args.qprint("Reading headers from {}".format(mvfname))
         # This will create a dictionary of samples{old:new}, contigs{old:new}
-        if not args.quiet:
-            print("Processing Headers and Indexing: ", mvfname)
+        args.qprint("Processing Headers and Indexing: {}".format(mvfname))
         transformer = MvfTransformer()
-        mvf = MultiVariantFile(mvfname, 'read', contigindex=(not args.skip_index))
+        mvf = MultiVariantFile(mvfname, 'read',
+                               contigindex=(not args.skip_index))
         if args.skip_index:
             mvf.read_index_file()
         mvf.reset_max_contig_id()
@@ -271,53 +273,44 @@ def merge_mvf(args):
                 newid = concatmvf_reverse_contig[contigdata['label']]
             transformer.set_contig(contigid, newid)
         transformers.append(transformer)
+        inputfiles.append(mvf)
     # Write output header
+    args.qprint("Writing headers to merge output")
+    concatmvf.reset_ncol()
+    print(concatmvf.metadata['samples'])
     concatmvf.write_data(concatmvf.get_header())
-    mdict = {}
+
     contigs = concatmvf.metadata['contigs']
     # Now loop through each file
-    for _, current_contig in enumerate(contigs):
+    for current_contig in contigs:
+        contig_merged_entries = {}
         if not args.quiet:
-            print("Merging Contig: ", current_contig)
-        for ifile, mvfname in enumerate(args.mvf):
-            mvffile = open(mvfname, 'r')
+            args.qprint("Merging Contig: {}".format(current_contig))
+        for ifile, mvffile in enumerate(inputfiles):
             if current_contig not in transformers[ifile].contigs:
                 continue
             localcontig = transformers[ifile].contigs[current_contig]
-            if "idx" not in mvfmetadata[ifile]['contigs'][localcontig]:
-                continue
-            mvffile.seek(mvfmetadata[ifile]['contigs'][localcontig]["idx"])
-            for line in mvffile:
-                if line[0] == '#':
-                    continue
-                entry = line.rstrip().split()
-                xcontig = entry[0].split(":")[0]
-                if xcontig != localcontig:
-                    break
-                coord = int(entry[0].split(":")[1])
-                bases = decode_mvfstring(
-                    entry[1], len(transformers[ifile].labels))
-                if coord not in mdict:
-                    mdict[coord] = '-' * len(concatmvf.metadata['samples'])
-                for j, base in enumerate(bases):
+            for chrom, pos, allelesets in mvffile.itercontigentries(
+                    localcontig, decode=True):
+                if pos not in contig_merged_entries:
+                    contig_merged_entries[pos] = '-' * len(concatmvf.metadata['samples'])
+                for j, base in enumerate(allelesets[0]):
                     xcoord = transformers[ifile].labels_rev[j]
-                    if mdict[coord][xcoord] != '-':
-                        if mdict[coord][xcoord] == base:
-                            #print(coord, mdict[coord][xcoord], base)
+                    if contig_merged_entries[pos][xcoord] != '-':
+                        if contig_merged_entries[pos][xcoord] == base:
                             continue
                         if base == '-' or base == 'X':
                             continue
                         raise RuntimeError(
                             "Merging columns have two different bases: {} {} {}".format(
-                                coord, mdict[coord][xcoord], base))
-                    mdict[coord] = (mdict[coord][:xcoord] + base +
-                                    mdict[coord][xcoord+1:])
-            mvffile.close()
-        concatmvf.write_entries([(current_contig, coord, (entry,))
-                                 for coord, entry in sorted(mdict.items())],
+                                pos, contig_merged_entries[pos][xcoord], base))
+                    contig_merged_entries[pos] = (
+                        contig_merged_entries[pos][:xcoord] + base +
+                        contig_merged_entries[pos][xcoord+1:])
+        concatmvf.write_entries([
+            (current_contig, coord, (entry,))
+            for coord, entry in sorted(contig_merged_entries.items())],
                                 encoded=False)
-        print("Entries written: ", len(mdict))
-        mdict = {}
-    if not args.quiet:
-        sys.stderr.write("done\n")
+        args.qprint("Entries written for contig {}: {}".format(
+                current_contig, len(contig_merged_entries)))
     return ''
