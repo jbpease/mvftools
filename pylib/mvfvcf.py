@@ -346,7 +346,7 @@ def vcf2mvf(args=None):
     args.qprint("Opening input VCF: {}".format(args.vcf))
     vcf = VariantCallFile(args.vcf, indexcontigs=(not args.no_autoindex))
     # ESTABLISH MVF
-    args.print("Establishing output MVF: {}".format(args.out))
+    args.qprint("Establishing output MVF: {}".format(args.out))
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # PROCESS CONTIG INFO
     args.qprint("Processing VCF headers.")
