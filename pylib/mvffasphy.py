@@ -121,8 +121,7 @@ def mvf2fasta(args):
         for fn in sample_labels)
     labelwritten = dict.fromkeys(sample_labels, False)
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=[x for x in max_region_coord],
-            quiet=args.quiet, decode=True):
+            contigs=[x for x in max_region_coord], decode=True):
         if contig == skipcontig:
             continue
         if (contig not in max_region_coord) or (
