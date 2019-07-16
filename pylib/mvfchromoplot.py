@@ -432,24 +432,22 @@ def write_png(filepath, buf, width, height):
 
 def plot_chromoplot(args):
     """Main method"""
+    args.qprint("Running PlotChromoplot")
     pallette = Pallette()
     if args.colors is not None:
         pallette.basecolors = args.colors
     # Establish MVF and parse chromosome information
-    if args.quiet is False:
-        print("Reading MVF...")
+    args.qprint("Reading MVF...")
     mvf = MultiVariantFile(args.mvf, 'read')
-    if args.quiet is False:
-        print("Parsing headers...")
+    args.qprint("Parsing headers...")
     if args.contig_ids is not None:
         contigids = args.contig_ids[0].split(",")
     elif args.contig_labels is not None:
         contigids = mvf.get_contig_ids(labels=args.contig_labels[0].split(","))
     else:
         contigids = mvf.get_contig_ids()
-    if args.quiet is False:
-        print("Plotting chromoplot for contigs: {}".format(
-            ",".join(contigids)))
+    args.qprint("Plotting chromoplot for contigs: {}".format(
+        ",".join(contigids)))
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in

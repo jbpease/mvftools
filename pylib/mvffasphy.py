@@ -307,8 +307,7 @@ def mvf2phy(args):
         partitionfile = open("{}.part".format(args.out), 'w')
     for contig, _, allelesets in mvf.iterentries(
             contigs=(mvf.metadata['contigs'] if args.region is None else
-                     [x for x in max_region_coord]),
-            quiet=args.quiet, decode=True):
+                     [x for x in max_region_coord]), decode=True):
         if contig == skipcontig:
             continue
         if contig not in max_region_coord:

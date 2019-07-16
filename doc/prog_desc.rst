@@ -111,6 +111,107 @@ Parameters
 **Type:** boolean flag
 
 
+.. CalcAllCharacterCountPerSample:
+
+CalcAllCharacterCountPerSample
+==============================
+
+Description
+-----------
+Calculates the count of different character typesin an MVF file
+
+Parameters
+----------
+
+``-h/--help``
+^^^^^^^^^^^^^
+
+**Description:** show this help message and exit
+
+**Type:** boolean flag
+
+
+
+``--mvf`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Input MVF file.
+
+**Type:** file path; **Default:** None
+
+
+
+``--out`` (required)
+^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Output file
+
+**Type:** file path; **Default:** None
+
+
+
+``--contig-ids/--contigids``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--contig-labels/--contiglabels``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids
+
+**Type:** None; **Default:** None
+
+
+
+``--mincoverage``
+^^^^^^^^^^^^^^^^^
+
+**Description:** Mininum sample coverage for sites.
+
+**Type:** integer; **Default:** None
+
+
+
+``--quiet``
+^^^^^^^^^^^
+
+**Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--sample-indices/--sampleindices``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels.
+
+**Type:** None; **Default:** None
+
+
+
+``--sample-labels``
+^^^^^^^^^^^^^^^^^^^
+
+**Description:** Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies.
+
+**Type:** None; **Default:** None
+
+
+
+``--windowsize``
+^^^^^^^^^^^^^^^^
+
+**Description:** Set integer window size. Use 0 for whole file. Use -1 for whole contigs. 
+
+**Type:** boolean flag
+
+
 .. CalcCharacterCount:
 
 CalcCharacterCount
@@ -1767,11 +1868,11 @@ Parameters
 ``--choose-allele/--chooseallele/--hapmode``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Description:** Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele; minor=pick the less common allele; majorminor= pick the major in 'a' and minor in 'b'
+**Description:** Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele
 
 **Type:** None; **Default:** none
 
-**Choices:** ['none', 'randomone', 'randomboth', 'major', 'minor', 'majorminor']
+**Choices:** ['none', 'randomone', 'randomboth']
 
 
 ``--contig-ids/--contigids``
@@ -2320,6 +2421,15 @@ Parameters
 ^^^^^^^^^^^
 
 **Description:** Suppress screen output.
+
+**Type:** boolean flag
+
+
+
+``--verbose``
+^^^^^^^^^^^^^
+
+**Description:** Output excessive data to screen for debugging
 
 **Type:** boolean flag
 

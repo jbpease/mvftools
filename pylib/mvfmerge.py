@@ -223,6 +223,9 @@ def concatenate_mvf(args):
 def merge_mvf(args):
     """Main method"""
     args.qprint("Running MergeMVF")
+    if any(fpath.endswith('.gz') for fpath in args.mvf):
+        print("WARNING! Running MergeMVF with gzipped input files is "
+              "extremely slow and strongly discouraged.")
     concatmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     # Copy the first file's metadata
     args.qprint("Reading First File and Establishing Output")

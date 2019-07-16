@@ -86,6 +86,8 @@ class WindowData(object):
         # CHECK OVERALL ALIGNMENT DEPTH
         if len(self.seqs) < params.get('mindepth', 4):
             return ('', {'status': 'few',
+                         'comment': "Not enough taxa {} (< {}).".format(
+                             len(self.seqs), params.get('mindepth', 4)),
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -95,6 +97,8 @@ class WindowData(object):
         # CHECK FOR OVERALL ALIGNMENT LENGTH
         if len(self.seqs[0]) < params.get('minsites', 0):
             return ('', {'status': 'short',
+                         'comment': "Not enough sites {} (< {})".format(
+                             len(self.seqs[0]), params.get('minsites', 0)),
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -104,6 +108,7 @@ class WindowData(object):
         self.remove_empty_sequences()
         if not self.seqs:
             return ('', {'status': 'few.proc',
+                         'comment': 'no sequences left after filtering',
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -114,6 +119,7 @@ class WindowData(object):
         self.remove_empty_sites()
         if not self.seqs[0]:
             return ('', {'status': 'short.proc',
+                         'comment': 'no sites left after filtering',
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -126,6 +132,7 @@ class WindowData(object):
                 mincov=params.get('minseqcoverage', 0))
             if not self.seqs:
                 return ('', {'status': 'spotty.proc',
+                             'comment': 'no sequences left after filtering',
                              'contig': self.contigname,
                              'windowstart': self.windowstart,
                              'windowsize': self.windowsize,
@@ -136,6 +143,7 @@ class WindowData(object):
         self.remove_empty_sites()
         if len(self.seqs[0]) < params.get('minsites', 0):
             return ('', {'status': 'short.proc',
+                         'comment': 'no sites left after filtering',
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -149,6 +157,10 @@ class WindowData(object):
         # CHECK AGAIN FOR OVERALL ALIGNMENT DEPTH
         if len(self.seqs) < params.get('few.dup', 4):
             return ('', {'status': 'mindepth',
+                         'comment': ("Not enough sequences after filtering"
+                                    "{} (< {}).").format(
+                                        len(self.seqs),
+                                        params.get('few.dup', 4)),
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -345,9 +357,14 @@ class OutputFile(object):
 
 def verify_raxml(params):
     """verify raxml path"""
-    out = str(subprocess.check_output([params['raxmlpath'], "-v"]))
-    if out.find("RAxML version") == -1:
-        raise RuntimeError("RAxML failed!\n{}".format(out))
+    try:
+        out = str(subprocess.check_output([params['raxmlpath'], "-v"]))
+        if out.find("RAxML version") == -1:
+            raise RuntimeError("RAxML program not found at path:{}\n{}".format(
+                    params['raxmlpath'], out))
+    except FileNotFoundError:
+        raise RuntimeError("RAxML program not found at path: {}".format(
+                params['raxmlpath']),)
     return ''
 
 
@@ -454,8 +471,10 @@ def hapsplit(alleles, mode):
 
 def infer_window_tree(args):
     """Main method"""
+    args.qprint("Running InferTree")
     # ESTABLISH FILE OBJECTS
     mvf = MultiVariantFile(args.mvf, 'read')
+    args.qprint("Read MVF File: {}".format(args.mvf))
     # Set up contig ids
     if args.contig_ids is not None:
         contig_ids = args.contig_ids[0].split(",")
@@ -505,29 +524,47 @@ def infer_window_tree(args):
               'tempprefix': args.temp_prefix}
     # WINDOW START INTERATION
     verify_raxml(params)
-    current_contig = ''
+    args.qprint("RAxML Found.")
+    current_contig = None
     current_position = 0
     window_data = None
-    skip_contig = False
+    #skip_contig = False
     topo_ids = {}
     topo_counts = {}
+    args.qprint("Prcocessing Records")
+    windowsizename = "window size={}".format(args.windowsize)
+    if windowsizename == "window size=-1":
+        windowsizename = "whole contig"
+    elif windowsizename == "window size=0":
+        windowsizename = "whole genome"
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=contig_ids, subset=sample_indices, quiet=args.quiet,
+            contigs=contig_ids, subset=sample_indices,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
-        if current_contig == contig:
-            if skip_contig is True:
-                continue
+        #if current_contig == contig:
+           # if skip_contig is True:
+            #    args.qprint("Skipping contig: {}".format(current_contig))
+             #   continue
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
-            skip_contig = False
+            #skip_contig = False
             if window_data is not None:
+
+                args.qprint(("Making tree for {} "
+                    "at contig {} position {}").format(
+                            windowsizename,
+                            current_contig,
+                            current_position))
                 entry = window_data.maketree_raxml(params)
                 if entry['status'] != 'ok':
                     if args.output_empty:
                         treefile.write_entry(entry)
-                    if args.windowsize != -1:
-                        skip_contig = True
+                    #if args.windowsize != -1:
+                    #    skip_contig = True
+                    args.qprint(
+                        "TREE REJECTED with error code: {} ({})".format(
+                            entry['status'], entry['comment']))
                 else:
+                    args.qprint("Tree completed.")
                     topo = entry["topology"]
                     topo_counts[topo] = topo_counts.get(topo, 0) + 1
                     if topo not in topo_ids:

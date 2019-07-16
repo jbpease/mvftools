@@ -155,12 +155,13 @@ class MultiVariantFile():
                     self.entrystart = filehandler.tell()
                     line = filehandler.readline()
                 index_mvf = kwargs.get('contigindex', False)
-                if os.path.exists(self.path + ".idx"):
-                    # Checks if index file is newer than mvf file
-                    if os.path.getmtime(self.path + '.idx') > (
-                            os.path.getmtime(self.path)):
-                        print("Index file is newer than source, skipping indexing...")
-                        index_mvf = False
+                if index_mvf is True:
+                    if os.path.exists(self.path + ".idx"):
+                        # Checks if index file is newer than mvf file
+                        if os.path.getmtime(self.path + '.idx') > (
+                                os.path.getmtime(self.path)):
+                            print("Index file is newer than source, skipping indexing...")
+                            index_mvf = False
                 if index_mvf is True:
                     line = filehandler.readline()
                     with open(self.path + ".idx", "w") as idxfile:
@@ -726,13 +727,14 @@ class OutputFile():
             outfile.write('#' + '\t'.join(self.headers) + "\n")
         return ''
 
-    def write_entry(self, entry):
+    def write_entry(self, entry, defaultvalue="."):
         """Writes entry to file
             Arguments:
                 entry: dict of values with keys matching header
         """
         with open(self.path, 'at') as outfile:
-            outfile.write("\t".join([str('.' if k not in entry else entry[k])
+            outfile.write("\t".join([str(defaultvalue if
+                                         k not in entry else entry[k])
                                      for k in self.headers]) + "\n")
         return ''
 

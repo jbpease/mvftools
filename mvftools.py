@@ -78,6 +78,7 @@ class MVFcall():
             prog="mvftools.py",
             usage="""Choose from the following commands:
             AnnotateMVF
+            CalcAllCharacterCountPerSample
             CalcCharacterCount
             CalcDstatCombinations
             CalcPairwiseDistances
@@ -102,7 +103,7 @@ class MVFcall():
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.3",
+                            version="0.5.4",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if args.command in OLDCOMMAND:
@@ -160,6 +161,33 @@ class MVFcall():
         annotate_mvf(args)
         return ''
 
+    def CalcAllCharacterCountPerSample(self):
+        """Calculates the count of different character types
+           in an MVF file
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_contig_ids()
+            parser.addarg_contig_labels()
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
+            parser.addarg_mincoverage()
+            parser.addarg_windowsize()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
+        mvfanalysis.calc_all_character_count_per_sample(args)
+        return ''
+
     def CalcCharacterCount(self):
         """Calculates the count of different character types
            in an MVF file
@@ -189,8 +217,11 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_character_count(args)
         return ''
+
+
 
     def CalcDstatCombinations(self):
         """Calculates all D-statistics for all combinations of
@@ -304,6 +335,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
+        args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_sample_coverage(args)
         return ''
 
@@ -779,16 +811,13 @@ class MVFcall():
             parser.add_argument(
                 "--choose-allele", "--chooseallele", "--hapmode",
                 default="none", dest="choose_allele",
-                choices=["none", "randomone", "randomboth",
-                         "major", "minor", "majorminor"],
+                choices=["none", "randomone", "randomboth"],
                 help=("Chooses how heterozygous alleles are "
                       "handled. (none=no splitting (default); "
                       "randomone=pick one allele randomly "
                       "(recommended); randomboth=pick two alleles "
                       "randomly, but keep both; major=pick the "
-                      "more common allele; minor=pick the less "
-                      "common allele; majorminor= pick the major in "
-                      "'a' and minor in 'b'"))
+                      "more common allele"))
             parser.add_argument(
                 "--min-sites", "--minsites", type=int, default=100,
                 help="minimum number of sites ")

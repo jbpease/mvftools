@@ -1,6 +1,12 @@
 ===============
 Version History
 ===============
+
+**v.0.5.4**
+
+2019-07-16: Adds the CalcAllCharacterCountPerSample function, continued upgrades to the screen output to provide more realtime information.  Other small fixes to the CalcPairwiseDistances module in ambiguous character mode.
+
+
 **v.0.5.3**
 
 2019-07-14: Critial update, strongly recommend updating to this version.  Major efficiency fix in the base iteration modules.  Several key bug fixes implemented in FilterMVF, MergeMVF.  Enhanced support for ambiguous sequences and polyploids in several modules including CalcPairwiseDistance.  Restructuring of FilterMVF for cleaner syntax.

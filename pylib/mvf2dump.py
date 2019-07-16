@@ -85,8 +85,7 @@ def main(arguments=None):
     labels = mvf.get_sample_labels(sample_cols)
     current_contig = ''
     seqs = {}
-    for contig, _, allelesets in mvf.iterentries(
-            quiet=args.quiet, decode=True):
+    for contig, _, allelesets in mvf.iterentries(decode=True):
         if contig != current_contig:
             if seqs:
                 with open("{}.{}.fa".format(

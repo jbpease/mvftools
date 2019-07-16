@@ -28,6 +28,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from random import sample as rsample
+from random import randint
 from itertools import combinations
 from pylib.mvfbase import MultiVariantFile, OutputFile, zerodiv, same_window
 from pylib.mvfbiolib import MvfBioLib
@@ -449,6 +450,104 @@ def calc_character_count(args):
     return ''
 
 
+def calc_all_character_count_per_sample(args):
+    """Count the number of and relative rate of certain bases
+       spatially along chromosomes
+    """
+    args.qprint("Running CalcAllCharacterCountPerSample")
+    mvf = MultiVariantFile(args.mvf, 'read')
+    current_contig = None
+    current_position = 0
+    data_in_buffer = False
+    # Set up sample indices
+    sample_labels = mvf.get_sample_labels()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    # Set up contig ids
+    if args.contig_ids is not None:
+        contig_ids = args.contig_ids[0].split(",")
+    elif args.contig_labels is not None:
+        contig_ids = mvf.get_contig_ids(
+            labels=args.contig_labels[0].split(","))
+    else:
+        contig_ids = None
+    data = dict(
+        (i, {}) for i in sample_indices)
+    data_characters = [{} for i in sample_indices]
+    for contig, pos, allelesets in mvf.iterentries(decode=False,
+                                                   contigs=contig_ids):
+        # Check Minimum Site Coverage
+        if check_mincoverage(args.mincoverage,
+                             allelesets[0]) is False:
+            continue
+        if current_contig is None:
+            current_contig = contig[:]
+            if args.windowsize > 0:
+                while pos > current_position + args.windowsize - 1:
+                    current_position += args.windowsize
+        # Check if windows are specified.
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
+            args.qprint("Processing contig {}".format(current_contig))
+            for i in sample_indices:
+                data[i][(current_contig, current_position)] = {
+                    'contig': current_contig, 'position': current_position}
+                data[i][(current_contig, current_position)].update(
+                    data_characters[i])
+            if contig != current_contig:
+                current_contig = contig[:]
+                current_position = 0
+            else:
+                current_position += (0 if args.windowsize == -1
+                                     else args.windowsize)
+            data_characters = [{} for i in sample_indices]
+            data_in_buffer = False
+        alleles = allelesets[0]
+        if len(alleles) == 1:
+            for i in sample_indices:
+                data_characters[i][alleles[0]] = (
+                    data_characters[i].get(alleles[0], 0) + 1)
+        else:
+            alleles = mvf.decode(alleles)
+            for i in sample_indices:
+                data_characters[i][alleles[i]] = (
+                    data_characters[i].get(alleles[i], 0) + 1)
+        data_in_buffer = True
+    if data_in_buffer:
+        for i in sample_indices:
+            data[i][(current_contig, current_position)] = {
+                'contig': current_contig, 'position': current_position}
+            data[i][(current_contig, current_position)].update(
+                data_characters[i])
+    # WRITE OUTPUT
+    all_chars = set([])
+    for sampleid in data:
+        for window in data[sampleid]:
+            all_chars.update([x for x in data[sampleid][window] if
+                              x not in ('contig', 'position')])
+    headers = ['contig', 'position']
+    headers.extend(list(sorted(all_chars)))
+    outfile = OutputFile(path=args.out,
+                             headers=headers)
+
+    for sampleid in sorted(data):
+        outfile.write("#{}\n".format(sample_labels[sampleid]))
+        sorted_entries = sorted([(data[sampleid][k]['contig'],
+                                  data[sampleid][k]['position'], k)
+                                 for k in data[sampleid]])
+        for _, _, k in sorted_entries:
+            outfile.write_entry(data[sampleid][k], defaultvalue='0')
+    return ''
+
+
+
+
 def calc_pairwise_distances(args):
     """Count the pairwise nucleotide distance between
        combinations of samples in a window
@@ -563,8 +662,10 @@ def calc_pairwise_distances(args):
             current_position = 0
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
+        # print("All match")
         all_diff, all_total = pwdistance_function(all_match)
         for samplepair in base_matches:
+            # print(samplepair)
             ndiff, ntotal = pwdistance_function(base_matches[samplepair])
             taxa = "{};{}".format(sample_labels[samplepair[0]],
                                   sample_labels[samplepair[1]])
@@ -606,13 +707,26 @@ def get_pairwise_function(datatype, ambig):
             for pairbases, paircount in basepairs.items():
                 if any(x not in valid_characters for x in pairbases):
                     continue
-                base0 = (pairbases[0] if pairbases[0] in 'ATGC' else
-                         rsample(MLIB.splitbases[pairbases[0]], 1)[0])
-                base1 = (pairbases[1] if pairbases[1] in 'ATGC' else
-                         rsample(MLIB.splitbases[pairbases[1]], 1)[0])
-                print(pairbases, base0, base1, diff)
-                diff += int(base0 != base1) * paircount
-                total += paircount
+                if pairbases[0] in 'ATGC' and pairbases[1] in 'ATGC':
+                    diff += int(pairbases[0] != pairbases[1]) * paircount
+                    total += paircount
+                else:
+                    splitbase0 = (pairbases[0] if pairbases[0] in 'ATGC' else
+                                  MLIB.splitbases[pairbases[0]])
+                    splitbase1 = (pairbases[1] if pairbases[1] in 'ATGC' else
+                                  MLIB.splitbases[pairbases[1]])
+                    base_isec = set(splitbase0).intersection(splitbase1)
+                    if not base_isec:
+                        diff += paircount
+                        total += paircount
+                    else:
+                        ntotal = len(splitbase0) * len(splitbase1)
+                        nisec = len(base_isec)
+                        randstate = (randint(0,ntotal)
+                                     for _ in range(paircount))
+                        diff += sum(int(x >= nisec) for x in randstate)
+                        total += paircount
+                #print(pairbases, pairbases[0] != pairbases[1], paircount, diff, total)
             return diff, total
     else:
         def pairwise_distance_func(basepairs, mode=datatype):
@@ -632,6 +746,7 @@ def get_pairwise_function(datatype, ambig):
                     continue
                 diff += int(pairbases[0] != pairbases[1]) * paircount
                 total += paircount
+                # print(pairbases, pairbases[0] != pairbases[1], paircount, diff, total)
             return diff, total
     return pairwise_distance_func
 
