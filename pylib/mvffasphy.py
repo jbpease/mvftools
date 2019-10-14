@@ -120,8 +120,12 @@ def mvf2fasta(args):
         fn, randint(1000000, 9999999)), 'w+', args.buffer))
         for fn in sample_labels)
     labelwritten = dict.fromkeys(sample_labels, False)
+    write_buffer = {}
+    current_contig = None
     for contig, pos, allelesets in mvf.iterentries(
             contigs=[x for x in max_region_coord], decode=True):
+        if current_contig is None:
+            current_contig = contig[:]
         if contig == skipcontig:
             continue
         if (contig not in max_region_coord) or (
@@ -156,7 +160,27 @@ def mvf2fasta(args):
             elif mvf.flavor == 'codon' and args.output_data == 'dna':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
-                tmp_files[label].write(''.join(codon))
+                if not args.gene_mode:
+                    tmp_files[label].write(''.join(codon))
+                else:
+                    if contig != current_contig:
+                        if mvf.metadata['contigs'][current_contig].get(
+                            'strand', "+") == '-':
+                            write_buffer[label] = write_buffer[label][::-1]
+                        tmp_files[label].write(''.join(write_buffer[label]))
+                    if label not in write_buffer:
+                        write_buffer[label] = []
+                    write_buffer[label].append(''.join(codon))
+        if args.gene_mode and current_contig != contig:
+            write_buffer = {}
+            current_contig = contig[:]
+    if write_buffer:
+        for label in write_buffer:
+            if mvf.metadata['contigs'][current_contig].get(
+                'strand', "+") == '-':
+                write_buffer[label] = write_buffer[label][::-1]
+            tmp_files[label].write(''.join(write_buffer[label]))
+        write_buffer = {}
     with open(args.out, 'w') as outfile:
         for filehandler in tmp_files.values():
             filehandler.seek(0, 0)
@@ -258,7 +282,7 @@ def fasta2mvf(args):
                         for samp in fsamples))
             if mvf_alleles:
                 if args.flavor == 'dna':
-                    mvf_alleles = ''.join(["X" if x in 'NXOBDHVnxobdhv' else x
+                    mvf_alleles = ''.join(["X" if x in 'NX' else x
                                            for x in mvf_alleles])
                 mvfentries.append(
                     (cind, pos+1, (mvf_alleles,)))

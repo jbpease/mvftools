@@ -265,18 +265,26 @@ class MVFcall():
             parser.addarg_sample_labels(nmin=2)
             parser.addarg_windowsize()
             parser.addarg_mincoverage()
-            parser.add_argument("--data-type", "--datatype",
-                                choices=("dna", "prot"),
-                                help=("Data type to compare."
-                                      "(This option is only needed for codon "
-                                      " MVF files, others will default.)"))
-            parser.add_argument("--ambig", choices=("random2", "random3"),
-                                help=("By default, ambiguous nucleotides are "
-                                      "excluded.  This option will include "
-                                      "sets of ambiguous characters by "
-                                      "randomly choosing one of the options "
-                                      "for: RYMKWS ('random2') or "
-                                      "RYMKWS+BDHV ('random3')"))
+            parser.add_argument(
+                "--data-type", "--datatype",
+                choices=("dna", "prot"),
+                help=("Data type to compare."
+                      "(This option is only needed for codon "
+                      " MVF files, others will default.)"))
+            parser.add_argument(
+                "--ambig", choices=("random2", "random3"),
+                help=("By default, ambiguous nucleotides are "
+                      "excluded.  This option will include "
+                      "sets of ambiguous characters by "
+                      "randomly choosing one of the options "
+                      "for: RYMKWS ('random2') or "
+                      "RYMKWS+BDHV ('random3')"))
+            parser.add_argument(
+                "--emit-counts",
+                action="store_true",
+                help=("output additional file that presents "
+                      "the raw counts of pairwise patterns for "
+                      "each sample pair tested for each window"))
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:
@@ -513,6 +521,8 @@ class MVFcall():
             parser.add_argument(
                 "--temp_dir", "--tempdir", default=".",
                 help="directory to write temporary fasta files")
+            parser.add_argument(
+                "--gene-mode", action="store_true")
             return parser
         parser = generate_argparser()
         if self.selfdoc is True:

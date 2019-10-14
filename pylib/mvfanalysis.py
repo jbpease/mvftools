@@ -546,8 +546,6 @@ def calc_all_character_count_per_sample(args):
     return ''
 
 
-
-
 def calc_pairwise_distances(args):
     """Count the pairwise nucleotide distance between
        combinations of samples in a window
@@ -589,6 +587,8 @@ def calc_pairwise_distances(args):
     args.qprint("Ambiguous mode: {}".format(args.ambig))
     args.qprint("Processing MVF Records")
     pwdistance_function = get_pairwise_function(args.data_type, args.ambig)
+    if args.emit_counts:
+        outfile_emitcounts = open(args.out + ".pairwisecounts", 'w')
     for contig, pos, allelesets in mvf.iterentries(decode=None):
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage, allelesets[0]) is False:
@@ -622,6 +622,16 @@ def calc_pairwise_distances(args):
                         current_position += args.windowsize
             else:
                 current_position += args.windowsize
+            if args.emit_counts:
+                args.qprint("Writing Full Count Table")
+                for p0, p1 in base_matches:
+                    outfile_emitcounts.write("#{}\t{}\t{}\t{}\n{}\n".format(
+                        p0, p1, current_position, current_contig,
+                        "\n".join(["{} {}".format(
+                            x, (base_matches[(p0, p1)].get(x, 0) +
+                                all_match.get(x, 0)))
+                                   for x in set(base_matches[(p0, p1)]).union(
+                                       all_match)])))
             base_matches = dict((x, {}) for x in sample_pairs)
             all_match = {}
             data_in_buffer = False
@@ -674,6 +684,16 @@ def calc_pairwise_distances(args):
                 '{};ntotal'.format(taxa): ntotal + all_total,
                 '{};dist'.format(taxa): zerodiv(ndiff + all_diff,
                                                 ntotal + all_total)})
+        if args.emit_counts:
+            args.qprint("Writing Full Count Table")
+            for p0, p1 in base_matches:
+                outfile_emitcounts.write("#{}\t{}\t{}\t{}\n{}\n".format(
+                    p0, p1, current_position, current_contig,
+                    "\n".join(["{} {}".format(
+                        x, (base_matches[(p0, p1)].get(x, 0) +
+                            all_match.get(x, 0)))
+                               for x in set(base_matches[(p0, p1)]).union(
+                                   all_match)])))
     args.qprint("Writing Output")
     headers = ['contig', 'position']
     for samplepair in sample_pairs:
@@ -687,6 +707,8 @@ def calc_pairwise_distances(args):
                              for k in data])
     for _, _, k in sorted_entries:
         outfile.write_entry(data[k])
+    if args.emit_counts:
+        outfile_emitcounts.close()
     return ''
 
 
