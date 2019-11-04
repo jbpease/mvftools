@@ -158,9 +158,9 @@ class WindowData(object):
         if len(self.seqs) < params.get('few.dup', 4):
             return ('', {'status': 'mindepth',
                          'comment': ("Not enough sequences after filtering"
-                                    "{} (< {}).").format(
-                                        len(self.seqs),
-                                        params.get('few.dup', 4)),
+                                     "{} (< {}).").format(
+                                         len(self.seqs),
+                                         params.get('few.dup', 4)),
                          'contig': self.contigname,
                          'windowstart': self.windowstart,
                          'windowsize': self.windowsize,
@@ -528,7 +528,7 @@ def infer_window_tree(args):
     current_contig = None
     current_position = 0
     window_data = None
-    #skip_contig = False
+    # skip_contig = False
     topo_ids = {}
     topo_counts = {}
     args.qprint("Prcocessing Records")
@@ -537,29 +537,34 @@ def infer_window_tree(args):
         windowsizename = "whole contig"
     elif windowsizename == "window size=0":
         windowsizename = "whole genome"
+        window_data = WindowData(window_params={
+            'contigname': 'all',
+            "windowstart": 0,
+            "windowsize": 0,
+            "labels": main_labels[:]})
     for contig, pos, allelesets in mvf.iterentries(
             contigs=contig_ids, subset=sample_indices,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
-        #if current_contig == contig:
-           # if skip_contig is True:
-            #    args.qprint("Skipping contig: {}".format(current_contig))
-             #   continue
+        # if current_contig == contig:
+        #     if skip_contig is True:
+        #         args.qprint("Skipping contig: {}".format(current_contig))
+        #         continue
         if not same_window((current_contig, current_position),
                            (contig, pos), args.windowsize):
-            #skip_contig = False
+            # skip_contig = False
             if window_data is not None:
 
                 args.qprint(("Making tree for {} "
-                    "at contig {} position {}").format(
-                            windowsizename,
-                            current_contig,
-                            current_position))
+                             "at contig {} position {}").format(
+                                windowsizename,
+                                current_contig,
+                                current_position))
                 entry = window_data.maketree_raxml(params)
                 if entry['status'] != 'ok':
                     if args.output_empty:
                         treefile.write_entry(entry)
-                    #if args.windowsize != -1:
-                    #    skip_contig = True
+                    # if args.windowsize != -1:
+                    #     skip_contig = True
                     args.qprint(
                         "TREE REJECTED with error code: {} ({})".format(
                             entry['status'], entry['comment']))
