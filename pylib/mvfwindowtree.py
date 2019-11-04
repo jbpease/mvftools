@@ -567,7 +567,7 @@ def infer_window_tree(args):
                     #     skip_contig = True
                     args.qprint(
                         "TREE REJECTED with error code: {} ({})".format(
-                            entry['status'], entry['comment']))
+                            entry['status'], entry.get('comment', "None")))
                 else:
                     args.qprint("Tree completed.")
                     topo = entry["topology"]
@@ -577,9 +577,8 @@ def infer_window_tree(args):
                                           max(topo_ids.values()) + 1 or 0)
                     entry["topoid"] = topo_ids[topo]
                     treefile.write_entry(entry)
-                current_position = (current_position + args.windowsize if
-                                    (contig == current_contig and
-                                     args.windowsize > 0) else 0)
+                current_position = current_position + args.windowsize if (
+                    contig == current_contig and args.windowsize > 0) else 0
             current_contig = contig[:]
             window_data = None
             window_data = WindowData(window_params={
