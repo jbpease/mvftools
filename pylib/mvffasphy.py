@@ -306,9 +306,9 @@ def mvf2phy(args):
             "--outdput-data {} incompatiable with '{}' flavor mvf".format(
                 args.output_data, mvf.flavor))
     max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
-    if args.region is not None:
+    if args.regions is not None:
         _, max_region_coord, _ = parse_regions_arg(
-            args.region, mvf.metadata['contigs'])
+            args.regions, mvf.metadata['contigs'])
     sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -330,7 +330,7 @@ def mvf2phy(args):
         partprefix = "PROT" if args.output_data == "prot" else "DNA"
         partitionfile = open("{}.part".format(args.out), 'w')
     for contig, _, allelesets in mvf.iterentries(
-            contigs=(mvf.metadata['contigs'] if args.region is None else
+            contigs=(mvf.metadata['contigs'] if args.regions is None else
                      [x for x in max_region_coord]), decode=True):
         if contig == skipcontig:
             continue
@@ -407,7 +407,7 @@ def mvf2phy(args):
             os.remove(os.path.join(args.temp_dir, filehandler.name))
     if args.partition is True:
         if curcontigend > curcontigstart:
-            partitionfile.write("{},{},{},{}\n".format(
+            partitionfile.write("{}, {} = {}-{}\n".format(
                 partprefix, mvf.get_contig_labels(ids=curcontigname),
                 curcontigstart, curcontigend - 1))
         partitionfile.close()

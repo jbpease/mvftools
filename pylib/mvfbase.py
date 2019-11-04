@@ -485,8 +485,9 @@ class MultiVariantFile():
                                   if self.metadata['contigs'][x].get(
                                       'ref', False)])
             # This was turned off in order to speed up
-            #else:
-               # contigs = sorted(self.metadata['contigs'].keys())
+            else:
+               contigs = sorted([x for x in self.metadata['contigs']])
+        contigs = sorted([x for x in self.metadata['contigs']])
         subset = subset or ''
         current_contigid = ''
         linecount = 0
