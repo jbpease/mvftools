@@ -415,7 +415,7 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
             if any([x in node.name for x in prune]):
                 tree0.prune(node)
     for node in tree0.find_clades():
-        node.branch_length = 1.0
+        node.branch_length = None
     for node in tree0.get_nonterminals(order="postorder"):
         if not sum([int(not x.is_terminal) for x in node.clades]):
             node.clades.sort(key=lambda c: sorted([
