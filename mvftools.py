@@ -648,6 +648,12 @@ class MVFcall():
                 help="""Use for hexaploid and tetraploid
                         (Experimental, use with caution""")
             parser.add_argument(
+                "--skip-contig-label-check",
+                action="store_true",
+                help="""When there are many contigs
+                        skip checking for repeat labels.
+                        (use with caution).""")
+            parser.add_argument(
                 "--verbose", action="store_true",
                 help="""Output excessive data to screen for debugging""")
             parser.addarg_overwrite()
