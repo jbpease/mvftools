@@ -248,6 +248,8 @@ class VariantCallFile():
         except Exception as exception:
             sample_depth = -1
         # Fixed sites
+        if sample.get('GT', '') in ('.|.', './.'):
+            return ('X', 0, 0)
         if all(sample.get(x, -1) in (-1, '.')
                for x in ('PL', 'GL', 'GQ', 'GP')):
             quality = -1
