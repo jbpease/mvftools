@@ -557,8 +557,13 @@ def build_actionset(moduleargs, ncol):
                 modargs[i] = (modargs[i].split(',') if ',' in modargs[i] else
                               [modargs[i]])
             if modargs[0] == 'reqregion':
-                modargs[1] = int(modargs[1])
-                modargs[2] = int(modargs[2])
+                for i in range(1, len(modargs)):
+                    if len(modargs[i]) != 3:
+                        raise RuntimeError((
+                            "ERROR: Region specification '{}' "
+                            "invalid!").format(modargs[i]))
+                    modargs[i] = (modargs[i][0], int(modargs[i][1]),
+                                  int(modargs[i][2]))
             elif modargs[0] == 'mincoverage':
                 modargs[1][0] = int(modargs[1][0])
                 if modargs[1][0] > ncol:
