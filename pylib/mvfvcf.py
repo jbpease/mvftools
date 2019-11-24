@@ -248,6 +248,8 @@ class VariantCallFile():
         except Exception as exception:
             sample_depth = -1
         # Fixed sites
+        if sample.get('GT', '') in ('.|.', './.'):
+            return ('X', 0, 0)
         if all(sample.get(x, -1) in (-1, '.')
                for x in ('PL', 'GL', 'GQ', 'GP')):
             quality = -1
@@ -351,6 +353,7 @@ def vcf2mvf(args=None):
     # PROCESS CONTIG INFO
     args.qprint("Processing VCF headers.")
     vcfcontigs = vcf.metadata['contigs'].copy()
+    args.qprint("{} contigs found.".format(len(vcfcontigs)))
     contig_translate = {}
     if args.contig_ids:
         for cid, cvcf, cmvf in (x.split(';') for x in args.contig_ids):
@@ -382,25 +385,26 @@ def vcf2mvf(args=None):
             else:
                 newid = mvf.get_next_contig_id()
             mvf.metadata['contigs'][newid] = vcfcontigs[vcid].copy()
-            static_contig_ids = mvf.get_contig_ids()
+            static_contig_ids.append(newid)
             contig_translate[vlabel] = [newid, vlabel]
     mvf.reset_max_contig_id()
     new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
                    for x in mvf.metadata['contigs']]
-    args.qprint("Checking contigs for label/id overlap errors.")
-    xids = [x[0] for x in new_contigs]
-    xlabels = [x[1] for x in new_contigs]
-    for i, (newid, newlabel) in enumerate(new_contigs):
-        if newid in xlabels[:i] + xlabels[i+1:]:
-            raise RuntimeError("Error contig id {} is the same as"
-                               " the label for another contig"
-                               " ({})".format(
-                                   newid, xlabels))
-        if newlabel in xids[:i] + xids[i+1:]:
-            raise RuntimeError("Error contig label {} is the same"
-                               "as the id for another contig"
-                               "({})".format(
-                                   newlabel, xlabels))
+    if args.skip_contig_label_check is False:
+        args.qprint("Checking contigs for label/id overlap errors.")
+        xids = [x[0] for x in new_contigs]
+        xlabels = [x[1] for x in new_contigs]
+        for i, (newid, newlabel) in enumerate(new_contigs):
+            if newid in xlabels[:i] or newid in xlabels[i+1:]:
+                raise RuntimeError("Error contig id {} is the same as"
+                                   " the label for another contig"
+                                   " ({})".format(
+                                       newid, xlabels))
+            if newlabel in xids[:i] or newlabel in xids[i+1:]:
+                raise RuntimeError("Error contig label {} is the same"
+                                   "as the id for another contig"
+                                   "({})".format(
+                                       newlabel, xlabels))
     # PROCESS SAMPLE INFO
     args.qprint("Processing samples.")
     samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
