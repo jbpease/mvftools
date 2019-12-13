@@ -554,16 +554,16 @@ def calc_pairwise_distances(args):
     mvf = MultiVariantFile(args.mvf, 'read')
     args.qprint("Input MVF: Read")
     data = {}
-    sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
     elif args.sample_labels is not None:
         sample_indices = mvf.get_sample_indices(
-            labels=args.sample_labels[0].split(","))
+            ids=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
-    args.qprint("Calculating for samples: {}".format(list(sample_indices)))
+    sample_labels = mvf.get_sample_ids(indices=sample_indices)
+    args.qprint("Calculating for sample columns: {}".format(list(sample_indices)))
     current_contig = None
     current_position = 0
     data_in_buffer = False

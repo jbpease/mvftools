@@ -28,8 +28,7 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-from pylib.mvfbase import MultiVariantFile, decode_mvfstring
+from pylib.mvfbase import MultiVariantFile
 
 
 class MvfTransformer():
@@ -138,6 +137,7 @@ def verify_mvf(args):
         args.qprint("codon checking coming soon")
     return ''
 
+
 def concatenate_mvf(args):
     """Main method"""
     args.qprint("Running ConcatenateMVF")
@@ -238,12 +238,10 @@ def merge_mvf(args):
     else:
         args.main_header_file = 0
     first_mvf = MultiVariantFile(args.mvf[args.main_header_file], 'read')
-    concatmvf.metadata = first_mvf.metadata.copy()
+    concatmvf.copy_header(first_mvf)
     # Open each MVF file, read headers to make unified header
     transformers = []
     mvfmetadata = []
-    concatmvf_reverse_contig = dict(
-        (x['label'], k) for (k, x) in concatmvf.metadata['contigs'].items())
     inputfiles = []
     for mvfname in args.mvf:
         args.qprint("Reading headers from {}".format(mvfname))
@@ -254,43 +252,50 @@ def merge_mvf(args):
                                contigindex=(not args.skip_index))
         if args.skip_index:
             mvf.read_index_file()
-        mvf.reset_max_contig_id()
+        mvf.reset_max_contig()
         mvfmetadata.append(mvf.metadata)
-        for i, label in enumerate(mvf.get_sample_labels()):
-            if label not in concatmvf.get_sample_labels():
-                concatmvf.metadata['labels'].append(label)
-                concatmvf.metadata['samples'][
-                    concatmvf.metadata['labels'].index(label)] = {
-                        'label': label}
-#            if concatmvf.metadata['labels'].index(label) != i:
+        for i, sid in enumerate(mvf.get_sample_ids()):
+            if sid not in concatmvf.get_sample_ids():
+                new_sindex = concatmvf.max_sample_index + 0
+                concatmvf.max_sample_index += 1
+                concatmvf.sample_indices.append(new_sindex)
+                concatmvf.sample_ids.append(sid)
+                concatmvf.sample_data[new_sindex] = {}
+                concatmvf.sample_data[new_sindex]['id'] = sid
+                concatmvf.sample_id_to_index[sid] = new_sindex
             transformer.set_label(
-                i, concatmvf.metadata['labels'].index(label))
-        for contigid, contigdata in iter(mvf.metadata['contigs'].items()):
-            if contigdata['label'] not in concatmvf_reverse_contig:
-                newid = (contigid if
-                         contigid not in concatmvf.metadata['contigs'] else
-                         concatmvf.get_next_contig_id())
-                concatmvf.metadata['contigs'][newid] = contigdata
-                concatmvf_reverse_contig[contigdata['label']] = newid
+                i, concatmvf.sample_id_to_index[sid])
+        for cindex in mvf.contig_indices:
+            if (mvf.contig_data[cindex]['label'] not in
+                    concatmvf.contig_label_to_index):
+                new_cindex = (mvf.contig_data[cindex]['id'] if
+                              mvf.contig_data[cindex]['id'] not in
+                              concatmvf.contig_ids else
+                              concatmvf.get_next_contig_id())
+                concatmvf.contig_data[new_cindex] = (
+                    mvf.contig_data[cindex].copy())
             else:
-                newid = concatmvf_reverse_contig[contigdata['label']]
-            transformer.set_contig(contigid, newid)
+                new_cindex = concatmvf.contig_label_to_index[
+                    mvf.contig_data[cindex]['label']]
+            transformer.set_contig(cindex, new_cindex)
         transformers.append(transformer)
         inputfiles.append(mvf)
     # Write output header
     args.qprint("Writing headers to merge output")
-    concatmvf.reset_ncol()
+    concatmvf.reset_max_sample()
     concatmvf.write_data(concatmvf.get_header())
-    contigs = concatmvf.metadata['contigs']
     # Now loop through each file
-    blank_entry = '-' * len(concatmvf.metadata['samples'])
-    for current_contig in contigs:
+    blank_entry = '-' * len(concatmvf.sample_indices)
+    for cons_contig in concatmvf.contig_indices:
         contig_merged_entries = {}
-        args.qprint("Merging Contig: {}".format(current_contig))
+        args.qprint("Merging Contig Index: {}".format(cons_contig))
         for ifile, mvffile in enumerate(inputfiles):
-            if current_contig not in transformers[ifile].contigs:
+            if cons_contig not in transformers[ifile].contigs:
                 continue
-            localcontig = transformers[ifile].contigs[current_contig]
+            localcontig = transformers[ifile].contigs[cons_contig]
+            if 'idx' not in mvffile.contig_data[localcontig]:
+                print("not found")
+                continue
             for chrom, pos, allelesets in mvffile.itercontigentries(
                     localcontig, decode=True):
                 if pos not in contig_merged_entries:
@@ -303,14 +308,16 @@ def merge_mvf(args):
                         if base == '-' or base == 'X':
                             continue
                         raise RuntimeError(
-                            "Merging columns have two different bases: {} {} {}".format(
+                            ("Merging columns have two different bases: "
+                             "{} {} {}").format(
                                 pos, contig_merged_entries[pos][xcoord], base))
                     contig_merged_entries[pos] = (
                         contig_merged_entries[pos][:xcoord] + base +
                         contig_merged_entries[pos][xcoord+1:])
-        concatmvf.write_entries(((current_contig, coord, (entry,))
-            for coord, entry in sorted(contig_merged_entries.items())
-                                ),encoded=False)
+        concatmvf.write_entries(((cons_contig, coord, (entry,))
+                                 for coord, entry in
+                                 sorted(contig_merged_entries.items())
+                                 ), encoded=False)
         args.qprint("Entries written for contig {}: {}".format(
-                current_contig, len(contig_merged_entries)))
+                cons_contig, len(contig_merged_entries)))
     return ''

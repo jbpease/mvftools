@@ -34,6 +34,7 @@ from itertools import groupby
 
 # ==== Math Functions ====
 
+
 def is_int(num):
     """Checks if num is an integer, accepts strings as well"""
     try:
@@ -123,16 +124,26 @@ class MultiVariantFile():
 
     def __init__(self, path, filemode, **kwargs):
         self.path = os.path.abspath(path)
-        self.flavor = 'dna'
-        self.metadata = {'labels': []}
-        self.metadata['samples'] = {}
-        self.metadata['contigs'] = {}
-        self.metadata['trees'] = []
-        self.metadata['notes'] = []
-        self.metadata['maxcontigid'] = 0
         if filemode not in ('read', 'r', 'rb', 'write', 'w', 'wb'):
             raise RuntimeError("Invalid filemode {}".format(filemode))
         self.filemode = filemode
+        self.flavor = 'dna'
+        self.metadata = {}
+        self.sample_indices = []
+        self.sample_ids = []
+        self.max_sample_index = 0
+        self.sample_id_to_index = {}
+        self.sample_data = {}
+        self.contig_indices = []
+        self.contig_ids = []
+        self.contig_id_to_index = {}
+        self.contig_labels = []
+        self.contig_label_to_index = {}
+        self.contig_data = {}
+        self.max_contig_index = 0
+        self.max_contig_id = 0
+        self.trees = []
+        self.notes = []
         self.entrystart = 0
         # Check for Gzip and establish file object
         self.metadata['isgzip'] = (self.path.endswith(".gz") or
@@ -160,26 +171,28 @@ class MultiVariantFile():
                         # Checks if index file is newer than mvf file
                         if os.path.getmtime(self.path + '.idx') > (
                                 os.path.getmtime(self.path)):
-                            print("Index file is newer than source, skipping indexing...")
+                            print("Index file is newer than source, "
+                                  "skipping indexing...")
                             index_mvf = False
                 if index_mvf is True:
                     line = filehandler.readline()
                     with open(self.path + ".idx", "w") as idxfile:
-                        idxfile.write(previous_contig + "\t" +
-                                      str(self.entrystart) + "\n")
+                        idxfile.write("{}\t{}\n".format(previous_contig,
+                                                        self.entrystart))
                         while line:
                             coord = filehandler.tell()
                             line = filehandler.readline()
                             if line.split(":")[0] != previous_contig:
                                 if ":" in line:
-                                    idxfile.write(line.split(":")[0] + "\t" +
-                                                  str(coord) + "\n")
+                                    idxfile.write('{}\t{}\n'.format(
+                                        line.split(":")[0],
+                                        coord))
                                     previous_contig = line.split(":")[0]
                 self._process_header(header_lines)
                 if kwargs.get('contigindex', False) is True:
                     self.read_index_file()
                 # Establish number of columns
-                self.metadata['ncol'] = len(self.metadata['labels'])
+                self.max_sample_index = len(self.sample_indices)
             else:
                 raise IOError("MVF path {} not found!".format(self.path))
         # WRITE MODE
@@ -192,8 +205,9 @@ class MultiVariantFile():
             filehandler = (gzip.open(self.path, 'wt') if
                            self.metadata.get('isgzip', False) else
                            open(self.path, 'wt'))
-            self.metadata['ncol'] = kwargs.get('ncol', 2)
+            self.max_sample_index = kwargs.get('ncol', 2)
         filehandler.close()
+        # Final check on flavor after processing headers
         self.flavor = kwargs['flavor'] if 'flavor' in kwargs else self.flavor
 
     def _process_header(self, headerlines):
@@ -202,6 +216,7 @@ class MultiVariantFile():
                 headerlines: list of unprocessed header strings
         """
         sample_index = 0
+        contig_index = 0
         for line in headerlines:
             try:
                 entry = line.split()
@@ -223,126 +238,178 @@ class MultiVariantFile():
                             interpret_param(elem[1]))
                 # Sample column information header lines
                 elif entry[0].startswith('#s'):
-                    self.metadata['samples'][sample_index] = {
-                        'label': entry[1]}
-                    self.metadata['labels'].append(entry[1])
+                    self.sample_indices.append(sample_index)
+                    self.sample_id_to_index[entry[1]] = sample_index
+                    self.sample_data[sample_index] = {}
+                    self.sample_data[sample_index]['id'] = entry[1]
+                    self.sample_ids.append(entry[1])
                     for elem in entry[2:]:
                         if '=' in elem:
                             elem = elem.split('=')
-                            self.metadata['samples'][sample_index][elem[0]] = (
+                            self.sample_data[sample_index][elem[0]] = (
                                 interpret_param(elem[1]))
                         else:
-                            self.metadata['samples'][sample_index][elem] = True
+                            self.sample_data[sample_index][elem] = True
                     sample_index += 1
                 # Contig information header lines
                 elif entry[0].startswith('#c'):
-                    contigid = entry[1]
-                    self.metadata['contigs'][contigid] = {}
+                    self.contig_indices.append(contig_index)
+                    self.contig_id_to_index[entry[1]] = contig_index
+                    self.contig_data[contig_index] = {}
+                    self.contig_data[contig_index]['id'] = entry[1]
+                    self.contig_ids.append(entry[1])
                     for elem in entry[2:]:
                         if '=' in elem:
                             elem = elem.split('=')
-                            self.metadata['contigs'][contigid][elem[0]] = (
+                            self.contig_data[contig_index][elem[0]] = (
                                 interpret_param(elem[1]))
                         else:
-                            self.metadata['contigs'][contigid][elem] = True
+                            self.contig_data[contig_index][elem] = True
+                    if 'label' in self.contig_data[contig_index]:
+                        self.contig_label_to_index[
+                            self.contig_data[contig_index]['label']] = (
+                                contig_index + 0)
+                    self.contig_labels.append(
+                       self.contig_data[contig_index].get('label', None))
+                    contig_index += 1
                 # Tree/phylogeny header lines
                 elif entry[0].startswith("#t"):
-                    self.metadata['trees'].append(line[2:].strip())
+                    self.trees.append(line[2:].strip())
                 # Notes header lines
                 elif entry[0].startswith("#n"):
-                    self.metadata['notes'].append(line[2:].strip())
+                    self.notes.append(line[2:].strip())
                 else:
                     raise ValueError
             except ValueError:
                 sys.stderr.write("Skipping invalid header line '{}'\n".format(
                     entry))
+        # self.sample_indices = tuple(self.sample_indices)
+        # self.contig_indices = tuple(self.contig_indices)
         return ''
 
-    def get_sample_indices(self, labels=None):
+    def get_sample_indices(self, ids=None):
         """Get indices for a specified named group or set of labels
            Arguments:
                 labels: list/set of str or str; default= all
         """
-        if labels is None:
-            return range(len(self.metadata['labels']))
+        if ids is None:
+            return tuple(self.sample_indices)
         try:
-            if hasattr(labels, '__iter__'):
-                return [self.metadata['labels'].index(x) for x in labels]
-            return self.metadata['labels'].index(labels)
+            if hasattr(ids, '__iter__'):
+                return [self.sample_id_to_index[x] for x in ids]
+            return self.self.sample_id_to_index[ids]
         except IndexError:
-            raise IndexError(labels, "contains invalid label")
+            raise IndexError(ids, "contains invalid ids")
 
-    def get_sample_labels(self, indices=None):
+    def get_sample_ids(self, indices=None):
         """Get labels for the specified named indices
             Arguments:
                 indices: list/set of int or int; default= all
         """
         if indices is None:
-            return self.metadata['labels']
+            return tuple(self.sample_ids)
         try:
             if hasattr(indices, '__iter__'):
-                return [self.metadata['labels'][x] for x in indices]
-            return self.metadata['labels'][indices]
+                return [self.sample_data[x]['id']for x in indices]
+            return self.sample_data[indices]['id']
         except IndexError:
-            raise IndexError(indices, "contains invalid label index")
+            raise IndexError(indices, "contains invalid index")
 
-    def get_contig_ids(self, labels=None):
+    def get_contig_indices(self, ids=None, labels=None):
         """Returns contig id given contig label
         """
-        if labels is None:
-            return [x for x in self.metadata['contigs']]
-        try:
-            if isinstance(labels, (list, tuple, set)):
-                return [str(x) for x in self.metadata['contigs']
-                        if self.metadata['contigs'][x]['label'] in labels]
-            if isinstance(labels, (str, int)):
-                return [x for x in self.metadata['contigs']
-                        if self.metadata['contigs'][x]['label'] == str(labels)]
-            raise TypeError("contig labels not correct datatype")
-        except IndexError:
-            raise IndexError("contig labels '{}' not found".format(labels))
+        if labels is None and ids is None:
+            return self.contig_indices
+        elif labels is not None and ids is not None:
+            raise RuntimeError("cannot specify both ids and labels for "
+                               "get_contig_indices()")
+        if ids is not None:
+            try:
+                if hasattr(ids, '__iter__'):
+                    return [self.contig_id_to_index[x] for x in ids]
+                return self.contig_id_to_index[ids]
+            except KeyError:
+                raise KeyError("contig id(s) '{}' not found".format(ids))
+        elif labels is not None:
+            try:
+                if hasattr(labels, '__iter__'):
+                    return [self.contig_label_to_index[x] for x in labels]
+                return self.contig_label_to_index[labels]
+            except KeyError:
+                raise KeyError("contig label(s) '{}' not found".format(labels))
 
-    def get_contig_labels(self, ids=None):
-        """Returns contig label given contig id
+    def get_contig_ids(self, indices=None, labels=None):
+        """Returns contig id given contig label
         """
-        if ids is None:
-            return [self.metadata['contigs'][x]['label']
-                    for x in self.metadata['contigs']]
-        try:
-            if isinstance(ids, (list, tuple, set)):
-                return [self.metadata['contigs'][x]['label'] for x in ids]
-            if isinstance(ids, (str, int)):
-                return self.metadata['contigs'][str(ids)]['label']
-            raise TypeError("contig labels not correct datatype")
-        except IndexError:
-            raise IndexError("contig ids '{}' not found".format(ids))
+        if labels is None and indices is None:
+            return tuple(self.contig_ids)
+        elif labels is not None and indices is not None:
+            raise RuntimeError("cannot specify both indices and labels for "
+                               "get_contig_ids()")
+        if indices is not None:
+            try:
+                if hasattr(indices, '__iter__'):
+                    return tuple(self.contig_data[x]['id'] for x in indices)
+                return (self.contig_data[indices]['id'], )
+            except KeyError:
+                raise KeyError("contig index '{}' not found".format(indices))
+        elif labels is not None:
+            try:
+                if hasattr(labels, '__iter__'):
+                    return [
+                        self.contig_data[self.contig_label_to_index[x]]['id']
+                        for x in labels]
+                return self.contig_data[
+                    self.contig_label_to_index[labels]]['id']
+            except KeyError:
+                raise KeyError("contig label(s) '{}' not found".format(labels))
 
-    def get_contig_reverse_dict(self):
-        """Returns a dict[label] = id for contigs
+    def get_contig_labels(self, indices=None, ids=None):
+        """Returns contig id given contig label
         """
-        return dict((self.metadata['contigs'][x]['label'], x)
-                    for x in self.metadata['contigs'])
+        if ids is None and indices is None:
+            return tuple(self.contig_labels)
+        elif ids is not None and indices is not None:
+            raise RuntimeError("cannot specify both indices and labels for "
+                               "get_contig_ids()")
+        if indices is not None:
+            try:
+                if hasattr(indices, '__iter__'):
+                    return [self.contig_data[x]['label'] for x in indices]
+                return [self.contig_data[indices]['label'], ]
+            except KeyError:
+                raise KeyError("contig index '{}' not found".format(indices))
+        elif ids is not None:
+            try:
+                if hasattr(ids, '__iter__'):
+                    return [self.contig_data[
+                        self.contig_id_to_index[x]]['label']
+                            for x in ids]
+                return self.contig_data[self.contig_id_to_index[ids]]['label']
+            except KeyError:
+                raise KeyError("contig id(s) '{}' not found".format(ids))
 
-    def reset_max_contig_id(self):
+    def reset_max_contig(self):
         """Requeries the max contig id after modification
         """
         maxid = 0
-        if self.metadata['contigs']:
+        if self.contig_ids:
             maxid = max([int(contigid) if is_int(contigid) else 0 for
-                         contigid in self.metadata['contigs']])
-            self.metadata['maxcontigid'] = maxid
+                         contigid in self.contig_ids])
+        self.max_contig_id = maxid
+        self.max_contig_index = len(self.contig_indices)
         return ''
 
-    def reset_ncol(self):
+    def reset_max_sample(self):
         """Resets the ncol metadata after modifying columns
         """
-        self.metadata['ncol'] = len(self.metadata['samples'])
+        self.max_sample_index = len(self.sample_indices)
         return ''
 
     def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
-        self.metadata['maxcontigid'] += 1
-        return str(self.metadata['maxcontigid'])
+        self.max_contig_id += 1
+        return str(self.max_contig_id)
 
     def read_index_file(self):
         """Reads the mvf.idx file with contig coordinates
@@ -350,7 +417,8 @@ class MultiVariantFile():
         with open(self.path + ".idx") as idxfile:
             for line in idxfile:
                 entry = line.rstrip().split("\t")
-                self.metadata['contigs'][entry[0]]['idx'] = int(entry[1])
+                self.contig_data[
+                    self.contig_id_to_index[entry[0]]]['idx'] = int(entry[1])
         return ''
 
     def __iter__(self, quiet=False):
@@ -376,8 +444,8 @@ class MultiVariantFile():
                         linecount, line))
         filehandler.close()
 
-
-    def itercontigentries(self, target_contig, decode=True, no_invariant=False,
+    def itercontigentries(self, target_contig,
+                          decode=True, no_invariant=False,
                           no_gap=False, no_ambig=False,
                           onlyalleles=False, subset=None):
         """
@@ -404,7 +472,8 @@ class MultiVariantFile():
             filehandler = gzip.open(self.path, 'rb')
         else:
             filehandler = open(self.path, 'r')
-        filehandler.seek(self.metadata['contigs'][target_contig]['idx'])
+        filehandler.seek(self.contig_data[target_contig]['idx'])
+        target_id = self.contig_data[target_contig]['id']
         for line in filehandler:
             try:
                 if self.metadata['isgzip']:
@@ -415,7 +484,7 @@ class MultiVariantFile():
                 contigid = loc[0]
                 pos = int(loc[1])
                 allelesets = arr[1:]
-                if contigid != target_contig:
+                if contigid != target_id:
                     break
                 if subset:
                     try:
@@ -450,15 +519,18 @@ class MultiVariantFile():
                     yield allelesets
                 else:
                     yield (contigid, pos, allelesets)
-            except:
+            except Exception as e:
                 raise RuntimeError(
-                    "Error processing MVF at line# {} = {} ".format(
-                        linecount, line))
+                    "Error processing MVF at line# {} = {}\n{}".format(
+                        linecount, line, e))
         filehandler.close()
 
-
-    def iterentries(self, decode=True, contigs=None, no_invariant=False,
-                    no_gap=False, no_ambig=False, no_nonref=False,
+    def iterentries(self, decode=True,
+                    contig_ids=None,
+                    contig_labels=None,
+                    contig_indices=None,
+                    no_invariant=False,
+                    no_gap=False, no_ambig=False,
                     onlyalleles=False, subset=None):
         """
         Fully-optioned iterator for MVF entries with filtering
@@ -471,7 +543,6 @@ class MultiVariantFile():
             no_invariant: set to false to skip invariant sites
             no_ambig: set to false to skip positions with 'N'
             no_gap: set to false to skip positions with '-'
-            no_nonref: set to false to skip nonref contigs
             onlyalleles: return only list of alleles
             quiet: suppress progress meter (default=False)
             subset: list of column indices
@@ -479,15 +550,14 @@ class MultiVariantFile():
         Note: for codons, filters must apply to all allele strings
         Note: using subset without decode returns encoded subset
         """
-        if contigs is None:
-            if no_nonref:
-                contigs = sorted([x for x in self.metadata['contigs']
-                                  if self.metadata['contigs'][x].get(
-                                      'ref', False)])
-            # This was turned off in order to speed up
-            else:
-               contigs = sorted([x for x in self.metadata['contigs']])
-        contigs = sorted([x for x in self.metadata['contigs']])
+        contigs = None
+        if contig_labels is not None:
+            contigs = [self.contig_data[self.contig_label_to_index[x]]['id']
+                       for x in contig_labels]
+        elif contig_ids is not None:
+            contigs = contig_ids
+        elif contig_indices is not None:
+            contigs = [self.contig_data[x]['id'] for x in contig_indices]
         subset = subset or ''
         current_contigid = ''
         linecount = 0
@@ -506,8 +576,6 @@ class MultiVariantFile():
                 contigid = loc[0]
                 pos = int(loc[1])
                 allelesets = arr[1:]
-                # The below line was added to speed up checking when you
-                # are looking at all contigs with a large number
                 if contigs is not None:
                     if contigid != current_contigid:
                         if current_contigid in contigs:
@@ -541,7 +609,6 @@ class MultiVariantFile():
                         if all(x == allelesets[0][0]
                                for x in allelesets[0][1:]):
                             continue
-
                 if subset and not decode:
                     allelesets = [self.encode(x) for x in allelesets]
                 if decode and not subset:
@@ -550,10 +617,10 @@ class MultiVariantFile():
                     yield allelesets
                 else:
                     yield (contigid, pos, allelesets)
-            except:
+            except Exception as e:
                 raise RuntimeError(
-                    "Error processing MVF at line# {} = {} ".format(
-                        linecount, line))
+                    "Error processing MVF at line# {} = {}\n{}".format(
+                        linecount, line, e))
         filehandler.close()
 
     def get_header(self):
@@ -561,28 +628,46 @@ class MultiVariantFile():
         """
         header = ["##mvf version=1.2 flavor={} {}".format(
             self.flavor, ' '.join([
-                "{}={}".format(k, v) for (k, v) in sorted(
-                    self.metadata.items())
-                if k not in ('contigs', 'samples', 'flavor', 'version',
-                             'isgzip', 'labels', 'trees', 'notes')]))]
+                "{}={}".format(k, v) for (k, v) in self.metadata.items()
+                if k not in ('version', 'isgzip', 'labels', 'flavor',
+                             'trees', 'notes')]))]
         header.extend(["#s {} {}".format(
-            self.metadata['samples'][x]['label'],
+            self.sample_data[x]['id'],
             ' '.join(["{}={}".format(k, v) for (k, v) in (
-                sorted(self.metadata['samples'][x].items())) if k != 'label']))
-                       for x in range(len(self.metadata['samples']))])
-        contigs = [(int(k) if is_int(k) else k, v)
-                   for (k, v) in self.metadata['contigs'].items()]
+                self.sample_data[x].items()) if k != 'id']))
+                       for x in self.sample_indices])
         header.extend(["#c {} label={} length={} {}".format(
-            cid, cdata['label'], cdata['length'],
+            self.contig_data[x]['id'], self.contig_data[x]['label'],
+            self.contig_data[x]['length'],
             ' '.join(["{}={}".format(k, v) for k, v in (
-                sorted(cdata.items(), key=mixed_sorter))
-                      if k not in ['length', 'label', 'idx']]))
-                       for cid, cdata in sorted(contigs, key=mixed_sorter)])
-        if self.metadata["trees"]:
-            header.extend(["#t {}".format(x) for x in self.metadata["trees"]])
-        if self.metadata["notes"]:
-            header.extend(["#n {}".format(x) for x in self.metadata["notes"]])
+               self.contig_data[x].items())
+                      if k not in ['length', 'label', 'idx', 'id']]))
+                       for x in self.contig_indices])
+        if self.trees:
+            header.extend(["#t {}".format(x) for x in self.trees])
+        if self.notes:
+            header.extend(["#n {}".format(x) for x in self.notes])
         return '\n'.join(header) + '\n'
+
+    def copy_header(self, mvfold):
+        """Returns formatted header string (with final newline)
+        """
+        self.flavor = mvfold.flavor
+        self.metadata = mvfold.metadata.copy()
+        self.sample_indices = mvfold.sample_indices[:]
+        self.sample_ids = mvfold.sample_ids[:]
+        self.max_sample_index = len(self.sample_indices)
+        self.sample_id_to_index = mvfold.sample_id_to_index.copy()
+        self.sample_data = mvfold.sample_data.copy()
+        self.contig_indices = mvfold.contig_indices[:]
+        self.max_contig_index = max(self.contig_indices)
+        self.contig_ids = mvfold.contig_ids[:]
+        self.contig_id_to_index = mvfold.contig_id_to_index.copy()
+        self.contig_labels = mvfold.contig_labels.copy()
+        self.contig_label_to_index = mvfold.contig_label_to_index.copy()
+        self.contig_data = mvfold.contig_data.copy()
+        self.trees = mvfold.trees
+        self.notes = mvfold.notes
 
     def decode(self, alleles):
         """Decode entry into full-length alleles
