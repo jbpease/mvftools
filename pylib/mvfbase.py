@@ -674,8 +674,7 @@ class MultiVariantFile():
             Arguments:
                 alleles = encoded allele string
         """
-        ncol = self.metadata['ncol']
-        return decode_mvfstring(alleles, ncol)
+        return decode_mvfstring(alleles, self.max_sample_index)
 
     def encode(self, alleles):
         """Internal copy of encode_mvfstring

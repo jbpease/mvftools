@@ -63,30 +63,32 @@ def calc_sample_coverage(args):
       """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
+    data_order = []
     # Set up sample indices
-
-    sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
     elif args.sample_labels is not None:
         sample_indices = mvf.get_sample_indices(
-            labels=args.sample_labels[0].split(","))
+            ids=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    sample_labels = mvf.get_sample_ids(indices=sample_indices)
     # Set up contig ids
     if args.contig_ids is not None:
-        contig_ids = args.contig_ids[0].split(",")
+        contig_indices = mvf.get_contig_indices(
+            args.contig_ids[0].split(","))
     elif args.contig_labels is not None:
-        contig_ids = mvf.get_contig_ids(
+        contig_indices = mvf.get_contig_indices(
             labels=args.contig_labels[0].split(","))
     else:
-        contig_ids = None
+        contig_indices = None
     for contig, _, allelesets in mvf.iterentries(
-            contigs=contig_ids, subset=sample_indices,
+            contig_indices=contig_indices,
+            subset=sample_indices,
             decode=True):
         if contig not in data:
-            data[contig] = dict.fromkeys(sample_labels, 0)
+            data[contig] = dict((x, 0) for x in sample_labels)
             data[contig]['contig'] = contig
         for j, elem in enumerate(sample_indices):
             data[contig][sample_labels[elem]] += int(
@@ -327,6 +329,7 @@ def calc_character_count(args):
     all_total = 0
     data_in_buffer = False
     # Set up base matching from special words
+    data_order = []
     def proc_special_word(argx):
         if argx == 'dna':
             argx = MLIB.validchars['dna']
@@ -342,35 +345,36 @@ def calc_character_count(args):
     args.base_match = proc_special_word(args.base_match)
     args.base_total = proc_special_word(args.base_total)
     # Set up sample indices
-    sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
     elif args.sample_labels is not None:
         sample_indices = mvf.get_sample_indices(
-            labels=args.sample_labels[0].split(","))
+            ids=args.sample_labels[0].split(","))
     else:
         sample_indices = mvf.get_sample_indices()
+    sample_labels = mvf.get_sample_ids(indices=sample_indices)
     # Set up contig ids
     if args.contig_ids is not None:
-        contig_ids = args.contig_ids[0].split(",")
+        contig_indices = mvf.get_contig_indices(
+            ids=args.contig_ids[0].split(","))
     elif args.contig_labels is not None:
-        contig_ids = mvf.get_contig_ids(
+        contig_indices = mvf.get_contig_indices(
             labels=args.contig_labels[0].split(","))
     else:
-        contig_ids = None
+        contig_indices = None
     match_counts = dict().fromkeys(
         [sample_labels[i] for i in sample_indices], 0)
     total_counts = dict().fromkeys(
         [sample_labels[i] for i in sample_indices], 0)
-    for contig, pos, allelesets in mvf.iterentries(decode=False,
-                                                   contigs=contig_ids):
+    for contig, pos, allelesets in mvf.iterentries(
+            decode=False, contig_indices=contig_indices):
         # Check Minimum Site Coverage
         if check_mincoverage(args.mincoverage,
                              allelesets[0]) is False:
             continue
-        #if contig not in contig_ids:
-         #   continue
+        # if contig not in contig_ids:
+        #   continue
         # Establish first contig
         if current_contig is None:
             current_contig = contig[:]
@@ -382,7 +386,9 @@ def calc_character_count(args):
                            (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
+            data_order.append((current_contig, current_position))
             for k in match_counts:
+
                 data[(current_contig, current_position)].update([
                     (k + '.match', match_counts[k] + all_match),
                     (k + '.total', total_counts[k] + all_total),
@@ -429,6 +435,7 @@ def calc_character_count(args):
     if data_in_buffer:
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
+        data_order.append((current_contig, current_position))
         for k in match_counts:
             data[(current_contig, current_position)].update([
                 (k + '.match', match_counts[k] + all_match),
@@ -442,11 +449,8 @@ def calc_character_count(args):
         headers.extend([label + x for x in ('.match', '.total', '.prop')])
     outfile = OutputFile(path=args.out,
                          headers=headers)
-    sorted_entries = sorted([(data[k]['contig'],
-                              data[k]['position'], k)
-                             for k in data])
-    for _, _, k in sorted_entries:
-        outfile.write_entry(data[k])
+    for okey in data_order:
+        outfile.write_entry(data[okey])
     return ''
 
 
@@ -534,13 +538,13 @@ def calc_all_character_count_per_sample(args):
     headers = ['contig', 'position']
     headers.extend(list(sorted(all_chars)))
     outfile = OutputFile(path=args.out,
-                             headers=headers)
+                         headers=headers)
 
-    for sampleid in sorted(data):
+    for sampleid in sample_indices:
         outfile.write("#{}\n".format(sample_labels[sampleid]))
-        sorted_entries = sorted([(data[sampleid][k]['contig'],
-                                  data[sampleid][k]['position'], k)
-                                 for k in data[sampleid]])
+        sorted_entries = [(data[sampleid][k]['contig'],
+                           data[sampleid][k]['position'], k)
+                          for k in data[sampleid]]
         for _, _, k in sorted_entries:
             outfile.write_entry(data[sampleid][k], defaultvalue='0')
     return ''
@@ -554,6 +558,7 @@ def calc_pairwise_distances(args):
     mvf = MultiVariantFile(args.mvf, 'read')
     args.qprint("Input MVF: Read")
     data = {}
+    data_order = []
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -563,7 +568,8 @@ def calc_pairwise_distances(args):
     else:
         sample_indices = mvf.get_sample_indices()
     sample_labels = mvf.get_sample_ids(indices=sample_indices)
-    args.qprint("Calculating for sample columns: {}".format(list(sample_indices)))
+    args.qprint("Calculating for sample columns: {}".format(
+        list(sample_indices)))
     current_contig = None
     current_position = 0
     data_in_buffer = False
@@ -604,6 +610,7 @@ def calc_pairwise_distances(args):
                            (contig, pos), args.windowsize):
             data[(current_contig, current_position)] = {
                 'contig': current_contig, 'position': current_position}
+            data_order.append((current_contig, current_position))
             all_diff, all_total = pwdistance_function(all_match)
             for samplepair in base_matches:
                 ndiff, ntotal = pwdistance_function(base_matches[samplepair])
@@ -662,7 +669,7 @@ def calc_pairwise_distances(args):
                 base_matches[samplepair][basepair] = (
                     base_matches[samplepair].get(basepair, 0) + 1)
             data_in_buffer = True
-        #print(base_matches)
+        # print(base_matches)
     if data_in_buffer is True:
         # Check whether, windows, contigs, or total
         if args.windowsize == 0:
@@ -672,6 +679,7 @@ def calc_pairwise_distances(args):
             current_position = 0
         data[(current_contig, current_position)] = {
             'contig': current_contig, 'position': current_position}
+        data_order.append((current_contig, current_position))
         # print("All match")
         all_diff, all_total = pwdistance_function(all_match)
         for samplepair in base_matches:
@@ -702,11 +710,8 @@ def calc_pairwise_distances(args):
             sample_labels[samplepair[1]],
             x) for x in ('ndiff', 'ntotal', 'dist')])
     outfile = OutputFile(path=args.out, headers=headers)
-    sorted_entries = sorted([(
-        data[k]['contig'], data[k]['position'], k)
-                             for k in data])
-    for _, _, k in sorted_entries:
-        outfile.write_entry(data[k])
+    for okey in data_order:
+        outfile.write_entry(data[okey])
     if args.emit_counts:
         outfile_emitcounts.close()
     return ''
@@ -744,7 +749,7 @@ def get_pairwise_function(datatype, ambig):
                     else:
                         ntotal = len(splitbase0) * len(splitbase1)
                         nisec = len(base_isec)
-                        randstate = (randint(0,ntotal)
+                        randstate = (randint(0, ntotal)
                                      for _ in range(paircount))
                         diff += sum(int(x >= nisec) for x in randstate)
                         total += paircount
