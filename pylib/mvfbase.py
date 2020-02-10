@@ -31,6 +31,7 @@ import os
 import sys
 import gzip
 from itertools import groupby
+from copy import deepcopy
 
 # ==== Math Functions ====
 
@@ -120,6 +121,7 @@ class MultiVariantFile():
             samples: dict[index] = dict(sample_info)
             ncol: auto-generated int(number of samples)
             labels: auto-generated tuple of sample labels
+        sample_indices:
     """
 
     def __init__(self, path, filemode, **kwargs):
@@ -286,6 +288,72 @@ class MultiVariantFile():
         # self.sample_indices = tuple(self.sample_indices)
         # self.contig_indices = tuple(self.contig_indices)
         return ''
+
+    def __repr__(self):
+        ret = ("mvf.metadata = {}\n"
+               "mvf.flavor = {}\n"
+               "------------\n"
+               "mvf.sample_indices = {}\n"
+               "mvf.sample_ids = {}\n"
+               "mvf.sample_data = {}\n"
+               "mvf.max_sample_index = {}\n"
+               "mvf.sample_id_to_index = {}\n"
+               "------------\n"
+               "mvf.contig_indices = {}\n"
+               "mvf.contig_ids = {}\n"
+               "mvf.contig_id_to_index = {}\n"
+               "mvf.contig_labels = {}\n"
+               "mvf.contig_label_to_index = {}\n"
+               "mvf.contig_data = {}\n"
+               "mvf.max_contig_index = {}\n"
+               "mvf.max_contig_id = {}\n"
+               "------------\n"
+               "mvf.trees = {}\n"
+               "------------\n"
+               "mvf.notes = {}\n"
+               "------------\n"
+               "mvf.entrystart = {}\n"
+               ).format(
+                    self.metadata,
+                    self.flavor,
+                    self.sample_indices,
+                    self.sample_ids,
+                    self.sample_data,
+                    self.max_sample_index,
+                    self.sample_id_to_index,
+                    self.contig_indices,
+                    self.contig_ids,
+                    self.contig_id_to_index,
+                    self.contig_labels,
+                    self.contig_label_to_index,
+                    self.contig_data,
+                    self.max_contig_index,
+                    self.max_contig_id,
+                    self.trees,
+                    self.notes,
+                    self.entrystart
+                    )
+        return ret
+
+    def copy_headers_from(self, othermvf):
+        self.filemode = othermvf.filemode
+        self.flavor = othermvf.flavor
+        self.metadata = othermvf.metadata.copy()
+        self.sample_indices = othermvf.sample_indices[:]
+        self.sample_ids = othermvf.sample_ids[:]
+        self.max_sample_index = othermvf.max_sample_index + 0
+        self.sample_id_to_index = othermvf.sample_id_to_index.copy()
+        self.sample_data = deepcopy(othermvf.sample_data)
+        self.contig_indices = othermvf.contig_indices[:]
+        self.contig_ids = othermvf.contig_ids[:]
+        self.contig_id_to_index = othermvf.contig_id_to_index.copy()
+        self.contig_labels = othermvf.contig_labels[:]
+        self.contig_label_to_index = othermvf.contig_label_to_index.copy()
+        self.contig_data = deepcopy(othermvf.contig_data)
+        self.max_contig_index = othermvf.max_contig_index + 0
+        self.max_contig_id = othermvf.max_contig_id + 0
+        self.trees = othermvf.trees[:]
+        self.notes = othermvf.notes[:]
 
     def get_sample_indices(self, ids=None):
         """Get indices for a specified named group or set of labels

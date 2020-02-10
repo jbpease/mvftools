@@ -31,14 +31,12 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 from copy import deepcopy
-from itertools import chain
 from pylib.mvfbase import MultiVariantFile
 from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
 
-#RE_GENEID = re.compile("ID=gene:(.*?);")
-#PARENTGENE = re.compile("Parent=mRNA:(.*?);")
-
+# RE_GENEID = re.compile("ID=gene:(.*?);")
+# PARENTGENE = re.compile("Parent=mRNA:(.*?);")
 
 
 def crop_to_stop(seq, firststop=""):
@@ -256,13 +254,13 @@ def annotate_mvf(args):
     args.qprint("Running AnnotateMVF")
     mvf = MultiVariantFile(args.mvf, 'read')
     args.qprint("Input MVF header processed.")
-    args.qprint("MVF flavor: {}".format(mvf.metadata['flavor']))
-    gff, geneids = parse_gff_annotate(args.gff, mvf.metadata['contigs'],
+    args.qprint("MVF flavor: {}".format(mvf.flavor))
+    gff, geneids = parse_gff_annotate(args.gff, mvf.contig_data,
                                       gene_prefix=args.gene_prefix)
     args.qprint("GFF processed.")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite,
-                              flavor=mvf.metadata['flavor'])
-    outmvf.metadata = deepcopy(mvf.metadata)
+                              flavor=mvf.flavor)
+    outmvf.copy_headers_from(mvf)
     if args.nongenic_mode is False:
         outmvf.metadata['contigs'] = geneids
     outmvf.write_data(outmvf.get_header())
@@ -374,7 +372,7 @@ def translate_mvf(args):
                     nentry = 0
     else:
         args.qprint("Indexing GFF gene names.")
-        #mvfid_to_gffname = outmvf.get_contig_reverse_dict()
+        # mvfid_to_gffname = outmvf.get_contig_reverse_dict()
         for xcontigid in outmvf.get_contig_ids():
             mvf_entries = {}
             contigname = outmvf.metadata['contigs'][xcontigid]['label']
@@ -386,16 +384,16 @@ def translate_mvf(args):
             if not int(xcontigid) % 100:
                 args.qprint("Processing contig: {} {}".format(
                     xcontigid, contigname))
-            #contig_cds_bases = chain(x[:3] for x in gff[contigname])
+            # contig_cds_bases = chain(x[:3] for x in gff[contigname])
             for contigid, pos, allelesets in mvf.itercontigentries(
                     xcontigid, decode=False):
-               # if pos in contig_cds_bases:
-               mvf_entries[pos] = allelesets[0]
+                # if pos in contig_cds_bases:
+                mvf_entries[pos] = allelesets[0]
             for coords in sorted(gff[contigname]):
 
                 reverse_strand = coords[3] == '-'
                 alleles = (tuple(mvf_entries.get(x, '-')
-                                for x in coords[2::-1]) if
+                                 for x in coords[2::-1]) if
                            reverse_strand else tuple(mvf_entries.get(x, '-')
                                                      for x in coords[0:3]))
                 if all(len(x) == 1 for x in alleles):
@@ -415,7 +413,7 @@ def translate_mvf(args):
                         decoded_alleles = tuple(mvf.decode(x) for x in alleles)
                     amino_acids = tuple(translate_single_codon(''.join(x))
                                         for x in zip(*decoded_alleles))
-                    #print("aminx", amino_acids)
+                    # print("aminx", amino_acids)
                     amino_acids = mvf.encode(''.join(amino_acids))
                 # if all(x in '-X' for x in amino_acids):
                 #    continue

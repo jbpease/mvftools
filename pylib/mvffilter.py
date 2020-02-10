@@ -31,7 +31,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
-from copy import deepcopy
 from pylib.mvfbase import MultiVariantFile, encode_mvfstring
 from pylib.mvfbiolib import MvfBioLib
 
@@ -176,7 +175,10 @@ def make_module(modulename, ncol, optargs=None):
         if mvfenc == 'onecov':
             num = int(entry[3:])
             if num not in optargs[0]:
-                return '{}-'.format(entry[0])
+                if 0 in optargs[0]:
+                    return '{}-'.format(entry[0])
+                else:
+                    return "-"
             if list(sorted(optargs[0])) == [0, num]:
                 return '{}{}'.format(entry[0], entry[2])
             return '{}{}'.format(entry[0:3],
@@ -185,8 +187,12 @@ def make_module(modulename, ncol, optargs=None):
             if optargs[0] == [0]:
                 return entry[0]
             num = int(entry[4:])
+            print(optargs, num, entry)
             if num not in optargs[0]:
-                return entry[0:2]
+                if 0 not in optargs[0]:
+                    return entry[1]
+                else:
+                    return entry[0:2]
             if list(sorted(optargs[0])) == [0, num]:
                 return '{}{}'.format(entry[0], entry[3])
             return '{}{}'.format(entry[0:4],
@@ -245,7 +251,7 @@ def make_module(modulename, ncol, optargs=None):
     # MINCOVERAGE
     def mincoverage(entry, mvfenc):
         """minimum sample coverage"""
-        #print(mvfenc)
+        # print(mvfenc)
         if mvfenc == 'full':
             zcnt = 0
             for allele in entry:
@@ -407,7 +413,7 @@ def make_module(modulename, ncol, optargs=None):
             return entry[0].upper() == entry[2].upper()
         return False
 
-    #REQNONREFSAMPLE
+    # REQNONREFSAMPLE
     def reqnonrefsample(entry, mvfenc):
         """Returns entries only where one non-reference sample
            has an allele (not X or -)
@@ -479,9 +485,8 @@ def make_module(modulename, ncol, optargs=None):
             return (len(set([entry[0], entry[1], entry[2]])) > 1 if
                     entry[2] not in 'X-' and entry[1] not in 'X-' and
                     entry[0] not in 'X-' else False)
-        #if mvfenc == 'refvar':
+        # if mvfenc == 'refvar':
         return False
-
 
     module_toc = {
         'allelegroup': ('filter', allelegroup),
@@ -514,12 +519,13 @@ def make_module(modulename, ncol, optargs=None):
 
 # END OF MODULE DEFINITION
 
-#MODULENAMES = ['allelegroup', 'collapsemerge', 'collapsepriority',
+# MODULENAMES = ['allelegroup', 'collapsemerge', 'collapsepriority',
 #               'columns', 'maskchar', 'masklower', 'mincoverage',
 #               'notchar', 'promotelower', 'removechar', 'removelower',
 #               'reqallchar', 'reqcontig', 'reqinformative',
 #               'reqinvariant', 'reqonechar', 'reqregion',
 #               'reqsample', 'reqvariant', 'reqnonrefsample']
+
 
 MODULENAMES = make_module('getnames', 0)
 
@@ -605,7 +611,6 @@ def filter_mvf(args):
     args.qprint("Input MVF read with {} columns.".format(ncol))
     # Create Actionset
     if args.labels:
-        labels = mvf.get_sample_labels()[:]
         for i in range(len(args.actions)):
             action = args.actions[i]
             arr = action.split(':')
@@ -613,7 +618,8 @@ def filter_mvf(args):
                           'allelegroup', 'notmultigroup'):
                 for j in range(1, len(arr)):
                     arr[j] = ','.join([
-                        str(labels.index(x)) for x in arr[j].split(',')])
+                        str(mvf.sample_id_to_index(x))
+                        for x in arr[j].split(',')])
             args.actions[i] = ':'.join(arr)
     actionset = build_actionset(args.actions, ncol)
     args.qprint("Actions established.")
@@ -677,29 +683,30 @@ def filter_mvf(args):
     # MAIN MODE
     # Set up file handler
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
-    outmvf.metadata = deepcopy(mvf.metadata)
+    outmvf.copy_headers_from(mvf)
     # reprocess header if actions are used that filter columns
     if any(x == y[0] for x in ('columns', 'collapsepriority', 'collapsemerge')
            for y in actionset):
-        if args.labels:
-            labels = outmvf.metadata['labels'][:]
-        else:
-            labels = [x for x in outmvf.metadata['samples']]
         for actionname, actiontype, actionfunc, actionarg in actionset:
             if actionname == 'columns':
-                labels = [labels[x] for x in actionarg[0]]
+                if args.labels:
+                    oldindices = [mvf.sample_id_to_index[int(x)]
+                                  for x in actionarg[0]]
+                else:
+                    oldindices = [int(x) for x in actionarg[0]]
             elif actionname in ('collapsepriority', 'collapsemerge'):
-                labels = [labels[x] for x in range(len(labels))
-                          if x not in actionarg[0][1:]]
-        if args.labels:
-            oldindices = mvf.get_sample_indices(labels)
-        else:
-            oldindices = labels[:]
-        newsamples = {}
-        for i, _ in enumerate(labels):
-            newsamples[i] = mvf.metadata['samples'][oldindices[i]]
-        outmvf.metadata['samples'] = newsamples.copy()
-        outmvf.metadata['labels'] = labels[:]
+                if args.labels:
+                    oldindices = [mvf.sample_id_to_index[int(x)]
+                                  for x in mvf.sample_indices
+                                  if str(x) not in actionarg[0][1:]]
+                else:
+                    oldindices = [x for x in mvf.sample_indicies
+                                  if str(x) not in actionarg[0][1:]]
+        outmvf.sample_ids = mvf.get_sample_ids(oldindices)
+        outmvf.sample_data = dict([
+            (i, mvf.sample_data[oldindices[i]])
+            for i, _ in enumerate(oldindices)])
+        outmvf.sample_indices = list(range(len(oldindices)))
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF established.")
     # End header editing
