@@ -63,7 +63,7 @@ def calc_sample_coverage(args):
       """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
-    data_order = []
+    # data_order = []
     # Set up sample indices
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -108,7 +108,7 @@ def calc_dstat_combinations(args):
     """
     mvf = MultiVariantFile(args.mvf, 'read')
     data = {}
-    sample_labels = mvf.get_sample_labels()
+    sample_labels = mvf.get_sample_ids()
     if args.outgroup_indices is not None:
         outgroup_indices = [int(x) for x in
                             args.outgroup_indices[0].split(",")]
@@ -218,8 +218,6 @@ def calc_pattern_count(args):
     current_contig = None
     current_position = 0
     sitepatterns = {}
-
-    # sample_labels = mvf.get_sample_labels()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -284,7 +282,7 @@ def calc_pattern_count(args):
          for x in range(0, 2 ** nsamples, 2)])
     outfile = OutputFile(path=args.out, headers=headers)
     outfile.write("#{}\n".format(",".join(
-        mvf.get_sample_labels(sample_indices))))
+        mvf.get_sample_ids(sample_indices))))
     sorted_entries = sorted([(data[k]['contig'],
                               data[k]['position'], k)
                              for k in data])
@@ -330,6 +328,7 @@ def calc_character_count(args):
     data_in_buffer = False
     # Set up base matching from special words
     data_order = []
+
     def proc_special_word(argx):
         if argx == 'dna':
             argx = MLIB.validchars['dna']
@@ -464,7 +463,7 @@ def calc_all_character_count_per_sample(args):
     current_position = 0
     data_in_buffer = False
     # Set up sample indices
-    sample_labels = mvf.get_sample_labels()
+    sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -753,7 +752,6 @@ def get_pairwise_function(datatype, ambig):
                                      for _ in range(paircount))
                         diff += sum(int(x >= nisec) for x in randstate)
                         total += paircount
-                #print(pairbases, pairbases[0] != pairbases[1], paircount, diff, total)
             return diff, total
     else:
         def pairwise_distance_func(basepairs, mode=datatype):
@@ -773,9 +771,9 @@ def get_pairwise_function(datatype, ambig):
                     continue
                 diff += int(pairbases[0] != pairbases[1]) * paircount
                 total += paircount
-                # print(pairbases, pairbases[0] != pairbases[1], paircount, diff, total)
             return diff, total
     return pairwise_distance_func
+
 
 def pairwise_distance_strict(basepairs, mode='dna'):
     """Calculates strict pairwise distances between two sequences
@@ -795,7 +793,6 @@ def pairwise_distance_strict(basepairs, mode='dna'):
         diff += int(pairbases[0] != pairbases[1]) * paircount
         total += paircount
     return diff, total
-
 
 
 def pairwise_distance_nuc_ambig(basepairs, random=None):

@@ -695,6 +695,10 @@ class MVFcall():
             parser.add_argument(
                 "--verbose", action="store_true",
                 help="report every line (for debugging)")
+            parser.add_argument(
+                "--retain-empty", "--retainempty",
+                action="store_true",
+                help="keep empty entries during filtering")
             parser.addarg_overwrite()
             return parser
         parser = generate_argparser()

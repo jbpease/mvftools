@@ -202,7 +202,8 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
             coords = [int(arr[3]), int(arr[4])]
             strand = arr[6]
             if genename not in geneids:
-                geneids[geneid] = {'label': genename,
+                geneids[geneid] = {'id': str(geneid),
+                                   'label': genename,
                                    'length': max(coords) - min(coords),
                                    'strand': strand}
             for j in range(min(coords), max(coords) + 1):
@@ -212,11 +213,11 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
         matchlabel = False
         for contigid in contigs:
             if contigs[contigid]['label'] == contig:
-                relabeled_gff_entries[contigid] = gff_entries[contig].copy()
+                relabeled_gff_entries[str(contigid)] = gff_entries[contig].copy()
                 matchlabel = True
                 break
         if matchlabel is False:
-            relabeled_gff_entries[contig] = gff_entries[contig].copy()
+            relabeled_gff_entries[str(contig)] = gff_entries[contig].copy()
     gff_entries = None
     return relabeled_gff_entries, geneids
 
@@ -262,7 +263,12 @@ def annotate_mvf(args):
                               flavor=mvf.flavor)
     outmvf.copy_headers_from(mvf)
     if args.nongenic_mode is False:
-        outmvf.metadata['contigs'] = geneids
+        outmvf.contig_data = geneids.copy()
+        outmvf.contig_indices = list(range(len(geneids)))
+        outmvf.contig_ids = [geneids[x]['id'] for x in
+                             outmvf.contig_indices]
+        outmvf.contig_labels = [geneids[x]['label'] for x in
+                                outmvf.contig_indices]
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF established.")
     entrybuffer = []

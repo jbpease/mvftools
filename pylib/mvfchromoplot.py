@@ -448,7 +448,7 @@ def plot_chromoplot(args):
         contigids = mvf.get_contig_ids()
     args.qprint("Plotting chromoplot for contigs: {}".format(
         ",".join(contigids)))
-    sample_labels = mvf.get_sample_labels()
+    sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -474,8 +474,8 @@ def plot_chromoplot(args):
         if args.quiet is False:
             print("Beginning quartet {}".format(",".join(quartet_labels)))
         params = {'contigs': [[contigid,
-                               mvf.metadata['contigs'][contigid]['label'],
-                               mvf.metadata['contigs'][contigid]['length']]
+                               mvf.contig_data[contigid]['label'],
+                               mvf.contig_data[contigid]['length']]
                               for contigid in contigids],
                   'outpath': ((args.out_prefix if args.out_prefix is not None
                                else '') or '_'.join(quartet_labels)) + ".png",
