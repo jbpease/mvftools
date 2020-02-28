@@ -373,7 +373,7 @@ def vcf2mvf(args=None):
                         raise RuntimeError(
                             'Contig label {} is not unique'.format(cmvf))
                     mvf.metadata['contigs'][cid]['label'] = cmvf[:]
-    mvf.reset_max_contig_id()
+    mvf.reset_max_contig()
     args.qprint("Processing contigs.")
     static_contig_ids = mvf.get_contig_ids()
     for vcid in vcfcontigs:
@@ -387,7 +387,7 @@ def vcf2mvf(args=None):
             mvf.metadata['contigs'][newid] = vcfcontigs[vcid].copy()
             static_contig_ids.append(newid)
             contig_translate[vlabel] = [newid, vlabel]
-    mvf.reset_max_contig_id()
+    mvf.reset_max_contig()
     new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
                    for x in mvf.metadata['contigs']]
     if args.skip_contig_label_check is False:
