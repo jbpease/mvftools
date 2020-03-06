@@ -175,7 +175,7 @@ def concatenate_mvf(args):
                     for x in concatmvf.metadata['contigs']]:
                 newid = (contigid if
                          contigid not in concatmvf.metadata['contigs'] else
-                         concatmvf.get_next_contig_id())
+                         concatmvf.get_next_contig_index())
                 concatmvf.metadata['contigs'][newid] = contigdata
             else:
                 for concatid, concatdata in (
@@ -271,7 +271,7 @@ def merge_mvf(args):
                 new_cindex = (mvf.contig_data[cindex]['id'] if
                               mvf.contig_data[cindex]['id'] not in
                               concatmvf.contig_ids else
-                              concatmvf.get_next_contig_id())
+                              concatmvf.get_next_contig_index())
                 concatmvf.contig_data[new_cindex] = (
                     mvf.contig_data[cindex].copy())
             else:

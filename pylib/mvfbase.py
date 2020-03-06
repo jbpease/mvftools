@@ -474,7 +474,7 @@ class MultiVariantFile():
         self.max_sample_index = len(self.sample_indices)
         return ''
 
-    def get_next_contig_id(self):
+    def get_next_contig_index(self):
         """Returns the (highest integer id) + 1 or 0"""
         self.max_contig_id += 1
         return str(self.max_contig_id)

@@ -654,7 +654,7 @@ def calc_pairwise_distances(args):
                 samplepair = (0, int(alleles[3:]))
                 if any(x not in sample_indices for x in samplepair):
                     continue
-                basepair = "{}{}".format(alleles[0], alleles[2])
+                basepair = "{0}{1}".format(alleles[0], alleles[2])
                 base_matches[samplepair][basepair] = (
                     base_matches[samplepair].get(basepair, 0) + 1)
                 data_in_buffer = True
@@ -664,7 +664,7 @@ def calc_pairwise_distances(args):
                                if x not in 'X-' and i in sample_indices]
             for i, j in combinations(valid_positions, 2):
                 samplepair = (i, j)
-                basepair = "{}{}".format(alleles[i], alleles[j])
+                basepair = "{0}{1}".format(alleles[i], alleles[j])
                 base_matches[samplepair][basepair] = (
                     base_matches[samplepair].get(basepair, 0) + 1)
             data_in_buffer = True

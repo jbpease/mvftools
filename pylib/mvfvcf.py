@@ -89,6 +89,7 @@ class VariantCallFile():
                                  if contig_length
                                  else 0)
                 self.metadata['contigs'][tempid] = {
+                    'id': str(tempid),
                     'label': contig_name, 'length': contig_length}
                 tempid += 1
             elif line.startswith("#CHROM"):
@@ -375,21 +376,24 @@ def vcf2mvf(args=None):
                     mvf.metadata['contigs'][cid]['label'] = cmvf[:]
     mvf.reset_max_contig()
     args.qprint("Processing contigs.")
-    static_contig_ids = mvf.get_contig_ids()
+    static_contig_ids = list(mvf.get_contig_ids())
     for vcid in vcfcontigs:
         vlabel = vcfcontigs[vcid]['label']
         if vlabel not in static_contig_ids:
+            newindex = mvf.get_next_contig_index()
             if ((is_int(vlabel) or len(vlabel) < 3) and
                     vlabel not in static_contig_ids):
                 newid = vlabel[:]
             else:
-                newid = mvf.get_next_contig_id()
-            mvf.metadata['contigs'][newid] = vcfcontigs[vcid].copy()
+                newid = str(newindex)
+            mvf.contig_indices.append(newindex)
+            mvf.contig_ids.append(newid)
+            mvf.contig_data[newindex] = vcfcontigs[vcid].copy()
             static_contig_ids.append(newid)
-            contig_translate[vlabel] = [newid, vlabel]
+            contig_translate[vlabel] = [newindex, vlabel]
     mvf.reset_max_contig()
-    new_contigs = [(x, mvf.metadata['contigs'][x]['label'])
-                   for x in mvf.metadata['contigs']]
+    new_contigs = [(x, mvf.contig_data[x]['label'])
+                   for x in mvf.contig_ids]
     if args.skip_contig_label_check is False:
         args.qprint("Checking contigs for label/id overlap errors.")
         xids = [x[0] for x in new_contigs]
@@ -424,11 +428,14 @@ def vcf2mvf(args=None):
                     break
             if labelmatched is not False:
                 del unmatched[labelmatched]
-    mvf.metadata['labels'] = samplelabels[:]
+    mvf.sample_indices = list(range(len(samplelabels)))
+    mvf.sample_ids = samplelabels[:]
     for i, label in enumerate(samplelabels):
-        mvf.metadata['samples'][i] = {'label': label}
-    mvf.metadata['ncol'] = len(mvf.metadata['labels'])
+        mvf.sample_data[i] = {'id': label}
+    mvf.metadata['ncol'] = len(mvf.sample_ids)
+    mvf.max_sample_index = len(mvf.sample_ids)
     mvf.metadata['sourceformat'] = vcf.metadata['sourceformat']
+    print(mvf.sample_data)
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
