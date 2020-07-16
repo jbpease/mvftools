@@ -30,6 +30,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import gzip
 import re
+import sys
 from math import log10
 from pylib.mvfbase import encode_mvfstring, MultiVariantFile, is_int
 from pylib.mvfbiolib import MvfBioLib
@@ -148,7 +149,11 @@ class VariantCallFile():
                 for xline in linebuffer:
                     if args.verbose is True:
                         print(xline)
-                    vcfrecord = self._parse_entry(xline, **vars(args))
+                    try:
+                        vcfrecord = self._parse_entry(xline, **vars(args))
+                    except:
+                        print("ERROR ON LINE:", line)
+                        sys.exit()
                     # vcfrecord is either (0, DATA) or (1, ERROR_MESSAGE)
                     if vcfrecord[0] == 1:  # 1 indicates error, 0=pass
                         if args.verbose is True:
@@ -351,6 +356,8 @@ def vcf2mvf(args=None):
     # ESTABLISH MVF
     args.qprint("Establishing output MVF: {}".format(args.out))
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
+    mvf.metadata['origcmd'] = '"{}"'.format(args.origcmd)
+    mvf.metadata['mvfversion'] = args.versionx
     # PROCESS CONTIG INFO
     args.qprint("Processing VCF headers.")
     vcfcontigs = vcf.metadata['contigs'].copy()
@@ -375,6 +382,7 @@ def vcf2mvf(args=None):
                             'Contig label {} is not unique'.format(cmvf))
                     mvf.metadata['contigs'][cid]['label'] = cmvf[:]
     mvf.reset_max_contig()
+    mvf.max_contig_index -= 1
     args.qprint("Processing contigs.")
     static_contig_ids = list(mvf.get_contig_ids())
     for vcid in vcfcontigs:
@@ -393,22 +401,30 @@ def vcf2mvf(args=None):
             contig_translate[vlabel] = [newindex, vlabel]
     mvf.reset_max_contig()
     new_contigs = [(x, mvf.contig_data[x]['label'])
-                   for x in mvf.contig_ids]
+                   for x in mvf.contig_indices]
     if args.skip_contig_label_check is False:
         args.qprint("Checking contigs for label/id overlap errors.")
         xids = [x[0] for x in new_contigs]
         xlabels = [x[1] for x in new_contigs]
-        for i, (newid, newlabel) in enumerate(new_contigs):
-            if newid in xlabels[:i] or newid in xlabels[i+1:]:
-                raise RuntimeError("Error contig id {} is the same as"
-                                   " the label for another contig"
-                                   " ({})".format(
-                                       newid, xlabels))
-            if newlabel in xids[:i] or newlabel in xids[i+1:]:
-                raise RuntimeError("Error contig label {} is the same"
-                                   "as the id for another contig"
-                                   "({})".format(
-                                       newlabel, xlabels))
+        xintersect = set(xids).intersection(xlabels)
+        if xintersect:
+            for i, (newid, newlabel) in enumerate(new_contigs):
+                if i % 100 == 0:
+                    args.qprint("{} contigs processed".format(i))
+                if newid in xlabels[:i] or newid in xlabels[i+1:]:
+                    # if newid in xlabels:
+                    # if xlabels.index(newid) != i:
+                    raise RuntimeError("Error contig id {} is the same as"
+                                       " the label for another contig"
+                                       " ({})".format(
+                                           newid, xlabels.index(newid)))
+                if newlabel in xids[:i] or newlabel in xids[i+1:]:
+                    # if newlabel in xids:
+                    # if xids.index(newlabel) != i:
+                    raise RuntimeError("Error contig label {} is the same"
+                                       "as the id for another contig"
+                                       "({})".format(
+                                           newlabel, xids.index(newlabel)))
     # PROCESS SAMPLE INFO
     args.qprint("Processing samples.")
     samplelabels = [args.ref_label] + vcf.metadata['samples'][:]
@@ -435,12 +451,12 @@ def vcf2mvf(args=None):
     mvf.metadata['ncol'] = len(mvf.sample_ids)
     mvf.max_sample_index = len(mvf.sample_ids)
     mvf.metadata['sourceformat'] = vcf.metadata['sourceformat']
-    print(mvf.sample_data)
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     mvfentries = []
     nentry = 0
     args.qprint("Processing VCF entries.")
+    print(contig_translate['scaffold_0'])
     for vcfrecord in vcf.iterentries(args):
         # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))

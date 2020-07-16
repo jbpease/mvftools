@@ -51,6 +51,7 @@ OLDCOMMAND = {
     "JoinMVF": "ConcatenateMVF",  # Backward compatible
     }
 
+
 def make_qprint(quiet, time0):
     """Creates a running time-stamped print statement that executes
        only if args.quiet is False
@@ -103,7 +104,7 @@ class MVFcall():
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.5.4",
+                            version="0.5.4rc1",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if args.command in OLDCOMMAND:
@@ -113,7 +114,6 @@ class MVFcall():
             parser.print_help()
             exit(1)
         getattr(self, args.command)()
-
 
     def AnnotateMVF(self):
         """Annotates a chromosomal MVF file with new contig
@@ -220,8 +220,6 @@ class MVFcall():
         args.qprint = make_qprint(args.quiet, self.time0)
         mvfanalysis.calc_character_count(args)
         return ''
-
-
 
     def CalcDstatCombinations(self):
         """Calculates all D-statistics for all combinations of
@@ -349,8 +347,8 @@ class MVFcall():
 
     def ConcatenateMVF(self):
         """Combine non-overlapping contigs from one or more MVF files into a
-           single MVF file.  This does NOT merge columns.  Use MergeMVF to merge
-           sample columns from multiple files.
+           single MVF file.  This does NOT merge columns.
+           Use MergeMVF to merge sample columns from multiple files.
         """
 
         def generate_argparser():
@@ -663,6 +661,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.origcmd = " ".join(self.arguments)
         vcf2mvf(args)
         return ''
 

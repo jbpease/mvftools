@@ -30,7 +30,6 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import re
-from copy import deepcopy
 from pylib.mvfbase import MultiVariantFile
 from pylib.mvfbiolib import MvfBioLib
 MLIB = MvfBioLib()
@@ -145,19 +144,19 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
                 gff_entries[arr[0]][parent] = [strand, []]
             gff_entries[arr[0]][parent][1].extend(range(min(coords),
                                                         max(coords) + 1))
-    for contigname in gff_entries:
-        for gene in gff_entries[contigname]:
-            if len(gff_entries[contigname][gene][1]) % 3:
+    for contiglabel in gff_entries:
+        for gene in gff_entries[contiglabel]:
+            if len(gff_entries[contiglabel][gene][1]) % 3:
                 continue
-            strand = gff_entries[contigname][gene][0]
-            coords = sorted(gff_entries[contigname][gene][1])
+            strand = gff_entries[contiglabel][gene][0]
+            coords = sorted(gff_entries[contiglabel][gene][1])
             for j in range(0, len(coords), 3):
                 try:
-                    gff_triplets[contigname].append((coords[j], coords[j+1],
+                    gff_triplets[contiglabel].append((coords[j], coords[j+1],
                                                      coords[j+2], strand))
                 except IndexError:
                     raise RuntimeError(len(coords), j, strand,
-                                       contigname, coords[j])
+                                       contiglabel, coords[j])
     gff_entries = None
     return gff_triplets
 
@@ -213,7 +212,8 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
         matchlabel = False
         for contigid in contigs:
             if contigs[contigid]['label'] == contig:
-                relabeled_gff_entries[str(contigid)] = gff_entries[contig].copy()
+                relabeled_gff_entries[str(contigid)] = (
+                    gff_entries[contig].copy())
                 matchlabel = True
                 break
         if matchlabel is False:
@@ -321,7 +321,7 @@ def translate_mvf(args):
                                   parent_gene_prefix=args.parent_gene_prefix)
         args.qprint("GFF processed.")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
-    outmvf.metadata = deepcopy(mvf.metadata)
+    outmvf.copy_headers_from(mvf)
     outmvf.flavor = args.output_data
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF Established.")
@@ -379,23 +379,23 @@ def translate_mvf(args):
     else:
         args.qprint("Indexing GFF gene names.")
         # mvfid_to_gffname = outmvf.get_contig_reverse_dict()
-        for xcontigid in outmvf.get_contig_ids():
+        for xcontig in outmvf.get_contig_indices():
             mvf_entries = {}
-            contigname = outmvf.metadata['contigs'][xcontigid]['label']
-            if contigname not in gff:
+            xcontiglabel = outmvf.get_contig_labels(indices=xcontig)[0]
+            xcontigid = outmvf.get_contig_ids(indices=xcontig)[0]
+            if xcontiglabel not in gff:
                 if args.verbose:
-                    print("No entries in GFF, skipping contig: {} {}".format(
-                        xcontigid, contigname))
+                    print("No entries in GFF, skipping contig: index:{} id:{} label:{}".format(
+                        xcontig, xcontigid, xcontiglabel))
                 continue
-            if not int(xcontigid) % 100:
+            if not xcontig % 100:
                 args.qprint("Processing contig: {} {}".format(
-                    xcontigid, contigname))
-            # contig_cds_bases = chain(x[:3] for x in gff[contigname])
+                    xcontigid, xcontiglabel))
             for contigid, pos, allelesets in mvf.itercontigentries(
-                    xcontigid, decode=False):
+                    xcontig, decode=False):
                 # if pos in contig_cds_bases:
                 mvf_entries[pos] = allelesets[0]
-            for coords in sorted(gff[contigname]):
+            for coords in sorted(gff[xcontiglabel]):
 
                 reverse_strand = coords[3] == '-'
                 alleles = (tuple(mvf_entries.get(x, '-')
@@ -426,7 +426,7 @@ def translate_mvf(args):
                 # print("amino", amino_acids)
                 # print("translated", amino_acids, alleles)
                 if args.output_data == 'protein':
-                    entrybuffer.append((xcontigid, coords[0], (amino_acids,)))
+                    entrybuffer.append((xcontig, coords[0], (amino_acids,)))
                 else:
                     entrybuffer.append((
                         xcontigid, coords[0], (

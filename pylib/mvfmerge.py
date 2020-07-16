@@ -175,7 +175,7 @@ def concatenate_mvf(args):
                     for x in concatmvf.metadata['contigs']]:
                 newid = (contigid if
                          contigid not in concatmvf.metadata['contigs'] else
-                         concatmvf.get_next_contig_index())
+                         concatmvf.get_next_contig_id())
                 concatmvf.metadata['contigs'][newid] = contigdata
             else:
                 for concatid, concatdata in (
@@ -314,10 +314,11 @@ def merge_mvf(args):
                     contig_merged_entries[pos] = (
                         contig_merged_entries[pos][:xcoord] + base +
                         contig_merged_entries[pos][xcoord+1:])
-        concatmvf.write_entries(((cons_contig, coord, (entry,))
-                                 for coord, entry in
-                                 sorted(contig_merged_entries.items())
-                                 ), encoded=False)
+        if contig_merged_entries:
+            concatmvf.write_entries(((cons_contig, coord, (entry,))
+                                     for coord, entry in
+                                     sorted(contig_merged_entries.items())
+                                     ), encoded=False)
         args.qprint("Entries written for contig {}: {}".format(
                 cons_contig, len(contig_merged_entries)))
     return ''

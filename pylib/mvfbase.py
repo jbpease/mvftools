@@ -167,6 +167,8 @@ class MultiVariantFile():
                     header_lines.append(line.rstrip())
                     self.entrystart = filehandler.tell()
                     line = filehandler.readline()
+                self._process_header(header_lines)
+                self.max_sample_index = len(self.sample_indices)
                 index_mvf = kwargs.get('contigindex', False)
                 if index_mvf is True:
                     if os.path.exists(self.path + ".idx"):
@@ -184,13 +186,12 @@ class MultiVariantFile():
                         while line:
                             coord = filehandler.tell()
                             line = filehandler.readline()
-                            if line.split(":")[0] != previous_contig:
-                                if ":" in line:
+                            if ":" in line:
+                                if line.split(":")[0] != previous_contig:
                                     idxfile.write('{}\t{}\n'.format(
                                         line.split(":")[0],
                                         coord))
                                     previous_contig = line.split(":")[0]
-                self._process_header(header_lines)
                 if kwargs.get('contigindex', False) is True:
                     self.read_index_file()
                 # Establish number of columns
@@ -474,13 +475,19 @@ class MultiVariantFile():
         self.max_sample_index = len(self.sample_indices)
         return ''
 
-    def get_next_contig_index(self):
+    def get_next_contig_id(self):
         """Returns the (highest integer id) + 1 or 0"""
         self.max_contig_id += 1
         return str(self.max_contig_id)
 
+    def get_next_contig_index(self):
+        """Returns the (highest integer id) + 1 or 0"""
+        self.max_contig_index += 1
+        return self.max_contig_index
+
     def read_index_file(self):
         """Reads the mvf.idx file with contig coordinates
+           Index File stores contig cordinates based on id, not index
         """
         with open(self.path + ".idx") as idxfile:
             for line in idxfile:
@@ -512,7 +519,7 @@ class MultiVariantFile():
                         linecount, line))
         filehandler.close()
 
-    def itercontigentries(self, target_contig,
+    def itercontigentries(self, target_contig_index,
                           decode=True, no_invariant=False,
                           no_gap=False, no_ambig=False,
                           onlyalleles=False, subset=None):
@@ -540,8 +547,8 @@ class MultiVariantFile():
             filehandler = gzip.open(self.path, 'rb')
         else:
             filehandler = open(self.path, 'r')
-        filehandler.seek(self.contig_data[target_contig]['idx'])
-        target_id = self.contig_data[target_contig]['id']
+        filehandler.seek(self.contig_data[target_contig_index]['idx'])
+        target_id = self.contig_data[target_contig_index]['id']
         for line in filehandler:
             try:
                 if self.metadata['isgzip']:
@@ -699,6 +706,10 @@ class MultiVariantFile():
                 "{}={}".format(k, v) for (k, v) in self.metadata.items()
                 if k not in ('version', 'isgzip', 'labels', 'flavor',
                              'trees', 'notes')]))]
+        if self.notes:
+            header.extend(["#n {}".format(x) for x in self.notes])
+        if self.trees:
+            header.extend(["#t {}".format(x) for x in self.trees])
         header.extend(["#s {} {}".format(
             self.sample_data[x]['id'],
             ' '.join(["{}={}".format(k, v) for (k, v) in (
@@ -711,10 +722,6 @@ class MultiVariantFile():
                self.contig_data[x].items())
                       if k not in ['length', 'label', 'idx', 'id']]))
                        for x in self.contig_indices])
-        if self.trees:
-            header.extend(["#t {}".format(x) for x in self.trees])
-        if self.notes:
-            header.extend(["#n {}".format(x) for x in self.notes])
         return '\n'.join(header) + '\n'
 
     def copy_header(self, mvfold):
@@ -772,10 +779,11 @@ class MultiVariantFile():
                 entries: list of entry tuples (contigid, pos, alleles)
                 encoded: entries have been pre-encoded (default=True)
         """
-        self.write_data('\n'.join(["{}:{} {}".format(
-            entry[0], entry[1], ' '.join([
-                x if encoded else encode_mvfstring(x) for x in entry[2]]))
-                                   for entry in entries]) + '\n')
+        if entries:
+            self.write_data('\n'.join(["{}:{} {}".format(
+                entry[0], entry[1], ' '.join([
+                    x if encoded else encode_mvfstring(x) for x in entry[2]]))
+                                       for entry in entries]) + '\n')
         return ''
 
 

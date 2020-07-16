@@ -35,12 +35,15 @@ class MvfArgumentParser(argparse.ArgumentParser):
     """Creates common argparse elements for various MVF modules"""
 
     def __init__(self):
+        version = '0.5.4rc1'
         super(MvfArgumentParser, self).__init__()
         setattr(self, 'formatter_class',
                 argparse.ArgumentDefaultsHelpFormatter)
         self.add_argument("--version", action="version",
-                          version="0.5.4",
+                          version=version,
                           help="Display version information.")
+        self.add_argument("--versionx", default=version,
+                          help=argparse.SUPPRESS)
         self.add_argument(
             "--quiet", action="store_true",
             help="Suppress screen output.")
