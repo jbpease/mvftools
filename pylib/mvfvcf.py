@@ -153,7 +153,8 @@ class VariantCallFile():
                         vcfrecord = self._parse_entry(xline, **vars(args))
                     except:
                         print("ERROR ON LINE:", line)
-                        sys.exit()
+                        print(sys.exc_info()[0]) 
+                        raise Exception
                     # vcfrecord is either (0, DATA) or (1, ERROR_MESSAGE)
                     if vcfrecord[0] == 1:  # 1 indicates error, 0=pass
                         if args.verbose is True:
@@ -254,8 +255,15 @@ class VariantCallFile():
         except Exception as exception:
             sample_depth = -1
         # Fixed sites
-        if sample.get('GT', '') in ('.|.', './.'):
-            return ('X', 0, 0)
+        if kwargs['ploidy'] == 2:
+            if sample.get('GT', '') in ('.|.', './.'):
+                return ('X', 0, 0)
+        elif kwargs['ploidy'] == 4:
+            if sample.get('GT', '') in ('.|.|.|.', './././.'):
+                return ('X', 0, 0)
+        elif kwargs['ploidy'] == 6:
+            if sample.get('GT', '') in ('.|.|.|.|.|.', './././././.'):
+                return ('X', 0, 0)
         if all(sample.get(x, -1) in (-1, '.')
                for x in ('PL', 'GL', 'GQ', 'GP')):
             quality = -1
@@ -456,9 +464,7 @@ def vcf2mvf(args=None):
     mvfentries = []
     nentry = 0
     args.qprint("Processing VCF entries.")
-    print(contig_translate['scaffold_0'])
     for vcfrecord in vcf.iterentries(args):
-        # try:
         mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
         if args.out_flavor in ('dnaqual',):
             qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
@@ -474,7 +480,6 @@ def vcf2mvf(args=None):
                 mvf.write_entries(mvfentries, encoded=True)
                 mvfentries = []
                 nentry = 0
-        # except Exception as exception:
     if mvfentries:
         mvf.write_entries(mvfentries)
         mvfentries = []
