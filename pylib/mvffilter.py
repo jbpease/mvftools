@@ -598,7 +598,6 @@ def filter_mvf(args):
     if args.more_help is True:
         modulehelp()
         sys.exit()
-    print(args.test)
     if args.mvf is None and args.test is None:
         raise RuntimeError("No input file specified with --mvf")
     if args.out is None and args.test is None:
@@ -702,7 +701,7 @@ def filter_mvf(args):
                                   if str(x) not in actionarg[0][1:]]
                 else:
                     oldindices = [x for x in mvf.sample_indices
-                                  if str(x) not in actionarg[0][1:]]
+                                  if x not in actionarg[0][1:]]
         outmvf.sample_ids = mvf.get_sample_ids(oldindices)
         outmvf.sample_data = dict([
             (i, mvf.sample_data[oldindices[i]])
