@@ -103,7 +103,7 @@ def make_module(modulename, ncol, optargs=None):
             if optargs[0][0] == 0 and num in optargs[0]:
                 return ''
             return "{}{}".format(entry[0:3], num - len([
-                x for x in optargs if x < num]))
+                x for x in optargs[0] if x < num]))
         if mvfenc == 'onevar':
             num = int(entry[4:])
             if optargs[0][0] == 0:
@@ -146,7 +146,7 @@ def make_module(modulename, ncol, optargs=None):
             if optargs[0][0] == 0 and num in optargs[0]:
                 return ''
             return "{}{}".format(entry[0:3], num - len([
-                x for x in optargs if x < num]))
+                x for x in optargs[0] if x < num]))
         if mvfenc == 'onevar':
             num = int(entry[4:])
             if optargs[0][0] == 0:
@@ -598,6 +598,7 @@ def filter_mvf(args):
     if args.more_help is True:
         modulehelp()
         sys.exit()
+    print(args.test)
     if args.mvf is None and args.test is None:
         raise RuntimeError("No input file specified with --mvf")
     if args.out is None and args.test is None:
@@ -700,7 +701,7 @@ def filter_mvf(args):
                                   for x in mvf.sample_indices
                                   if str(x) not in actionarg[0][1:]]
                 else:
-                    oldindices = [x for x in mvf.sample_indicies
+                    oldindices = [x for x in mvf.sample_indices
                                   if str(x) not in actionarg[0][1:]]
         outmvf.sample_ids = mvf.get_sample_ids(oldindices)
         outmvf.sample_data = dict([
@@ -713,6 +714,7 @@ def filter_mvf(args):
     linebuffer = []
     nbuffer = 0
     args.qprint("Processing Entries.")
+    write_total = 0
     for chrom, pos, allelesets in mvf.iterentries(decode=False):
         linefail = False
         transformed = False
@@ -750,8 +752,9 @@ def filter_mvf(args):
             if args.verbose:
                 sys.stdout.write("{}\n".format(alleles))
             if nbuffer == args.line_buffer:
-                args.qprint("Writing block of {} output entries.".format(
-                    args.line_buffer))
+                write_total += args.line_buffer
+                args.qprint("{} entries written. Total written: {}.".format(
+                    args.line_buffer, write_total))
                 outmvf.write_entries(linebuffer)
                 linebuffer = []
                 nbuffer = 0
@@ -759,5 +762,8 @@ def filter_mvf(args):
             sys.stdout.write("FAIL\n")
     if linebuffer:
         outmvf.write_entries(linebuffer)
+        write_total += len(linebuffer)
+        args.qprint("{} entries written. Total written: {}.".format(
+            args.line_buffer, write_total))
         linebuffer = []
     return ''

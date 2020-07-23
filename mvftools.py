@@ -652,6 +652,11 @@ class MVFcall():
                         skip checking for repeat labels.
                         (use with caution).""")
             parser.add_argument(
+                "--filter-nonref-empty",
+                action="store_true",
+                help="""Do not output entries that are masked
+                        or empty for all samples (not the reference).""")
+            parser.add_argument(
                 "--verbose", action="store_true",
                 help="""Output excessive data to screen for debugging""")
             parser.addarg_overwrite()

@@ -218,6 +218,12 @@ class VariantCallFile():
         else:
             record['genotypes'] = [record['alleles'][0]]
             record['qscores'] = ['h']
+        # ADDED CASE FOR WHEN DP IS ENCODED IN INFO FOR SINGLE_COLUMN INSTEAD OF COLUMN 9
+        if len(record['samples']) == 1:
+            if "DP=" in arr[7] and 'DP' not in arr[8]:
+                xdepth = re.findall(r'DP=([0-9]*)', arr[7])
+                if xdepth:
+                    record['samples'][0]['DP'] = xdepth[0]
         for j in range(len(record['samples'])):
             (allele, quality, _) = (
                 self._call_allele(record['samples'][j],
@@ -248,12 +254,11 @@ class VariantCallFile():
             sample['GT'] = sample['GT'].replace('|', '/')
         if list(sample.values())[0][0] == '.':
             return ('-', 0, 0)
-        try:
-            sample_depth = int(sample['DP'])
-            if sample_depth == 0:
-                return ('-', 0, 0)
-        except Exception as exception:
-            sample_depth = -1
+        sample_depth = int(sample.get('DP', -1))
+        if sample_depth == 0:
+            return ('-', 0, 0)
+        if -1 < sample_depth < kwargs.get("mask_depth", 1):
+            return ('X', -1, sample_depth)
         # Fixed sites
         if kwargs['ploidy'] == 2:
             if sample.get('GT', '') in ('.|.', './.'):
@@ -278,10 +283,6 @@ class VariantCallFile():
                 allele = MLIB.joinbases[allele]
             else:
                 allele = 'X'
-        # Low coverage
-        elif -1 < sample_depth < kwargs.get("mask_depth", 1):
-            quality = -1
-            allele = 'X'
         # Invariant sites
         elif len(alleles) == 1:
             allele = alleles[0]
@@ -465,7 +466,11 @@ def vcf2mvf(args=None):
     nentry = 0
     args.qprint("Processing VCF entries.")
     for vcfrecord in vcf.iterentries(args):
-        mvf_alleles = encode_mvfstring(''.join(vcfrecord['genotypes']))
+        mvfstring = ''.join(vcfrecord['genotypes'])
+        if args.filter_nonref_empty is True:
+            if all(x in 'Xx-?' for x in mvfstring[1:]):
+                continue
+        mvf_alleles = encode_mvfstring(mvfstring)
         if args.out_flavor in ('dnaqual',):
             qual_alleles = encode_mvfstring(''.join(vcfrecord['qscores']))
         if mvf_alleles:
