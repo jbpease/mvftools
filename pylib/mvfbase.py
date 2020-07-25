@@ -473,6 +473,7 @@ class MultiVariantFile():
         """Resets the ncol metadata after modifying columns
         """
         self.max_sample_index = len(self.sample_indices)
+        self.metadata['ncol'] = self.max_sample_index + 0
         return ''
 
     def get_next_contig_id(self):
@@ -547,6 +548,8 @@ class MultiVariantFile():
             filehandler = gzip.open(self.path, 'rb')
         else:
             filehandler = open(self.path, 'r')
+        if 'idx' not in self.contig_data[target_contig_index]:
+            return
         filehandler.seek(self.contig_data[target_contig_index]['idx'])
         target_id = self.contig_data[target_contig_index]['id']
         for line in filehandler:
