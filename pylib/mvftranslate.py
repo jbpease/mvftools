@@ -72,7 +72,12 @@ def translate(seq, firststop=None):
         if codon == '---':
             aa_seq.append('-')
         else:
-            aa_seq.append(MLIB.codon_tables['full'].get(codon, 'X'))
+            if codon not in MLIB.codon_tables['full']:
+                print(codon)
+            amino = MLIB.codon_tables['full'].get(codon, 'X')
+            if amino == 'X':
+                print(codon, amino)
+            aa_seq.append(amino)
     if firststop:
         aa_seq = aa_seq[:aa_seq.index('*') + int(
             firststop == "inclusive")] if '*' in aa_seq else aa_seq
@@ -83,8 +88,11 @@ def translate_single_codon(seq):
     """Returns translated amino acid from single codon
         Arguments:
     """
-    return MLIB.codon_tables['full'].get(
+    amino = MLIB.codon_tables['full'].get(
         seq.upper().replace('U', 'T'), 'X')
+    if amino == 'X' and all(x in 'ATGCU' for x in seq):
+        print(amino, seq)
+    return amino
 
 
 def iter_codons(inputbuffer, mvf):
@@ -124,15 +132,20 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
         '' if parent_gene_prefix == 'none' else parent_gene_prefix)
     regex_parentgene = re.compile(
         "Parent={}([^;$]*)".format(parent_gene_prefix))
+    #regex_parentgene = re.compile(
+    #    'gene_id "([^"]*)'.format(parent_gene_prefix))
     with open(gff_file) as gff:
         for line in gff:
             if line[0] == '#':
                 continue
-            arr = line.rstrip().split()
-            if arr[2] != 'CDS':
+            arr = line.rstrip().split("\t")
+            if arr[2] not in ('CDS'):
                 continue
             if args.filter_annotation:
                 if args.filter_annotation in arr[8]:
+                    continue
+            if args.require_annotation:
+                if args.require_annotation not in arr[8]:
                     continue
             parent = re.findall(regex_parentgene, arr[8])[0]
             if arr[0] not in gff_entries:
@@ -149,7 +162,7 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
             if len(gff_entries[contiglabel][gene][1]) % 3:
                 continue
             strand = gff_entries[contiglabel][gene][0]
-            coords = sorted(gff_entries[contiglabel][gene][1])
+            coords = tuple(sorted(gff_entries[contiglabel][gene][1]))
             for j in range(0, len(coords), 3):
                 try:
                     gff_triplets[contiglabel].append((coords[j], coords[j+1],
@@ -179,11 +192,12 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
     geneid = 0
     gene_prefix = '' if gene_prefix == 'none' else gene_prefix
     regex_geneid = re.compile("ID={}([^;$]*)".format(gene_prefix))
+    #regex_geneid = re.compile('gene_id "([^"]*)')
     with open(gff_file) as gff:
         for line in gff:
             if line[0] == '#':
                 continue
-            arr = line.rstrip().split()
+            arr = line.rstrip().split("\t")
             if arr[2] != 'gene':
                 continue
             if filter_annotation:
@@ -233,7 +247,7 @@ def parse_gff_analysis(gffpath):
             if len(arr) < 6 or line[0] == "#":
                 continue
             if arr[2] == 'mRNA':
-                gcoord = "{!s}:{!s}..{!s}".format(arr[0], arr[3], arr[4])
+                gcoord = "{}:{}..{}".format(arr[0], arr[3], arr[4])
                 notes = arr[8].split(';')
                 refid = notes[0][notes[0].find(':') + 1:notes[0].rfind('.')]
                 annot = '.'
@@ -317,6 +331,7 @@ def translate_mvf(args):
     if args.gff:
         args.qprint("Processing MVF Index File.")
         mvf.read_index_file()
+        args.qprint("GFF processing start.")
         gff = parse_gff_translate(args.gff, args,
                                   parent_gene_prefix=args.parent_gene_prefix)
         args.qprint("GFF processed.")
@@ -360,7 +375,7 @@ def translate_mvf(args):
                 current_contig = contigid[:]
         if inputbuffer:
             for _, amino_acids, alleles in iter_codons(
-                    inputbuffer, mvf):
+                    inputbuffer, outmvf):
                 if all([x in '-X' for x in amino_acids]):
                     continue
                 if args.output_data == 'protein':
@@ -393,15 +408,16 @@ def translate_mvf(args):
                     xcontigid, xcontiglabel))
             for contigid, pos, allelesets in mvf.itercontigentries(
                     xcontig, decode=False):
-                # if pos in contig_cds_bases:
                 mvf_entries[pos] = allelesets[0]
             for coords in sorted(gff[xcontiglabel]):
-
                 reverse_strand = coords[3] == '-'
                 alleles = (tuple(mvf_entries.get(x, '-')
                                  for x in coords[2::-1]) if
-                           reverse_strand else tuple(mvf_entries.get(x, '-')
+                           reverse_strand is True else tuple(mvf_entries.get(x, '-')
                                                      for x in coords[0:3]))
+                if xcontig == 0 and 166252 in coords:
+                    print(coords)
+                    print(alleles)
                 if all(len(x) == 1 for x in alleles):
                     if reverse_strand:
                         alleles = tuple(
@@ -409,18 +425,18 @@ def translate_mvf(args):
                     decoded_alleles = alleles
                     amino_acids = translate_single_codon(''.join(alleles))
                 else:
-                    if reverse_strand:
+                    if reverse_strand is True:
                         decoded_alleles = tuple(tuple(MLIB.complement_bases[y]
                                                       for y in mvf.decode(x))
                                                 for x in alleles)
-                        alleles = tuple(mvf.encode(''.join(x))
+                        alleles = tuple(outmvf.encode(''.join(x))
                                         for x in decoded_alleles)
                     else:
                         decoded_alleles = tuple(mvf.decode(x) for x in alleles)
                     amino_acids = tuple(translate_single_codon(''.join(x))
                                         for x in zip(*decoded_alleles))
                     # print("aminx", amino_acids)
-                    amino_acids = mvf.encode(''.join(amino_acids))
+                    amino_acids = outmvf.encode(''.join(amino_acids))
                 # if all(x in '-X' for x in amino_acids):
                 #    continue
                 # print("amino", amino_acids)

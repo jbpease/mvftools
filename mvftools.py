@@ -1032,6 +1032,10 @@ class MVFcall():
                 "--filter-annotation", "--filterannotation",
                 help=("skip GFF entries with text "
                       "matching this in their 'Notes' field"))
+            parser.add_argument(
+                "--require-annotation", "--requre-annotation",
+                help=("require GFF entries with text "
+                      "matching this in their 'Notes' field"))
             parser.add_argument("--parent-gene-prefix", "--parentgeneprefix",
                                 default="gene:",
                                 help=("Parent genes prefix when interpreting"
