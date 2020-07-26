@@ -690,23 +690,23 @@ def filter_mvf(args):
         for actionname, actiontype, actionfunc, actionarg in actionset:
             if actionname == 'columns':
                 if args.labels:
-                    oldindices = [mvf.sample_id_to_index[int(x)]
+                    oldindices = [outmvf.sample_id_to_index[int(x)]
                                   for x in actionarg[0]]
                 else:
                     oldindices = [int(x) for x in actionarg[0]]
             elif actionname in ('collapsepriority', 'collapsemerge'):
                 if args.labels:
-                    oldindices = [mvf.sample_id_to_index[int(x)]
-                                  for x in mvf.sample_indices
+                    oldindices = [outmvf.sample_id_to_index[int(x)]
+                                  for x in outmvf.sample_indices
                                   if str(x) not in actionarg[0][1:]]
                 else:
-                    oldindices = [x for x in mvf.sample_indices
+                    oldindices = [x for x in outmvf.sample_indices
                                   if x not in actionarg[0][1:]]
-        outmvf.sample_ids = mvf.get_sample_ids(oldindices)
-        outmvf.sample_data = dict([
-            (i, mvf.sample_data[oldindices[i]])
-            for i, _ in enumerate(oldindices)])
-        outmvf.sample_indices = list(range(len(oldindices)))
+            outmvf.sample_ids = outmvf.get_sample_ids(oldindices)
+            outmvf.sample_data = dict([
+                (i, outmvf.sample_data[oldindices[i]])
+                for i, _ in enumerate(oldindices)])
+            outmvf.sample_indices = list(range(len(oldindices)))
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF established.")
     # End header editing
