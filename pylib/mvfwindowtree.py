@@ -503,7 +503,7 @@ def infer_window_tree(args):
         os.mkdir(args.temp_dir)
     os.chdir(args.temp_dir)
     # SETUP PARAMS
-    main_labels = mvf.get_sample_labels(sample_indices)
+    main_labels = mvf.get_sample_ids(sample_indices)
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
     params = {'outgroups': args.raxml_outgroups or [],
@@ -543,7 +543,7 @@ def infer_window_tree(args):
             "windowsize": 0,
             "labels": main_labels[:]})
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=contig_ids, subset=sample_indices,
+            contig_ids=contig_ids, subset=sample_indices,
             no_invariant=False, no_ambig=False, no_gap=False, decode=True):
         # if current_contig == contig:
         #     if skip_contig is True:
