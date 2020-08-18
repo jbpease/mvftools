@@ -633,7 +633,7 @@ class MultiVariantFile():
             contigs = [self.contig_data[self.contig_label_to_index[x]]['id']
                        for x in contig_labels]
         elif contig_ids is not None:
-            contigs = contig_ids
+            contigs = list(contig_ids)
         elif contig_indices is not None:
             contigs = [self.contig_data[x]['id'] for x in contig_indices]
         subset = subset or ''

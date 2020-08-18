@@ -10,7 +10,7 @@ import os
 import sys
 import argparse
 from time import time
-from pylib.mvffasphy import fasta2mvf, mvf2fasta, mvf2phy
+from pylib.mvffasphy import fasta2mvf, mvf2fasta, mvf2fastagene, mvf2phy
 from pylib.mvfmaf import maf2mvf
 from pylib import mvfanalysis
 from pylib.mvfargo import MvfArgumentParser, mutex_check
@@ -89,6 +89,7 @@ class MVFcall():
             ConvertFasta2MVF
             ConvertMAF2MVF
             ConvertMVF2Fasta
+            ConvertMVF2FastaGene
             ConvertMVF2Phylip
             ConvertVCF2MVF
             FilterMVF
@@ -528,6 +529,41 @@ class MVFcall():
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
         mvf2fasta(args)
+        mutex_check(args)
+        return ''
+
+    def ConvertMVF2FastaGene(self):
+        """Converts an MVF file to a set of 
+           FASTA files per gene
+        """
+
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.add_argument("--output-dir", type=os.path.abspath,
+                                help="Output directory of FASTA files.",
+                                required=True)
+            parser.addarg_sample_indices()
+            parser.addarg_sample_labels()
+            parser.add_argument(
+                "--output-data", "--outputdata",
+                choices=("dna", "rna", "prot"),
+                help="Output dna, rna or prot data.")
+            parser.add_argument(
+                "--buffer", type=int, default=10,
+                help="size (Mbp) of write buffer for each sample")
+            parser.add_argument(
+                "--temp_dir", "--tempdir", default=".",
+                help="directory to write temporary fasta files")
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
+        mvf2fastagene(args)
         mutex_check(args)
         return ''
 

@@ -6,6 +6,7 @@ This program is used to convert a FASTA file into MVF format.
 
 import re
 import os
+import tempfile
 from random import randint
 from pylib.mvfbase import encode_mvfstring, is_int
 from pylib.mvfbase import MultiVariantFile, fasta_iter
@@ -41,7 +42,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 
 def parse_regions_arg(regionfilepath, contigs):
     """Parses the regions into coordinates"""
-    fmt_regions = []
+    fmt_regions = {}
     region_max_coord = {}
     if regionfilepath is None:
         fmt_regions = [(x, None, None, None) for x in contigs]
@@ -50,7 +51,10 @@ def parse_regions_arg(regionfilepath, contigs):
         with open(regionfilepath) as regfile:
             for line in regfile:
                 entry = line.rstrip().split(',')
-                if len(entry) > 4 or len(entry) < 1 or len(entry[0]) == 0:
+                if (len(entry) > 4 
+                    or len(entry) < 1
+                    or len(entry[0]) == 0
+                    ):
                     print("malformed entry ({}), ignoring...".format(entry))
                     continue
                 contig = ''
@@ -68,15 +72,24 @@ def parse_regions_arg(regionfilepath, contigs):
                     fmt_regions.append((contig, None, None, '+'))
                 elif len(entry) == 2:
                     assert int(entry[1]) > 0
-                    fmt_regions.append((contig, int(entry[1]), None, '+'))
+                    if contig not in fmt_regions:
+                        fmt_regions[contig] = []
+                    fmt_regions[contig].append((
+                        int(entry[1]), 
+                        None, 
+                        '+')
+                    )
                 else:
                     assert int(entry[1]) > 0
                     assert int(entry[2]) > 0
                     assert int(entry[2]) > int(entry[1])
                     fmt_regions.append((
-                        contig, int(entry[1]), int(entry[2]),
-                        "+" if int(entry[2]) > int(entry[1]) else "-"))
-    fmt_regions.sort()
+                        contig,
+                        int(entry[1]), 
+                        int(entry[2]),
+                        "+" if int(entry[2]) > int(entry[1]) else "-")
+                        )
+    print(fmt_regions)
     for contigid, _, maxcoord, _ in fmt_regions:
         if contigid not in region_max_coord:
             region_max_coord[contigid] = (
@@ -99,14 +112,18 @@ def parse_regions_arg(regionfilepath, contigs):
 def mvf2fasta(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if (mvf.flavor in ("dna", "rna") and args.output_data == "prot") or (
-            mvf.flavor == "prot" and args.output_data in ("dna", "rna")):
+    if (mvf.flavor in ("dna", "rna") 
+        and args.output_data == "prot") or (
+            mvf.flavor == "prot" 
+            and args.output_data in ("dna", "rna")
+        ):
         raise RuntimeError(
             "--output-data {} incompatiable with '{}' flavor mvf".format(
                 args.output_data, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
-        args.regions, mvf.metadata['contigs'])
-    sample_labels = mvf.get_sample_labels()
+        args.regions, mvf.contig_data)
+    print(regions)
+    sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -116,14 +133,14 @@ def mvf2fasta(args):
     else:
         sample_indices = mvf.get_sample_indices()
     skipcontig = ''
-    tmp_files = dict((fn, open("{}-{}.tmp".format(
-        fn, randint(1000000, 9999999)), 'w+', args.buffer))
-        for fn in sample_labels)
+    tmp_files = dict((fname, tempfile.NamedTemporaryFile(
+        mode='w', prefix=fname)) for fname in sample_labels)
     labelwritten = dict.fromkeys(sample_labels, False)
     write_buffer = {}
     current_contig = None
+    args.qprint("Regions determined. Reading entries.")
     for contig, pos, allelesets in mvf.iterentries(
-            contigs=[x for x in max_region_coord], decode=True):
+            contig_indices=list(max_region_coord.keys()), decode=True):
         if current_contig is None:
             current_contig = contig[:]
         if contig == skipcontig:
@@ -191,6 +208,83 @@ def mvf2fasta(args):
             outfile.write("\n")
             filehandler.close()
             os.remove(os.path.join(args.temp_dir, filehandler.name))
+    return ''
+
+def mvf2fastagene(args):
+    """Main method"""
+    args.qprint("Indexing MVF")
+    mvf = MultiVariantFile(args.mvf, 'read', contigindex=True)
+    if (mvf.flavor in ("dna", "rna") 
+        and args.output_data == "prot") or (
+            mvf.flavor == "prot" 
+            and args.output_data in ("dna", "rna")
+        ):
+        raise RuntimeError(
+            "--output-data {} incompatiable with '{}' flavor mvf".format(
+                args.output_data, mvf.flavor))
+    if args.output_data is None:
+        raise RuntimeError(
+            "--output-data required")
+    sample_labels = mvf.get_sample_ids()
+    if args.sample_indices is not None:
+        sample_indices = [int(x) for x in
+                          args.sample_indices[0].split(",")]
+    elif args.sample_labels is not None:
+        sample_indices = mvf.get_sample_indices(
+            labels=args.sample_labels[0].split(","))
+    else:
+        sample_indices = mvf.get_sample_indices()
+    args.qprint("Beginning Entries.")
+    if not os.path.exists(args.output_dir):
+        args.qprint("Output Directory Created: {}".format(
+            args.output_dir))
+        os.mkdir(args.output_dir)
+    else:
+        args.qprint("Output Directory Exists Already: {}".format(
+            args.output_dir))
+    write_buffer = {}
+    for targetcontig in mvf.get_contig_indices():
+        contiglabel = mvf.get_contig_labels(indices=targetcontig)[0]
+        args.qprint("Reading Contig {}: {}".format(
+            targetcontig, contiglabel))
+        write_buffer = dict((x, []) for x in sample_labels)
+        data_in_buffer = False
+        for contig, pos, allelesets in mvf.itercontigentries(
+            targetcontig, decode=True):
+            for col, label in zip(sample_indices, sample_labels):
+                if mvf.flavor == 'dna':
+                    write_buffer[label].append(
+                        'N' 
+                        if allelesets[0][col] == 'X'
+                        else allelesets[0][col])
+                    data_in_buffer = True
+                elif mvf.flavor in ('codon', 'prot') and (
+                        args.output_data == 'prot'):
+                    write_buffer[label].append(allelesets[0][col])
+                    data_in_buffer = True
+                elif mvf.flavor == 'codon' and args.output_data == 'dna':
+                    codon = ['N' 
+                             if allelesets[x][col] == 'X' 
+                             else allelesets[x][col] 
+                             for x in (1, 2, 3)]
+                    write_buffer[label].append(''.join(codon))
+                    data_in_buffer = True
+        if data_in_buffer:
+            args.qprint("Writing Align")
+            with open(os.path.join(args.output_dir, 
+                                   contiglabel + ".fa"), 'w') as outfile:
+                for label in write_buffer:
+                    if mvf.flavor == 'codon' and args.output_data == 'dna':
+                        if mvf.contig_data[targetcontig].get(
+                                'strand', '+') == '-':
+                            entryseq = ''.join(write_buffer[label][::-1])
+                        else:
+                            entryseq = ''.join(write_buffer[label])
+                    else:
+                        entryseq = ''.join(write_buffer[label])
+                    outfile.write(">{}\n{}\n".format(label, entryseq))
+                outfile.write("\b")
+
     return ''
 
 
