@@ -364,6 +364,8 @@ class MultiVariantFile():
         if ids is None:
             return tuple(self.sample_indices)
         try:
+            if isinstance(ids, str):
+                return self.self.sample_id_to_index[ids]
             if hasattr(ids, '__iter__'):
                 return [self.sample_id_to_index[x] for x in ids]
             return self.self.sample_id_to_index[ids]
@@ -394,6 +396,8 @@ class MultiVariantFile():
                                "get_contig_indices()")
         if ids is not None:
             try:
+                if isinstance(ids, str):
+                    return self.contig_id_to_index[ids]
                 if hasattr(ids, '__iter__'):
                     return [self.contig_id_to_index[x] for x in ids]
                 return self.contig_id_to_index[ids]
@@ -401,6 +405,8 @@ class MultiVariantFile():
                 raise KeyError("contig id(s) '{}' not found".format(ids))
         elif labels is not None:
             try:
+                if isinstance(labels, str):
+                    return self.contig_label_to_index[labels]
                 if hasattr(labels, '__iter__'):
                     return [self.contig_label_to_index[x] for x in labels]
                 return self.contig_label_to_index[labels]
@@ -424,6 +430,9 @@ class MultiVariantFile():
                 raise KeyError("contig index '{}' not found".format(indices))
         elif labels is not None:
             try:
+                if isinstance(labels, str):
+                    return self.contig_data[
+                        self.contig_label_to_index[labels]]['id']
                 if hasattr(labels, '__iter__'):
                     return [
                         self.contig_data[self.contig_label_to_index[x]]['id']
@@ -450,6 +459,8 @@ class MultiVariantFile():
                 raise KeyError("contig index '{}' not found".format(indices))
         elif ids is not None:
             try:
+                if isinstance(ids, str): 
+                    return self.contig_data[self.contig_id_to_index[ids]]['label']
                 if hasattr(ids, '__iter__'):
                     return [self.contig_data[
                         self.contig_id_to_index[x]]['label']

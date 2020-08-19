@@ -399,11 +399,11 @@ def mvf2phy(args):
         raise RuntimeError(
             "--outdput-data {} incompatiable with '{}' flavor mvf".format(
                 args.output_data, mvf.flavor))
-    max_region_coord = dict.fromkeys(mvf.metadata['contigs'], None)
+    max_region_coord = dict((x, None) for x in mvf.get_contig_ids())
     if args.regions is not None:
         _, max_region_coord, _ = parse_regions_arg(
-            args.regions, mvf.metadata['contigs'])
-    sample_labels = mvf.get_sample_labels()
+            args.regions, mvf.get_contig_ids())
+    sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
@@ -417,33 +417,34 @@ def mvf2phy(args):
         fn, randint(1000000, 9999999)), 'w+', args.buffer))
         for fn in sample_labels)
     labelwritten = dict.fromkeys(sample_labels, False)
-    curcontigname = None
-    curcontigstart = 1
-    curcontigend = 1
+    current_contig_id = None
+    current_contig_start = 1
+    current_contig_end = 1
     if args.partition is True:
         partprefix = "PROT" if args.output_data == "prot" else "DNA"
         partitionfile = open("{}.part".format(args.out), 'w')
     for contig, _, allelesets in mvf.iterentries(
-            contigs=(mvf.metadata['contigs'] if args.regions is None else
+            contig_ids=(mvf.get_contig_ids() if args.regions is None else
                      [x for x in max_region_coord]), decode=True):
         if contig == skipcontig:
             continue
         if contig not in max_region_coord:
             skipcontig = contig[:]
             continue
-        if curcontigname is None:
-            curcontigname = contig[:]
-        elif contig != curcontigname:
+        if current_contig_id is None:
+            current_contig_id = contig[:]
+        elif contig != current_contig_id:
             if args.partition is True:
-                if curcontigend > curcontigstart:
+                if current_contig_end > current_contig_start:
                     partitionfile.write("{}, {} = {}-{}\n".format(
                         partprefix, mvf.get_contig_labels(
-                            ids=curcontigname),
-                        curcontigstart, curcontigend - 1))
-            curcontigname = contig[:]
+                            ids=current_contig_id),
+                            current_contig_start, 
+                            current_contig_end - 1))
+            current_contig_id = contig[:]
             # reset start as one position after end of last
-            curcontigstart = curcontigend
-            curcontigend = curcontigend + 1
+            current_contig_start = current_contig_end
+            current_contig_end = current_contig_end + 1
         for col, label in zip(sample_indices, sample_labels):
             if not labelwritten[label]:
                 if args.label_type == 'long':
@@ -458,18 +459,18 @@ def mvf2phy(args):
                     allelesets[0][col] == 'X' and
                     'N' or allelesets[0][col])
                 if label == sample_labels[0]:
-                    curcontigend += 1
+                    current_contig_end += 1
             elif ((mvf.flavor == 'codon' and args.output_data == 'prot') or (
                     mvf.flavor == 'prot')):
                 tmp_files[label].write(allelesets[0][col])
                 if label == sample_labels[0]:
-                    curcontigend += 1
+                    current_contig_end += 1
             elif mvf.flavor == 'codon':
                 codon = ["N" if allelesets[x][col] == 'X' else
                          allelesets[x][col] for x in (1, 2, 3)]
                 tmp_files[label].write(''.join(codon))
                 if label == sample_labels[0]:
-                    curcontigend += 3
+                    current_contig_end += 3
     first_file = True
     totalseqlen = 0
     with open(args.out, 'w') as outfile:
@@ -500,9 +501,9 @@ def mvf2phy(args):
             filehandler.close()
             os.remove(os.path.join(args.temp_dir, filehandler.name))
     if args.partition is True:
-        if curcontigend > curcontigstart:
+        if current_contig_end > current_contig_start:
             partitionfile.write("{}, {} = {}-{}\n".format(
-                partprefix, mvf.get_contig_labels(ids=curcontigname),
-                curcontigstart, curcontigend - 1))
+                partprefix, mvf.get_contig_labels(ids=current_contig_id),
+                current_contig_start, current_contig_end - 1))
         partitionfile.close()
     return ''

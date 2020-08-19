@@ -594,6 +594,11 @@ def infer_window_tree(args):
             if args.choose_allele != 'none':
                 allelesets[0] = hapsplit(allelesets[0], args.choose_allele)
             window_data.append_alleles(allelesets[0], mindepth=args.min_depth)
+        elif mvf.flavor == 'codon':
+            for i in (1, 2, 3):
+                if args.choose_allele != 'none':
+                    allelesets[i] = hapsplit(allelesets[i], args.choose_allele)
+                window_data.append_alleles(allelesets[i], mindepth=args.min_depth)
     # LAST LOOP
     if window_data:
         entry = window_data.maketree_raxml(params)
