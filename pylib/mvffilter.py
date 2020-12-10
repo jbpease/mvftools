@@ -460,13 +460,22 @@ def make_module(modulename, ncol, optargs=None):
         """require specific samples to be present
         """
         if mvfenc == 'full':
-            return all([entry[x] not in 'X-' for x in optargs[0]])
-        if mvfenc == 'invar':
-            return True
-        if mvfenc == 'onecov':
-            return all([x in [0, int(entry[3:])] for x in optargs[0]])
-        if mvfenc == 'onevar':
-            return not (entry[3] == '-' and int(entry[4:]) in optargs[0])
+            return all([entry[x] not in 'Xx-' for x in optargs[0]])
+        elif mvfenc == 'invar':
+            return entry not in 'Xx-'
+        elif mvfenc == 'onecov':
+            return (all([x in [0, int(entry[3:])] for x in optargs[0]])
+                    and (0 in optargs[0] and entry[0] not in 'Xx-')
+                    and (int(entry[3:]) in optargs[0] and entry[2] not in 'Xx'))
+        elif mvfenc == 'onevar':
+            return not((entry[0] in 'Xx-' and 0 in optargs[0]) or (
+                       entry[3] in 'Xx-' and (int(entry[4:]) in optargs[0])) or (
+                       entry[1] in 'Xx-' and (set(optargs[0]) - set([0, int(entry[4:])])))
+                       )
+        elif mvfenc == 'refvar':
+            return not(entry[0] in 'Xx-' if 0 in optargs[0] else
+                       entry[1] in 'Xx-')
+                    
         return False
 
     # REQVARIANT
@@ -474,17 +483,17 @@ def make_module(modulename, ncol, optargs=None):
         """only retain variable sites
         """
         if mvfenc == 'full':
-            return len(set(entry.upper()) - set('X-')) > 1
+            return len(set(entry.upper()) - set('Xx-')) > 1
         if mvfenc == 'invar':
             return False
         if mvfenc == 'onecov':
             return (entry[0].upper() != entry[2].upper() if
-                    entry[0] not in 'X-' and entry[2] not in 'X-' else
+                    entry[0] not in 'Xx-' and entry[2] not in 'Xx-' else
                     False)
         if mvfenc == 'onevar':
             return (len(set([entry[0], entry[1], entry[2]])) > 1 if
-                    entry[2] not in 'X-' and entry[1] not in 'X-' and
-                    entry[0] not in 'X-' else False)
+                    entry[2] not in 'Xx-' and entry[1] not in 'Xx-' and
+                    entry[0] not in 'Xx-' else False)
         # if mvfenc == 'refvar':
         return False
 
@@ -577,7 +586,7 @@ def build_actionset(moduleargs, ncol):
                         "ERROR: Minimum columns specified ({}) is "
                         "greater than number of MVF total columns"
                         "({}).").format(modargs[1][0], ncol))
-            elif modargs[0] in ['columns', 'collapsemerge']:
+            elif modargs[0] in ['columns', 'collapsemerge', 'reqsample']:
                 for i in range(1, len(modargs)):
                     try:
                         modargs[i] = [int(x) for x in modargs[i]]
@@ -615,14 +624,15 @@ def filter_mvf(args):
             action = args.actions[i]
             arr = action.split(':')
             if arr[0] in ('columns', 'collapsepriority', 'collapsemerge',
-                          'allelegroup', 'notmultigroup'):
+                          'allelegroup', 'notmultigroup', 'reqsample'):
                 for j in range(1, len(arr)):
                     arr[j] = ','.join([
-                        str(mvf.sample_id_to_index(x))
+                        str(mvf.sample_id_to_index[x])
                         for x in arr[j].split(',')])
             args.actions[i] = ':'.join(arr)
     actionset = build_actionset(args.actions, ncol)
     args.qprint("Actions established.")
+    args.qprint(actionset)
     # TESTING MODE
     if args.test:
         loc, alleles = args.test.split()
