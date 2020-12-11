@@ -12,7 +12,8 @@ If you use this software please cite:
 Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics.
+15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -457,25 +458,32 @@ def make_module(modulename, ncol, optargs=None):
 
     # REQSAMPLE
     def reqsample(entry, mvfenc):
-        """require specific samples to be present
+        """require specific samples to have alleles (not X/-)
         """
         if mvfenc == 'full':
-            return all([entry[x] not in 'Xx-' for x in optargs[0]])
+            return all([entry[x] not in 'X-' for x in optargs[0]])
         elif mvfenc == 'invar':
-            return entry not in 'Xx-'
+            return entry not in 'X-'
         elif mvfenc == 'onecov':
             return (all([x in [0, int(entry[3:])] for x in optargs[0]])
-                    and (0 in optargs[0] and entry[0] not in 'Xx-')
-                    and (int(entry[3:]) in optargs[0] and entry[2] not in 'Xx'))
+                    and (0 in optargs[0]
+                         and entry[0] not in 'X-')
+                    and (int(entry[3:]) in optargs[0]
+                         and entry[2] not in 'X'))
         elif mvfenc == 'onevar':
-            return not((entry[0] in 'Xx-' and 0 in optargs[0]) or (
-                       entry[3] in 'Xx-' and (int(entry[4:]) in optargs[0])) or (
-                       entry[1] in 'Xx-' and (set(optargs[0]) - set([0, int(entry[4:])])))
+            return not((entry[0] in 'X-'
+                        and 0 in optargs[0])
+                       or (entry[3] in 'X-'
+                           and (int(entry[4:]) in optargs[0]))
+                       or (entry[1] in 'X-'
+                           and (set(optargs[0]) - set([0, int(entry[4:])])))
                        )
         elif mvfenc == 'refvar':
-            return not(entry[0] in 'Xx-' if 0 in optargs[0] else
-                       entry[1] in 'Xx-')
-                    
+            return not((entry[0] in 'X-' and 0 in optargs[0])
+                       or (entry[1] in 'X-'
+                           and set(optargs[0]) - {0, })
+                       )
+
         return False
 
     # REQVARIANT
@@ -483,18 +491,19 @@ def make_module(modulename, ncol, optargs=None):
         """only retain variable sites
         """
         if mvfenc == 'full':
-            return len(set(entry.upper()) - set('Xx-')) > 1
+            return len(set(entry.upper()) - set('X-')) > 1
         if mvfenc == 'invar':
             return False
         if mvfenc == 'onecov':
             return (entry[0].upper() != entry[2].upper() if
-                    entry[0] not in 'Xx-' and entry[2] not in 'Xx-' else
+                    entry[0] not in 'X-' and entry[2] not in 'X-' else
                     False)
         if mvfenc == 'onevar':
             return (len(set([entry[0], entry[1], entry[2]])) > 1 if
-                    entry[2] not in 'Xx-' and entry[1] not in 'Xx-' and
-                    entry[0] not in 'Xx-' else False)
-        # if mvfenc == 'refvar':
+                    entry[2] not in 'X-' and entry[1] not in 'X-' and
+                    entry[0] not in 'X-' else False)
+        if mvfenc == 'refvar':
+            return entry[1] not in 'X-'
         return False
 
     module_toc = {
