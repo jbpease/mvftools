@@ -11,7 +11,8 @@ If you use this software please cite:
 Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics.
+15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -36,6 +37,20 @@ MLIB = MvfBioLib()
 
 # RE_GENEID = re.compile("ID=gene:(.*?);")
 # PARENTGENE = re.compile("Parent=mRNA:(.*?);")
+
+
+def compile_search_pattern(pattern):
+    if pattern.count('%') != 1:
+        raise RuntimeError("% not in pattern")
+    if pattern[-1] == '%':
+        regex_string = pattern.replace("%", '.*$')
+    else:
+        pattern = pattern.split('%')
+        regex_string = '{}([^{}]*){}'.format(
+            pattern[0],
+            pattern[1][0],
+            pattern[1])
+    return re.compile(regex_string)
 
 
 def crop_to_stop(seq, firststop=""):
@@ -116,24 +131,25 @@ def iter_codons(inputbuffer, mvf):
             inputbuffer[i+2][1][0]]
 
 
-def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
+def parse_gff_translate(gff_file, args, parent_gene_pattern='gene_id "%"'):
     """Parses a GFF3 file for exon locations
         Arguments:
             gff_file: path to GFF3 file
             args: passthrough from main args
-            parent_gene_prefix: prefix for parent gene (def. "gene:")
-
+            parent_gene_pattern: prefix for that uses '%' as a wildcard
+                                 to define the gene name target. Note that
+                                 you must bound the gene name with search
+                                 characters on both sides or this will be
+                                 interpreted as end-of-line.
+                                 (example 'gene_id "%"')
         Output: triplets for codon locations
 
     """
     gff_entries = {}
     gff_triplets = {}
-    parent_gene_prefix = (
-        '' if parent_gene_prefix == 'none' else parent_gene_prefix)
-    regex_parentgene = re.compile(
-        "Parent={}([^;$]*)".format(parent_gene_prefix))
-    #regex_parentgene = re.compile(
-    #    'gene_id "([^"]*)'.format(parent_gene_prefix))
+    parent_gene_pattern = (
+        '' if parent_gene_pattern == 'none' else parent_gene_pattern)
+    regex_parentgene = compile_search_pattern(parent_gene_pattern)
     with open(gff_file) as gff:
         for line in gff:
             if line[0] == '#':
@@ -155,8 +171,8 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
             strand = arr[6]
             if parent not in gff_entries[arr[0]]:
                 gff_entries[arr[0]][parent] = [strand, []]
-            gff_entries[arr[0]][parent][1].extend(range(min(coords),
-                                                        max(coords) + 1))
+            gff_entries[arr[0]][parent][1].extend(
+                range(min(coords), max(coords) + 1))
     for contiglabel in gff_entries:
         for gene in gff_entries[contiglabel]:
             if len(gff_entries[contiglabel][gene][1]) % 3:
@@ -165,8 +181,13 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
             coords = tuple(sorted(gff_entries[contiglabel][gene][1]))
             for j in range(0, len(coords), 3):
                 try:
-                    gff_triplets[contiglabel].append((coords[j], coords[j+1],
-                                                     coords[j+2], strand))
+                    gff_triplets[contiglabel].append((
+                        coords[j],
+                        coords[j+1],
+                        coords[j+2],
+                        strand
+                        )
+                    )
                 except IndexError:
                     raise RuntimeError(len(coords), j, strand,
                                        contiglabel, coords[j])
@@ -175,14 +196,19 @@ def parse_gff_translate(gff_file, args, parent_gene_prefix='gene:'):
 
 
 def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
-                       gene_prefix='mRNA:'):
+                       gene_pattern='gene_id "%"'):
     """Parses a GFF3 file for exon locations
         Arguments:
             gff_file: path to GFF3 file
             args: passthrough from main args
             filter_annotation: ignore entries matching these terms
-            gene_prefix: add prefix to gene for standard (def. 'mRNA')
-
+            gene_pattern: search pattern for gene names
+                          that uses '%' as a wildcard
+                          to define the gene name target. Note that
+                          you must bound the gene name with search
+                          characters on both sides or this will be
+                          interpreted as end-of-line.
+                          (example 'gene_id "%"')
         Output: triplets for codon locations
 
     """
@@ -190,9 +216,8 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
     relabeled_gff_entries = {}
     geneids = {}
     geneid = 0
-    gene_prefix = '' if gene_prefix == 'none' else gene_prefix
-    regex_geneid = re.compile("ID={}([^;$]*)".format(gene_prefix))
-    #regex_geneid = re.compile('gene_id "([^"]*)')
+    gene_pattern = '' if gene_pattern == 'none' else gene_pattern
+    regex_geneid = compile_search_pattern(gene_pattern)
     with open(gff_file) as gff:
         for line in gff:
             if line[0] == '#':
@@ -206,34 +231,126 @@ def parse_gff_annotate(gff_file, contigs, filter_annotation=None,
             genename = re.findall(regex_geneid, arr[8])
             if not genename:
                 raise RuntimeError("Gene IDs not parsing correctly, "
-                                   "your current prefix is '{}'. Check "
-                                   "your GFF file.".format(gene_prefix))
+                                   "your current pattern is '{}'. Check "
+                                   "your GFF file.".format(gene_pattern))
             genename = genename[0]
             contig = arr[0]
             if contig not in gff_entries:
-                gff_entries[contig] = {}
-            coords = [int(arr[3]), int(arr[4])]
+                gff_entries[contig] = []
+            coords = (int(arr[3]), int(arr[4]))
             strand = arr[6]
             if genename not in geneids:
                 geneids[geneid] = {'id': str(geneid),
                                    'label': genename,
                                    'length': max(coords) - min(coords),
                                    'strand': strand}
-            for j in range(min(coords), max(coords) + 1):
-                gff_entries[contig][j] = geneid
+            gff_entries[contig].append((geneid, min(coords), max(coords)))
             geneid += 1
     for contig in gff_entries:
         matchlabel = False
         for contigid in contigs:
             if contigs[contigid]['label'] == contig:
                 relabeled_gff_entries[str(contigid)] = (
-                    gff_entries[contig].copy())
+                    gff_entries[contig][:])
                 matchlabel = True
                 break
         if matchlabel is False:
             relabeled_gff_entries[str(contig)] = gff_entries[contig].copy()
     gff_entries = None
     return relabeled_gff_entries, geneids
+
+
+def parse_gff_exome(args):
+    """Parses a GFF3 file for exon locations
+        Arguments:
+            gff_file: path to GFF3 file
+            args: passthrough from main args
+            parent_gene_pattern: prefix for that uses '%' as a wildcard
+                                 to define the gene name target. Note that
+                                 you must bound the gene name with search
+                                 characters on both sides or this will be
+                                 interpreted as end-of-line.
+                                 (example 'gene_id "%"')
+        Output: triplets for codon locations
+
+    """
+    igene = 0
+    gff_genes = {}
+    gene_order = []
+    gene_pattern = (''
+                    if args.gene_pattern == 'none'
+                    else args.gene_pattern
+                    )
+    regex_genename = compile_search_pattern(gene_pattern)
+    with open(args.gff) as gff:
+        for line in gff:
+            if line[0] == '#':
+                continue
+            row = line.rstrip().split("\t")
+            contig = row[0]
+            coords = (int(row[3]), int(row[4]))
+            strand = row[6]
+            if args.filter_annotation:
+                if args.filter_annotation in row[8]:
+                    continue
+            if args.require_annotation:
+                if args.require_annotation not in row[8]:
+                    continue
+            if row[2] == 'gene':
+                genename = re.findall(regex_genename, row[8])
+                if not genename:
+                    raise RuntimeError("Gene IDs not parsing correctly, "
+                                       "your current pattern is '{}'. Check "
+                                       "your GFF file.".format(gene_pattern))
+                genename = genename[0]
+                if genename not in gene_order:
+                    gff_genes[genename] = {
+                        'id': str(igene),
+                        'contig': contig,
+                        'label': genename,
+                        'length': max(coords) - min(coords),
+                        'strand': strand,
+                        'cds': [],
+                    }
+                    igene += 1
+                    gene_order.append(genename)
+            elif row[2] == 'CDS':
+                genename = re.findall(regex_genename, row[8])
+                if not genename:
+                    raise RuntimeError("Gene IDs not parsing correctly, "
+                                       "your current pattern is '{}'. Check "
+                                       "your GFF file.".format(gene_pattern))
+                genename = genename[0]
+                if genename not in gene_order:
+                    gff_genes[genename] = {
+                        'id': str(igene),
+                        'contig': contig,
+                        'label': genename,
+                        'length': 0,
+                        'strand': strand,
+                        'cds': [],
+                    }
+                    igene += 1
+                    gene_order.append(genename)
+                gff_genes[genename]['cds'].append(
+                    (min(coords), max(coords), )
+                )
+    warn_genes = 0
+    for gene in gff_genes:
+        total_cds_length = sum(y - x + 1 for (x, y)
+                               in gff_genes[gene]['cds'])
+        if total_cds_length % 3:
+            # print(gff_genes[gene]['cds'])
+            warn_genes += 1
+            print('Warning: '
+                  '{} CDS total length {} not divisible by 3'.format(
+                    gene, total_cds_length))
+        gff_genes[gene]['cds'] = tuple(
+            sorted(gff_genes[gene]['cds']))
+        gff_genes[gene]['length'] = total_cds_length
+    args.qprint("{} / {} genes did not have total CDS length divisible by "
+                "3".format(warn_genes, len(gene_order)))
+    return gff_genes, gene_order
 
 
 def parse_gff_analysis(gffpath):
@@ -271,7 +388,7 @@ def annotate_mvf(args):
     args.qprint("Input MVF header processed.")
     args.qprint("MVF flavor: {}".format(mvf.flavor))
     gff, geneids = parse_gff_annotate(args.gff, mvf.contig_data,
-                                      gene_prefix=args.gene_prefix)
+                                      gene_pattern=args.gene_pattern)
     args.qprint("GFF processed.")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite,
                               flavor=mvf.flavor)
@@ -289,21 +406,23 @@ def annotate_mvf(args):
     nentry = 0
     args.qprint("Processing MVF entries.")
     for contigid, pos, allelesets in mvf.iterentries(decode=False):
-        annotated_pos = False
+        annotated_pos = None
         if contigid in gff:
-            if pos in gff[contigid]:
-                annotated_pos = True
-            elif args.nongenic_mode is True and args.unmargin > 0:
-                for xpos in range(pos - args.unmargin,
-                                  pos + args.unmargin + 1):
-                    if xpos in gff[contigid]:
-                        annotated_pos = True
-                        break
-        if annotated_pos and not args.nongenic_mode:
-            entrybuffer.append((gff[contigid][pos], pos, allelesets))
-        elif args.nongenic_mode and not annotated_pos:
+            for (xgeneid, xstart, xstop) in gff[contigid]:
+                if xstart < pos < xstop:
+                    annotated_pos = xgeneid + 0
+                    break
+                elif args.nongenic_mode is True and args.unmargin > 0:
+                    for xpos in range(pos - args.unmargin,
+                                      pos + args.unmargin + 1):
+                        if xstart < pos < xstop:
+                            annotated_pos = xgeneid + 0
+                            break
+        if annotated_pos is not None and not args.nongenic_mode:
+            entrybuffer.append((annotated_pos, pos, allelesets))
+        elif args.nongenic_mode and annotated_pos is None:
             entrybuffer.append((contigid, pos, allelesets))
-        if args.nongenic_mode or annotated_pos:
+        if args.nongenic_mode or annotated_pos is not None:
             nentry += 1
             if nentry == args.line_buffer:
                 args.qprint("Writing block of entries.")
@@ -333,7 +452,7 @@ def translate_mvf(args):
         mvf.read_index_file()
         args.qprint("GFF processing start.")
         gff = parse_gff_translate(args.gff, args,
-                                  parent_gene_prefix=args.parent_gene_prefix)
+                                  parent_gene_pattern=args.parent_gene_pattern)
         args.qprint("GFF processed.")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.copy_headers_from(mvf)
@@ -400,8 +519,10 @@ def translate_mvf(args):
             xcontigid = outmvf.get_contig_ids(indices=xcontig)[0]
             if xcontiglabel not in gff:
                 if args.verbose:
-                    print("No entries in GFF, skipping contig: index:{} id:{} label:{}".format(
-                        xcontig, xcontigid, xcontiglabel))
+                    print(
+                        ("No entries in GFF, "
+                         "skipping contig: index:{} id:{} label:{}").format(
+                            xcontig, xcontigid, xcontiglabel))
                 continue
             if not xcontig % 100:
                 args.qprint("Processing contig: {} {}".format(
@@ -412,12 +533,10 @@ def translate_mvf(args):
             for coords in sorted(gff[xcontiglabel]):
                 reverse_strand = coords[3] == '-'
                 alleles = (tuple(mvf_entries.get(x, '-')
-                                 for x in coords[2::-1]) if
-                           reverse_strand is True else tuple(mvf_entries.get(x, '-')
-                                                     for x in coords[0:3]))
-                if xcontig == 0 and 166252 in coords:
-                    print(coords)
-                    print(alleles)
+                                 for x in coords[2::-1])
+                           if reverse_strand is True
+                           else tuple(mvf_entries.get(x, '-')
+                           for x in coords[0:3]))
                 if all(len(x) == 1 for x in alleles):
                     if reverse_strand:
                         alleles = tuple(
@@ -459,3 +578,159 @@ def translate_mvf(args):
         entrybuffer = []
         nentry = 0
     return ''
+
+
+def exome_mvf(args):
+    """Main method"""
+    args.qprint("Running ExomeMVF")
+    if args.gff:
+        args.qprint("Reading and Indexing MVF.")
+    else:
+        args.qprint("Reading MVF.")
+    mvf = MultiVariantFile(args.mvf, 'read', contigindex=bool(args.gff))
+    if mvf.flavor != 'dna':
+        raise RuntimeError("MVF must be flavor=dna to translate")
+    if args.gff:
+        args.qprint("Processing MVF Index File.")
+        mvf.read_index_file()
+        args.qprint("GFF processing start.")
+        gff_genes, gene_order = parse_gff_exome(args)
+        args.qprint("GFF processed.")
+    outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
+    outmvf.copy_headers_from(mvf)
+    outmvf.contig_data = dict((i, dict((y, z)
+                                       for (y, z) in gff_genes[x].items()
+                                       if y not in ('cds', )))
+                              for (i, x) in enumerate(gene_order))
+    outmvf.contig_indices = list(range(len(gene_order)))
+    outmvf.contig_ids = [gff_genes[x]['id']
+                         for x in gene_order]
+    outmvf.contig_labels = [gff_genes[x]['label']
+                            for x in gene_order]
+    outmvf.flavor = args.output_data
+    outmvf.write_data(outmvf.get_header())
+    args.qprint("Output MVF Established.")
+    entrybuffer = []
+    nentry = 0
+    pos = None
+    if not args.gff:
+        args.qprint("No GFF used, translating sequences as pre-aligned in "
+                    "coding frame.")
+        inputbuffer = []
+        current_contig = ''
+        for contigid, pos, allelesets in mvf.iterentries(decode=False):
+            if current_contig == '':
+                current_contig = contigid[:]
+            if contigid == current_contig:
+                inputbuffer.append((pos, allelesets))
+            else:
+                for _, amino_acids, alleles in iter_codons(
+                        inputbuffer, mvf):
+                    if all([x in '-X' for x in amino_acids]):
+                        continue
+                    if args.output_data == 'protein':
+                        entrybuffer.append(
+                            (current_contig, pos, (amino_acids,)))
+                    else:
+                        entrybuffer.append((
+                            current_contig, pos, (
+                                amino_acids, alleles[0],
+                                alleles[1], alleles[2])))
+                    nentry += 1
+                    if nentry == args.line_buffer:
+                        outmvf.write_entries(entrybuffer)
+                        entrybuffer = []
+                        nentry = 0
+                inputbuffer = [(pos, allelesets)]
+                current_contig = contigid[:]
+        if inputbuffer:
+            for _, amino_acids, alleles in iter_codons(
+                    inputbuffer, outmvf):
+                if all([x in '-X' for x in amino_acids]):
+                    continue
+                if args.output_data == 'protein':
+                    entrybuffer.append(
+                        (current_contig, pos, (amino_acids,)))
+                else:
+                    entrybuffer.append((
+                        current_contig, pos, (
+                            amino_acids, alleles[0],
+                            alleles[1], alleles[2])))
+                nentry += 1
+                if nentry == args.line_buffer:
+                    outmvf.write_entries(entrybuffer)
+                    entrybuffer = []
+                    nentry = 0
+    else:
+        for igene, gene in enumerate(gene_order):
+            xcontiglabel = gff_genes[gene]['contig']
+            xcontig = mvf.get_contig_indices(
+                labels=gff_genes[gene]['contig'])
+            if xcontig is None:
+                print("Warning: contig {} not found".format(
+                    gff_genes[gene]['contig']))
+            xcontigid = mvf.get_contig_ids(indices=xcontig)[0]
+            if not gff_genes[gene]['cds']:
+                print(gene, gff_genes[gene])
+            min_gene_coord = gff_genes[gene]['cds'][0][0]
+
+            max_gene_coord = gff_genes[gene]['cds'][-1][1]
+            mvf_entries = {}
+            if not igene % 100:
+                args.qprint("Processing gene {} on {}".format(
+                    gene, xcontiglabel))
+            for contigid, pos, allelesets in mvf.itercontigentries(
+                    xcontig, decode=False):
+                if pos < min_gene_coord:
+                    continue
+                if pos > max_gene_coord:
+                    break
+                mvf_entries[pos] = allelesets[0]
+            reverse_strand = gff_genes[gene]['strand'] == '-'
+            coords = []
+            for x in gff_genes[gene]['cds']:
+                coords.extend(list(range(x[0], x[1] + 1)))
+            if reverse_strand:
+                coords = coords[::-1]
+            for codoncoord in range(0, len(coords), 3):
+                alleles = tuple(mvf_entries.get(x, '-')
+                                for x in coords[codoncoord:codoncoord + 3])
+                if len(alleles) < 3:
+                    alleles = tuple(list(alleles) + ['-'] * (3 - len(alleles)))
+                if all(len(x) == 1 for x in alleles):
+                    if reverse_strand:
+                        alleles = tuple(
+                            MLIB.complement_bases[x] for x in alleles)
+                    decoded_alleles = alleles
+                    amino_acids = translate_single_codon(''.join(alleles))
+                else:
+                    if reverse_strand is True:
+                        decoded_alleles = tuple(tuple(MLIB.complement_bases[y]
+                                                      for y in mvf.decode(x))
+                                                for x in alleles)
+                        alleles = tuple(outmvf.encode(''.join(x))
+                                        for x in decoded_alleles)
+                    else:
+                        decoded_alleles = tuple(mvf.decode(x) for x in alleles)
+                    amino_acids = tuple(translate_single_codon(''.join(x))
+                                        for x in zip(*decoded_alleles))
+                    amino_acids = outmvf.encode(''.join(amino_acids))
+                if args.output_data == 'protein':
+                    entrybuffer.append((
+                        igene, codoncoord + 1, (amino_acids, )))
+                else:
+                    entrybuffer.append((
+                        igene, codoncoord + 1, (
+                            amino_acids, alleles[0], alleles[1], alleles[2])))
+                nentry += 1
+                if nentry >= args.line_buffer:
+                    args.qprint("Writing a block of {} entries.".format(
+                        args.line_buffer))
+                    outmvf.write_entries(entrybuffer)
+                    entrybuffer = []
+                    nentry = 0
+        if entrybuffer:
+            outmvf.write_entries(entrybuffer)
+            entrybuffer = []
+            nentry = 0
+        return ''

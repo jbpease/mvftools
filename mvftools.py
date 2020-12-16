@@ -15,7 +15,7 @@ from pylib.mvfmaf import maf2mvf
 from pylib import mvfanalysis
 from pylib.mvfargo import MvfArgumentParser, mutex_check
 from pylib.mvfwindowtree import infer_window_tree
-from pylib.mvftranslate import annotate_mvf, translate_mvf
+from pylib.mvftranslate import annotate_mvf, translate_mvf, exome_mvf
 from pylib.mvfmerge import concatenate_mvf, merge_mvf, verify_mvf
 from pylib.mvfgroupallele import calc_group_unique_allele_window
 from pylib.mvffilter import filter_mvf
@@ -92,6 +92,7 @@ class MVFcall():
             ConvertMVF2FastaGene
             ConvertMVF2Phylip
             ConvertVCF2MVF
+            ExomeMVF
             FilterMVF
             InferGroupSpecificAllele
             InferTree
@@ -115,6 +116,49 @@ class MVFcall():
             parser.print_help()
             exit(1)
         getattr(self, args.command)()
+
+    def ExomeMVF(self):
+        """Annotates a chromosomal MVF file with new contig
+           boundaries based on genes/features from a GFF file.
+        """
+        def generate_argparser():
+            """Generate argparse parser
+            """
+            parser = MvfArgumentParser()
+            parser.addarg_mvf()
+            parser.addarg_out()
+            parser.addarg_gff()
+            parser.add_argument(
+                "--output-data", "--outputdata",
+                choices=['protein', 'codon'],
+                default="codon",
+                help=("protein=single data column "
+                      "of protein alleles; "
+                      "codon=four columns with: "
+                      "protein frame1 frame2 frame3"))
+            parser.add_argument(
+                "--filter-annotation", "--filterannotation",
+                help=("skip GFF entries with text "
+                      "matching this in their 'Notes' field"))
+            parser.add_argument(
+                "--require-annotation", "--requireannotation",
+                help=("require GFF entries with text "
+                      "matching this in their 'Notes' field"))
+            parser.add_argument(
+                "--gene-pattern", "--genepattern",
+                default='gene_id "%"',
+                help=("Gene name pattern finder when interpreting"
+                      "GFF/GTF.  Use % in place of gene name."))
+            parser.addarg_linebuffer()
+            parser.addarg_overwrite()
+            return parser
+        parser = generate_argparser()
+        if self.selfdoc is True:
+            return parser
+        args = parser.parse_args(self.arguments[1:])
+        args.qprint = make_qprint(args.quiet, self.time0)
+        exome_mvf(args)
+        return ''
 
     def AnnotateMVF(self):
         """Annotates a chromosomal MVF file with new contig
@@ -144,13 +188,10 @@ class MVFcall():
                       "positions that are this number of bp away "
                       "from an annotated region boundary"))
             parser.add_argument(
-                "--gene-prefix", "--geneprefix",
-                default="mRNA:",
-                help=("Gene entry prefix when interpreting"
-                      "GFF files.  For GFF3 files, 'mRNA:' "
-                      "is standard, but for older or custom "
-                      "GFF files this may vary.  Use 'none' "
-                      "to make empty."))
+                "--gene-pattern", "--genepattern",
+                default='gene_id "%"',
+                help=("Gene name pattern finder when interpreting"
+                      "GFF/GTF.  Use % in place of gene name."))
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
             return parser
@@ -533,7 +574,7 @@ class MVFcall():
         return ''
 
     def ConvertMVF2FastaGene(self):
-        """Converts an MVF file to a set of 
+        """Converts an MVF file to a set of
            FASTA files per gene
         """
 
@@ -1069,11 +1110,11 @@ class MVFcall():
                 help=("skip GFF entries with text "
                       "matching this in their 'Notes' field"))
             parser.add_argument(
-                "--require-annotation", "--requre-annotation",
+                "--require-annotation", "--requireannotation",
                 help=("require GFF entries with text "
                       "matching this in their 'Notes' field"))
-            parser.add_argument("--parent-gene-prefix", "--parentgeneprefix",
-                                default="gene:",
+            parser.add_argument("--parent-gene-pattern", "--parentgenepattern",
+                                default='gene_id "%"',
                                 help=("Parent genes prefix when interpreting"
                                       "GFF files.  For GFF3 files, 'gene:' "
                                       "is standard, but for older or custom "
