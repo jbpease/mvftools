@@ -21,7 +21,8 @@ If you use this software please cite:
 Pease, James B. and Benjamin K. Rosenzweig. 2018.
 "Encoding Data Using Biological Principles: the Multisample Variant Format
 for Phylogenomics and Population Genomics"
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. 15(4) 1231–1238.
+IEEE/ACM Transactions on Computational Biology and Bioinformatics.
+15(4) 1231–1238.
 http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
 This file is part of MVFtools.
@@ -51,10 +52,9 @@ def parse_regions_arg(regionfilepath, contigs):
         with open(regionfilepath) as regfile:
             for line in regfile:
                 entry = line.rstrip().split(',')
-                if (len(entry) > 4 
-                    or len(entry) < 1
-                    or len(entry[0]) == 0
-                    ):
+                if (len(entry) > 4
+                        or len(entry) < 1
+                        or len(entry[0]) == 0):
                     print("malformed entry ({}), ignoring...".format(entry))
                     continue
                 contig = ''
@@ -75,8 +75,8 @@ def parse_regions_arg(regionfilepath, contigs):
                     if contig not in fmt_regions:
                         fmt_regions[contig] = []
                     fmt_regions[contig].append((
-                        int(entry[1]), 
-                        None, 
+                        int(entry[1]),
+                        None,
                         '+')
                     )
                 else:
@@ -85,7 +85,7 @@ def parse_regions_arg(regionfilepath, contigs):
                     assert int(entry[2]) > int(entry[1])
                     fmt_regions.append((
                         contig,
-                        int(entry[1]), 
+                        int(entry[1]),
                         int(entry[2]),
                         "+" if int(entry[2]) > int(entry[1]) else "-")
                         )
@@ -112,17 +112,15 @@ def parse_regions_arg(regionfilepath, contigs):
 def mvf2fasta(args):
     """Main method"""
     mvf = MultiVariantFile(args.mvf, 'read')
-    if (mvf.flavor in ("dna", "rna") 
+    if (mvf.flavor in ("dna", "rna")
         and args.output_data == "prot") or (
-            mvf.flavor == "prot" 
-            and args.output_data in ("dna", "rna")
-        ):
+            mvf.flavor == "prot"
+            and args.output_data in ("dna", "rna")):
         raise RuntimeError(
             "--output-data {} incompatiable with '{}' flavor mvf".format(
                 args.output_data, mvf.flavor))
     regions, max_region_coord, regionlabel = parse_regions_arg(
         args.regions, mvf.contig_data)
-    print(regions)
     sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
@@ -182,7 +180,7 @@ def mvf2fasta(args):
                 else:
                     if contig != current_contig:
                         if mvf.metadata['contigs'][current_contig].get(
-                            'strand', "+") == '-':
+                                'strand', "+") == '-':
                             write_buffer[label] = write_buffer[label][::-1]
                         tmp_files[label].write(''.join(write_buffer[label]))
                     if label not in write_buffer:
@@ -194,7 +192,7 @@ def mvf2fasta(args):
     if write_buffer:
         for label in write_buffer:
             if mvf.metadata['contigs'][current_contig].get(
-                'strand', "+") == '-':
+                    'strand', "+") == '-':
                 write_buffer[label] = write_buffer[label][::-1]
             tmp_files[label].write(''.join(write_buffer[label]))
         write_buffer = {}
@@ -210,15 +208,15 @@ def mvf2fasta(args):
             os.remove(os.path.join(args.temp_dir, filehandler.name))
     return ''
 
+
 def mvf2fastagene(args):
     """Main method"""
     args.qprint("Indexing MVF")
     mvf = MultiVariantFile(args.mvf, 'read', contigindex=True)
-    if (mvf.flavor in ("dna", "rna") 
+    if (mvf.flavor in ("dna", "rna")
         and args.output_data == "prot") or (
-            mvf.flavor == "prot" 
-            and args.output_data in ("dna", "rna")
-        ):
+            mvf.flavor == "prot"
+            and args.output_data in ("dna", "rna")):
         raise RuntimeError(
             "--output-data {} incompatiable with '{}' flavor mvf".format(
                 args.output_data, mvf.flavor))
@@ -250,11 +248,11 @@ def mvf2fastagene(args):
         write_buffer = dict((x, []) for x in sample_labels)
         data_in_buffer = False
         for contig, pos, allelesets in mvf.itercontigentries(
-            targetcontig, decode=True):
+                targetcontig, decode=True):
             for col, label in zip(sample_indices, sample_labels):
                 if mvf.flavor == 'dna':
                     write_buffer[label].append(
-                        'N' 
+                        'N'
                         if allelesets[0][col] == 'X'
                         else allelesets[0][col])
                     data_in_buffer = True
@@ -263,20 +261,21 @@ def mvf2fastagene(args):
                     write_buffer[label].append(allelesets[0][col])
                     data_in_buffer = True
                 elif mvf.flavor == 'codon' and args.output_data == 'dna':
-                    codon = ['N' 
-                             if allelesets[x][col] == 'X' 
-                             else allelesets[x][col] 
+                    codon = ['N'
+                             if allelesets[x][col] == 'X'
+                             else allelesets[x][col]
                              for x in (1, 2, 3)]
                     write_buffer[label].append(''.join(codon))
                     data_in_buffer = True
         if data_in_buffer:
             args.qprint("Writing Align")
-            with open(os.path.join(args.output_dir, 
+            with open(os.path.join(args.output_dir,
                                    contiglabel + ".fa"), 'w') as outfile:
                 for label in write_buffer:
                     if mvf.flavor == 'codon' and args.output_data == 'dna':
-                        if mvf.contig_data[targetcontig].get(
-                                'strand', '+') == '-':
+                        if ((mvf.contig_data[targetcontig].get(
+                                'strand', '+') == '-')
+                                and (args.ignore_strand is False)):
                             entryseq = ''.join(write_buffer[label][::-1])
                         else:
                             entryseq = ''.join(write_buffer[label])
@@ -424,8 +423,9 @@ def mvf2phy(args):
         partprefix = "PROT" if args.output_data == "prot" else "DNA"
         partitionfile = open("{}.part".format(args.out), 'w')
     for contig, _, allelesets in mvf.iterentries(
-            contig_ids=(mvf.get_contig_ids() if args.regions is None else
-                     [x for x in max_region_coord]), decode=True):
+            contig_ids=(mvf.get_contig_ids()
+                        if args.regions is None
+                        else [x for x in max_region_coord]), decode=True):
         if contig == skipcontig:
             continue
         if contig not in max_region_coord:
@@ -437,10 +437,10 @@ def mvf2phy(args):
             if args.partition is True:
                 if current_contig_end > current_contig_start:
                     partitionfile.write("{}, {} = {}-{}\n".format(
-                        partprefix, mvf.get_contig_labels(
-                            ids=current_contig_id),
-                            current_contig_start, 
-                            current_contig_end - 1))
+                        partprefix,
+                        mvf.get_contig_labels(ids=current_contig_id),
+                        current_contig_start,
+                        current_contig_end - 1))
             current_contig_id = contig[:]
             # reset start as one position after end of last
             current_contig_start = current_contig_end

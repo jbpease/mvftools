@@ -588,6 +588,8 @@ class MVFcall():
                                 required=True)
             parser.addarg_sample_indices()
             parser.addarg_sample_labels()
+            parser.add_argument("--ignore-strand", action="store_true",
+                                help="Do not read strand info from contigs")
             parser.add_argument(
                 "--output-data", "--outputdata",
                 choices=("dna", "rna", "prot"),
