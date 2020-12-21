@@ -1,4 +1,4 @@
-!logo[](https://github.com/peaselab/mvftools/blob/main/doc/logo.png)
+![logo](https://github.com/peaselab/mvftools/blob/main/doc/logo.png)
 
 # mvftools
 
