@@ -24,9 +24,9 @@ Please also include the URL https://www.github.com/jbpease/mvftools in your meth
 
 ## Manual
 
-Please see the full HTML manual: https://github.com/jbpease/mvftools/blob/main/doc/mvftools.html
+Please see the full HTML manual: https://github.com/peaselab/mvftools/blob/main/doc/mvftools.html
 
-Or the PDF Manual: https://github.com/jbpease/mvftools/blob/main/doc/mvftools.pdf
+Or the PDF Manual: https://github.com/peaselab/mvftools/blob/main/doc/mvftools.pdf
 
 
 ## Requirements
