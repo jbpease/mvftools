@@ -1,0 +1,13 @@
+##mvf version=1.2 flavor=dna maxcontigid=0 mvftype=dna ncol=5 sourceformat=fasta
+#s Hsapiens 
+#s Ptroglodytes 
+#s Ppaniscus 
+#s Ggorilla 
+#s Mmusculus 
+#c 1 label=Chromosome1 length=200 
+#c 2 label=Chromosome2 length=200 
+#n Note: This is an example file showing data formatting
+1:101 A
+1:102 A
+1:103 T
+1:104 TT+C4

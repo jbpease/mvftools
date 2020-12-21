@@ -1,0 +1,28 @@
+##mvf sourceformat=fasta version=0.2 mvftype=dna ncol=5
+#s Hsapiens2
+#s Ptroglodytes2
+#s Ppaniscus2
+#s Ggorilla2
+#s Mmusculus2
+#c 1 label=Chromosome1 length=200
+#c 2 label=Chromosome2 length=200
+#c 3 label=Chromosome3 length=200
+#n Note: This is an example file showing data formatting
+1:20 A
+1:101 G
+1:102 G
+1:103 T
+1:104 TT+C4
+1:105 GC
+1:106 A+A4
+1:107 AATTA
+1:108 AC+G4
+3:100 A
+3:101 A
+3:102 A
+3:103 T
+3:104 TT+C4
+3:105 GC
+3:106 A+A4
+3:107 AATTA
+3:108 AC+G4

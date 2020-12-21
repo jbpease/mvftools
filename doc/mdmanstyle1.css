@@ -1,0 +1,11 @@
+body, title {font-family: Arial, sans-serif;}
+.title, .author, .date {text-align:center;}
+code, pre {border-radius: 5px;
+	   background-color: #fdf6e3;
+   	   color: #002b36;
+	   font-size:10pt;
+}
+h3 {margin-left: 1em;}
+p, pre {margin-left: 2em;}
+
+

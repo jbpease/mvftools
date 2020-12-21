@@ -1,0 +1,43 @@
+##mvf version=1.2 flavor=dna maxcontigid=0 mvftype=dna ncol=5 sourceformat=fasta
+#s Hsapiens 
+#s Ptroglodytes 
+#s Ppaniscus 
+#s Ggorilla 
+#s Mmusculus 
+#s Hsapiens2 
+#s Ptroglodytes2 
+#s Ppaniscus2 
+#s Ggorilla2 
+#s Mmusculus2 
+#c 1 label=Chromosome1 length=200 
+#c 2 label=Chromosome2 length=200 
+#c 3 label=Chromosome3 length=200 idx=373
+#n Note: This is an example file showing data formatting
+1:20 -----AAAAA
+1:100 AAAAA-----
+1:101 AAAAAGGGGG
+1:102 AAAAAGGGGG
+1:103 T
+1:104 TTTTCTTTTC
+1:105 GC+G5
+1:106 A---AA---A
+1:107 AATTAAATTA
+1:108 ACCCGACCCG
+2:100 AAAAA-----
+2:101 AAAAA-----
+2:102 AAAAA-----
+2:103 TTTTT-----
+2:104 TTTTC-----
+2:105 GCCCC-----
+2:106 A+A4
+2:107 AATTA-----
+2:108 ACCCG-----
+3:100 -----AAAAA
+3:101 -----AAAAA
+3:102 -----AAAAA
+3:103 -----TTTTT
+3:104 -----TTTTC
+3:105 -----GCCCC
+3:106 -----A---A
+3:107 -----AATTA
+3:108 -----ACCCG
