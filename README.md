@@ -1,10 +1,10 @@
-![logo](https://github.com/jbpease/mvftools/blob/master/doc/logo.png)
+!logo[](https://github.com/peaselab/mvftools/blob/main/doc/logo.png)
 
 # mvftools
 
 ## Authors
 
-* James B. Pease ([website](http://peaselab.github.io)([@jamesbpease](https://twitter.com/jamesbpease/))
+* James B. Pease (website: http://peaselab.github.io ([@jamesbpease](https://twitter.com/jamesbpease/))
 * Ben K. Rosenzweig
 
 ### Contributors
@@ -18,30 +18,30 @@ Multisample Variant Format (MVF), which is designed for compact storage and effi
 
 Pease JB and BK Rosenzweig. 2018. "Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics" *IEEE/ACM Transactions on Computational Biology and Bioinformatics*. 15(4):1231-1238.  http://www.dx.doi.org/10.1109/tcbb.2015.2509997
 
-Please also include the URL [https://www.github.com/jbpease/mvftools] in your methods section where the program is referenced.
+Please also include the URL https://www.github.com/jbpease/mvftools in your methods section where the program is referenced.
 
 (Note this paper was originally published online in 2015, but did not receive final citation page numbering until 2018.  You may see older citations as 2015, which is the same paper.)
 
 ## Manual
 
-Please see the full HTML manual at [https://github.com/jbpease/mvftools/blob/main/doc/mvftools.html].
+Please see the full HTML manual: https://github.com/jbpease/mvftools/blob/main/doc/mvftools.html
 
-Or the PDF Manual [https://github.com/jbpease/mvftools/blob/main/doc/mvftools.pdf]
+Or the PDF Manual: https://github.com/jbpease/mvftools/blob/main/doc/mvftools.pdf
 
 
 ## Requirements
 
 MVFtools requires:
   * **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
-  * BioPython ([https://biopython.org/])
-  * Numpy ([https://www.numpy.org/])
-  * Scipy ([https://www.scipy.org/])
-  * MatplotLib ([https://www.matplotlib.org/])
+  * BioPython: https://biopython.org/
+  * Numpy: https://www.numpy.org/
+  * Scipy: https://www.scipy.org/
+  * MatplotLib: https://www.matplotlib.org/
 
 *Optionally required for certain modules:*
-  * RAxML (8.x recommended; [https://sco.h-its.org/exelixis/web/software/
-raxml/index.html])
-  * PAML ([http://abacus.gene.ucl.ac.uk/software/paml.html])
+  * RAxML: 8.x recommended; https://sco.h-its.org/exelixis/web/software/
+raxml/index.html
+  * PAML: http://abacus.gene.ucl.ac.uk/software/paml.html
 
 
 ## FAQ and Questions/Comments
@@ -50,13 +50,13 @@ https://groups.google.com/forum/#!forum/mvftools
 
 ## Examples of papers that have used MVFtools
 
-* [http://dx.doi.org/10.1111/mec.13679]
-* [http://dx.doi.org/10.1111/mec.13610]
-* [http://dx.doi.org/10.1371/journal.pbio.1002379]
-* [https://doi.org/10.1038/s41467-018-04963-6]
-* [https://doi.org/10.1093/gbe/evy227]
-* [https://doi.org/10.1093/molbev/msy198]
-* [https://doi.org/10.1534/genetics.118.301831]
+* http://dx.doi.org/10.1111/mec.13679
+* http://dx.doi.org/10.1111/mec.13610
+* http://dx.doi.org/10.1371/journal.pbio.1002379
+* https://doi.org/10.1038/s41467-018-04963-6
+* https://doi.org/10.1093/gbe/evy227
+* https://doi.org/10.1093/molbev/msy198
+* https://doi.org/10.1534/genetics.118.301831
 
 
 ## License
