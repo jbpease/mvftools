@@ -4,6 +4,6 @@ The original main branch has been relocated to 'old-main.'
 
 Contact info:
 
-James B. Pease ([website](http://www.peaselab.org)
+James B. Pease ([http://www.peaselab.org](http://www.peaselab.org))
 
 
