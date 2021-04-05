@@ -34,6 +34,9 @@ import tempfile
 from random import randint
 from pylib.mvfbase import encode_mvfstring, is_int
 from pylib.mvfbase import MultiVariantFile, fasta_iter
+from pylib.mvfbiolib import MvfBioLib
+
+MLIB = MvfBioLib()
 
 
 def parse_regions_arg(regionfilepath, contigs):
@@ -253,10 +256,20 @@ def mvf2fastagene(args):
                     write_buffer[label].append(allelesets[0][col])
                     data_in_buffer = True
                 elif mvf.flavor == 'codon' and args.output_data == 'dna':
-                    codon = ['N'
-                             if allelesets[x][col] == 'X'
-                             else allelesets[x][col]
-                             for x in (1, 2, 3)]
+                    if args.choose_allele == 'random1':
+                        codon = [
+                            'N'
+                            if allelesets[x][col] == 'X'
+                            else (MLIB.randomnuc(allelesets[x][col])
+                                  if (allelesets[x][col] in
+                                      MLIB.validchars['dnaambig23'])
+                                  else allelesets[x][col])
+                                  for x in (1, 2, 3)]
+                    else:
+                        codon = ['N'
+                                 if allelesets[x][col] == 'X'
+                                 else allelesets[x][col]
+                                 for x in (1, 2, 3)]
                     write_buffer[label].append(''.join(codon))
                     data_in_buffer = True
         if data_in_buffer:

@@ -503,6 +503,13 @@ class MVFcall():
                                 required=True)
             parser.addarg_sample_indices()
             parser.addarg_sample_labels()
+            parser.add_argument(
+                "--choose-allele", "--chooseallele",
+                default="none", dest="choose_allele",
+                choices=["none", "random1"],
+                help=("Chooses how heterozygous alleles are "
+                      "handled. (none=no splitting (default); "
+                      "random1=pick one allele randomly"))
             parser.add_argument("--ignore-strand", action="store_true",
                                 help="Do not read strand info from contigs")
             parser.add_argument(
@@ -934,7 +941,6 @@ class MVFcall():
         """Plot a Chromoplot from an MVF file for all combinations
            of the specified samples.
         """
-
 
         def generate_argparser():
             """Generate argparse parser

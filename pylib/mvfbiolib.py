@@ -31,7 +31,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from itertools import combinations, permutations
-from random import randint
+from random import randint, choice
 
 
 class MvfBioLib():
@@ -48,6 +48,7 @@ class MvfBioLib():
             'amino': 'ACDEFGHIKLMNPQRSTVWY',
             'dnaambig2': 'KMRSWY',
             'dnaambig3': 'BDHV',
+            'dnaambig23': 'KMRSWYBDHV',
             'dnaambig4': 'NX',
             'dna+ambig2': 'ACGTKMRSWY',
             'dna+ambig3': 'ACGTKMRSWYBDHV',
@@ -364,6 +365,12 @@ class MvfBioLib():
         """Convert a decimal integer to a binary AB pattern
         """
         return bin(num)[2:].zfill(digits).replace('0', 'A').replace('1', 'B')
+
+    def randomnuc(self, ambigcode, alleles=1):
+        """Return random nucleotide for given ambiguity code
+        """
+        return choice(self.splitbases[ambigcode])
+
 
 
 if __name__ == ("__main__"):
