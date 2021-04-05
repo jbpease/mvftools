@@ -32,7 +32,7 @@ along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from itertools import combinations
-from pylib.mvfbase import MultiVariantFile, OutputFile, Counter
+from pylib.mvfbase import MultiVariantFile, OutputFile, Counter, same_window
 from pylib.mvfbiolib import MvfBioLib
 from pylib.mvfpaml import paml_branchsite
 from pylib.mvftranslate import parse_gff_analysis
@@ -62,7 +62,12 @@ def procarg_allelegroups(xarg, mvf):
     groups = {}
     for elem in xarg:
         elem = elem.split(':')
-        groups[elem[0]] = mvf.get_sample_indices(ids=elem[1].split(','))
+        try:
+            groups[elem[0]] = mvf.get_sample_indices(ids=elem[1].split(','))
+        except KeyError:
+            raise KeyError(
+                ("One or more of sample ids '{}' not found! "
+                 "Ids must match header exactly").format(elem[1]))
     xarg = groups.copy()
     for grp0, grp1 in combinations(groups, 2):
         if set(groups[grp0]) & set(groups[grp1]):
@@ -110,15 +115,17 @@ def hapgroup(group):
 def calc_group_unique_allele_window(args):
     """Count the number of and relative rate of uniquely held alleles
        spatially along chromosomes (i.e. Lineage-specific rates)"""
+    args.qprint("Running InferGroupSpecificAllele")
     data = {}
     mvf = MultiVariantFile(args.mvf, 'read')
     if mvf.flavor != 'codon':
         raise RuntimeError(
             "\n=====================\nERROR: MVF is not codon flavor!")
+    ncol = mvf.metadata['ncol']
+    args.qprint("Input MVF read with {} columns.".format(ncol))
     annotations = {}
     coordinates = {}
     labels = mvf.get_sample_ids()[:]
-    ncol = len(labels)
     current_contig = None
     current_position = 0
     counts = Counter()
@@ -167,17 +174,23 @@ def calc_group_unique_allele_window(args):
     if args.mincoverage is not None:
         if args.mincoverage < len(groups) * 2:
             raise RuntimeError("""
-                Error: GroupUniqueAlleleWindow:
+                Error: InferGroupSpecificAllele:
                 --mincoverage cannot be lower than the twice the number
                 of specified groups in --allele-groups
                 """)
     genealign = []
-    for contig, pos, allelesets in mvf:
-        if not current_contig:
-            current_contig = contig[:]
-        if contig != current_contig or (
-                args.windowsize > 0 and
-                pos > current_position + args.windowsize):
+    args.qprint("Parameter Check Complete.")
+    args.qprint("Number of Groups Specified: {}".format(len(groups)))
+    for group in groups:
+        args.qprint(group)
+        args.qprint([labels[x] for x in group])
+        if not(group):
+            raise RuntimeError(
+                "Group is Empty! Check group labels/indicies specified.")
+    args.qprint("Processing Entries.")
+    for contig, pos, allelesets in mvf.iterentries(decode=False):
+        if not same_window((current_contig, current_position),
+                           (contig, pos), args.windowsize):
             xkey = (current_contig, current_position,)
             data[xkey] = counts.copy()
             data[xkey].update([
