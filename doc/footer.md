@@ -5,6 +5,10 @@
 
 # Version History
 
+**v.0.6.1**
+
+2021-04-20: Updates to fix problems with the ConvertMAF2MVF Module.  Note that commas now separate the --sample-tags and --ref-tag is now required.
+
 **v.0.6.0**
 
 *2020-12-20: Major Update* - Major update to the back-end of MVF for speed and stability.  Adds support for faster file access by creating an MVF index, fixes to the filtering modules, changes to the specification of sample and contig labels to improve usability. Major improvements to the MVFTranslate module.  Added support for tetraploid and hexaploid VCF files. Many other fixes

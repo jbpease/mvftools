@@ -30,10 +30,15 @@ You should have received a copy of the GNU General Public License
 along with MVFtools.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# TODO: handle multiple contigs in same file - default 's SAMPLE.CONTIG START LENGTH etc...', allow user to specify alternate formats
+# TODO: handle multiple contigs in same file -
+# default 's SAMPLE.CONTIG START LENGTH etc...', allow user to
+# specify alternate formats
 # TODO: filter alignment blocks by score (i.e. reject all blocks below score X)
-# TODO: discover sample names without user input (either include an option to guarantee that all samples are represented in all alignment blocks, or do a first-pass over the whole file to find all sample names that will appear.  This second option should be combined with some sort of indexing scheme since it forces us to preprocess the whole file anyway...)
-
+# TODO: discover sample names without user input (either include an option to
+# guarantee that all samples are represented in all alignment blocks, or do a
+# first-pass over the whole file to find all sample names that will appear.
+# This second option should be combined with some sort of indexing scheme
+# since it forces us to preprocess the whole file anyway...)
 
 import os
 import gzip
@@ -129,23 +134,33 @@ class MultiAlignFile(object):
 def maf2mvf(args):
     """Main method"""
     # ESTABLISH MAF
+    args.qprint("Starting ConvertMAF2MVF")
     maf = MultiAlignFile(args)
+    args.qprint("MAF Established")
     # ESTABLISH MVF
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
+    args.qprint("MVF output initialized")
     # PROCESS SAMPLE INFO
     contig_translate = {1: 1}
-    samplelabels = [s.split(':')[0] for s in args.sample_tags]
+    samplelabels = [s.split(':')[0] for s in args.sample_tags.split(',')]
+    args.qprint("Sample tags processed: {}".format(samplelabels))
+    if args.ref_tag not in samplelabels:
+        raise IndexError("--ref-tag not in the tags listed in --sample-tags")
     samplelabels.remove(args.ref_tag)
     samplelabels.insert(0, args.ref_tag)
-    mvf.metadata['labels'] = samplelabels[:]
+    mvf.sample_ids = samplelabels[:]
+    mvf.sample_indices = list(range(len(mvf.sample_ids)))
     for i, label in enumerate(samplelabels):
-        mvf.metadata['samples'][i] = {'label': label}
-    mvf.metadata['ncol'] = len(mvf.metadata['labels'])
+        mvf.sample_data[i] = {'id': label, 'index': i}
+    mvf.reset_max_sample()
     mvf.metadata['sourceformat'] = maf.metadata['sourceformat']
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
+    args.qprint("MAF Headers Written")
     mvfentries = []
     nentry = 0
+    total_entries = 0
+    args.qprint("Begin data conversion")
     for pos, length, msa in maf:
         for sname in samplelabels:
             if sname not in msa:
@@ -160,9 +175,14 @@ def maf2mvf(args):
                      pos+i, (mvf_alleles,)))
                 nentry += 1
                 if nentry == args.line_buffer:
+                    total_entries += nentry
                     mvf.write_entries(mvfentries, encoded=True)
+                    args.qprint("{} entries written".format(total_entries))
                     mvfentries = []
                     nentry = 0
     if mvfentries:
+        total_entries += nentry
         mvf.write_entries(mvfentries)
+        args.qprint("{} entries written".format(total_entries))
+    args.qprint("Complete.")
     return ''

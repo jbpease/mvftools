@@ -8,7 +8,7 @@
 
 ---
 
-***Version 0.6.0***
+***Version 0.6.1***
 
 ---
 
@@ -642,7 +642,9 @@ Choices: ['dna', 'protein']
 
 ``--out`` (required) = output MVF file (type=file path, default=None)
 
-``--sample-tags/--sampletags`` (required) = one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique. (type=None, default=None)
+``--ref-tag/--reftag`` (required) = Specify which TAG in --sample-tags is the reference genome. (type=None, default=None)
+
+``--sample-tags/--sampletags`` (required) = One or more TAG:NEW or TAG, items separated by commas.Each TAG is partial text-matched to the sample labels in the MAF. For example, hsap18.chr1 and hsap18.chr2 would be matched tag 'hsap18'. If :NEW is added, then the MVF sample will be labeled NEW.  Otherwise, the sample will be labeled simply TAG. (type=None, default=None)
 
 ``--line-buffer/--linebuffer`` = Number of entries to store in memory at a time. (type=integer, default=100000)
 
@@ -655,8 +657,6 @@ Choices: ['dna', 'protein']
 
 ``--quiet`` = Suppress screen output. (flag, default=False)
 
-
-``--ref-tag/--reftag`` = old reference tag (type=None, default=None)
 
 ---
 
@@ -707,6 +707,9 @@ Choices: ('dna', 'rna', 'prot')
 ``--output-dir`` (required) = Output directory of FASTA files. (type=file path, default=None)
 
 ``--buffer`` = size (Mbp) of write buffer for each sample (type=integer, default=10)
+
+``--choose-allele/--chooseallele`` = Chooses how heterozygous alleles are handled. (none=no splitting (default); random1=pick one allele randomly (type=None, default=none)
+Choices: ['none', 'random1']
 
 
 ``--ignore-strand`` = Do not read strand info from contigs (flag, default=False)
@@ -1230,6 +1233,10 @@ Choices: ['protein', 'codon']
 * CheckMVF > Use VerifyMVF instead.
 
 # Version History
+
+**v.0.6.1**
+
+2021-04-20: Updates to fix problems with the ConvertMAF2MVF Module.  Note that commas now separate the --sample-tags and --ref-tag is now required.
 
 **v.0.6.0**
 

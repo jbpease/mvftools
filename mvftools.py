@@ -107,7 +107,7 @@ class MVFcall():
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.6.0",
+                            version="0.6.1",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if args.command in OLDCOMMAND:
@@ -424,18 +424,21 @@ class MVFcall():
                                 required=True, type=os.path.abspath,)
             parser.add_argument("--out", help="output MVF file",
                                 type=os.path.abspath, required=True)
-            parser.add_argument("--ref-tag", "--reftag",
-                                help="old reference tag")
+            parser.add_argument(
+                "--sample-tags", "--sampletags", required=True,
+                help=("One or more TAG:NEW or TAG, items separated by commas."
+                      "Each TAG is partial text-matched to the sample labels "
+                      "in the MAF. For example, hsap18.chr1 and hsap18.chr2 "
+                      "would be matched tag 'hsap18'. "
+                      "If :NEW is added, then the MVF sample will be labeled "
+                      "NEW.  Otherwise, the sample will be labeled simply TAG."
+                      ))
+            parser.add_argument("--ref-tag", "--reftag", required=True,
+                                help=("Specify which TAG in --sample-tags is "
+                                      "the reference genome."))
             parser.add_argument(
                 "--mvf-ref-label", "--mvfreflabel", default="REF",
                 help=("new label for reference sample (default='REF')"))
-            parser.add_argument(
-                "--sample-tags", "--sampletags", nargs="*", required=True,
-                help=("one or more TAG:NEWLABEL or TAG, items, "
-                      "if TAG found in sample label, replace with "
-                      "NEW (or TAG if NEW not specified) "
-                      "NEW and TAG must each be unique."))
-
             parser.addarg_linebuffer()
             parser.addarg_overwrite()
             return parser
