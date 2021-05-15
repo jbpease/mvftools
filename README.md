@@ -4,7 +4,7 @@
 
 ## Authors
 
-* James B. Pease (website: http://peaselab.github.io ([@jamesbpease](https://twitter.com/jamesbpease/))
+* James B. Pease (website: http://www.peaselab.org ([@jamesbpease](https://twitter.com/jamesbpease/))
 * Ben K. Rosenzweig
 
 ### Contributors
@@ -45,8 +45,8 @@ raxml/index.html
 
 
 ## FAQ and Questions/Comments
-See the manual above and visit the Google Groups site for FAQs and to ask question:
-https://groups.google.com/forum/#!forum/mvftools
+See the manual for Frequently Asked Questions and other discussion commentary.
+For questions, contact James Pease by email (info at http://www.peaselab.org)
 
 ## Examples of papers that have used MVFtools
 
