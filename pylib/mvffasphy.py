@@ -265,6 +265,8 @@ def mvf2fastagene(args):
                                       MLIB.validchars['dnaambig23'])
                                   else allelesets[x][col])
                                   for x in (1, 2, 3)]
+
+
                     else:
                         codon = ['N'
                                  if allelesets[x][col] == 'X'
@@ -277,7 +279,8 @@ def mvf2fastagene(args):
             with open(os.path.join(args.output_dir,
                                    contiglabel + ".fa"), 'w') as outfile:
                 for label in write_buffer:
-                    if mvf.flavor == 'codon' and args.output_data == 'dna':
+                    if (mvf.flavor == 'codon' and
+                            args.output_data in ('dna', 'prot')):
                         if ((mvf.contig_data[targetcontig].get(
                                 'strand', '+') == '-')
                                 and (args.ignore_strand is False)):
