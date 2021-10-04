@@ -263,10 +263,8 @@ def mvf2fastagene(args):
                             else (MLIB.randomnuc(allelesets[x][col])
                                   if (allelesets[x][col] in
                                       MLIB.validchars['dnaambig23'])
-                                  else allelesets[x][col])
-                                  for x in (1, 2, 3)]
-
-
+                                    else allelesets[x][col])
+                                for x in (1, 2, 3)]
                     else:
                         codon = ['N'
                                  if allelesets[x][col] == 'X'
@@ -360,12 +358,22 @@ def fasta2mvf(args):
         newref = fsamples.pop(i)
         fsamples = [newref] + fsamples
     for i, contig in enumerate(fcontigs):
-        mvf.metadata['contigs'][i] = {
+        new_index = mvf.get_next_contig_index()
+        mvf.contig_indices.append(new_index)
+        mvf.contig_ids.append(str(new_index))
+        mvf.contig_labels.append(contig)
+        mvf.contig_label_to_index[contig] = new_index
+        mvf.contig_id_to_index[str(new_index)] = new_index
+        mvf.contig_data[new_index] = {
             'label': contig,
+            'id': str(new_index),
             'length': max([fasta[contig][x][0] for x in fasta[contig]])}
     mvf.metadata['labels'] = fsamples[:]
     for i, label in enumerate(fsamples[:]):
-        mvf.metadata['samples'][i] = {'label': label}
+        mvf.sample_indices.append(i)
+        mvf.sample_id_to_index[label] = i
+        mvf.sample_ids.append(label)
+        mvf.sample_data[i]= {'id': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = 'fasta'
     mvf.flavor = args.flavor
@@ -375,7 +383,8 @@ def fasta2mvf(args):
     nentry = 0
     mvf_alleles = {}
     for cind, contig in enumerate(fcontigs):
-        for pos in range(mvf.metadata['contigs'][cind]['length']):
+        print(mvf.contig_data[cind + 1]['length'])
+        for pos in range(mvf.contig_data[cind + 1]['length']):
             mvf_alleles = encode_mvfstring(
                 ''.join(samp not in fasta[contig] and '-' or
                         pos >= fasta[contig][samp][0] and '-' or

@@ -1043,7 +1043,7 @@ class MVFcall():
                 "--gene-pattern", "--genepattern",
                 default='gene_id "%"',
                 help=("Gene name pattern finder when interpreting "
-                      "GFF/GTF.  Use % in place of gene name.")
+                      "GFF/GTF.  Use %% in place of gene name.")
             )
             parser.add_argument(
                 "--non-genic-mode", "--nongenicmode",

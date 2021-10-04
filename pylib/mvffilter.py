@@ -306,6 +306,60 @@ def make_module(modulename, ncol, optargs=None):
             return entry.upper()
         return entry.upper()
 
+    # RANDOMALLELE
+    def randomallele(entry, mvfenc):
+        """replaces ambiguous alleles (RYMKWSBDHV) with a randomly selected
+           allele"""
+        # if all(x not in MLIB.validchars['dnaambig23'] for x in entry):
+        #     return entry
+        if mvfenc == 'full':
+            return ''.join(
+                (
+                    MLIB.randomnuc(x)
+                    if x in MLIB.validchars['dnaambig23']
+                    else x
+                )
+                    for x in entry
+            )
+        if mvfenc == 'refvar':
+            return '{}{}'.format(
+                     (MLIB.randomnuc(entry[0])
+                      if entry[0] in MLIB.validchars['dnaambig23']
+                      else entry[0]),
+                     (''.join(MLIB.randomnuc(entry[1])
+                              for _ in range(ncol - 1))
+                      if entry[1] in MLIB.validchars['dnaambig23']
+                      else entry[1])
+            )
+        if mvfenc == 'invar':
+            return (''.join(MLIB.randomnuc(entry) for _ in range(ncol))
+                    if entry in MLIB.validchars['dnaambig23']
+                    else entry)
+        if mvfenc == 'onecov':
+            return "{}+{}{}".format(
+                (MLIB.randomnuc(entry[0])
+                 if entry[0] in MLIB.validchars['dnaambig23']
+                 else entry[0]),
+                (MLIB.randomnuc(entry[2])
+                 if entry[2] in MLIB.validchars['dnaambig23']
+                 else entry[2]),
+                entry[3:])
+        if mvfenc == 'onevar':
+            varloc = int(entry[4:])
+            return "{}{}".format(
+                (MLIB.randomnuc(entry[0])
+                 if entry[0] in MLIB.validchars['dnaambig23']
+                 else entry[0]),
+                ''.join((MLIB.randomnuc(entry[3])
+                         if entry[3] in MLIB.validchars['dnaambig23']
+                         else entry[3])
+                        if j == varloc else (
+                            MLIB.randomnuc(entry[1])
+                            if entry[1] in MLIB.validchars['dnaambig23']
+                            else entry[1])
+                        for j in range(ncol - 1)))
+        return entry
+
     # REMOVECHAR
     def removechar(entry, mvfenc):
         """replace specified characters with '-'"""
@@ -514,6 +568,7 @@ def make_module(modulename, ncol, optargs=None):
         'mincoverage': ('filter', mincoverage),
         'notchar': ('filter', notchar),
         'promotelower': ('transform', promotelower),
+        'randomallele': ('transform', randomallele),
         'removechar': ('transform', removechar),
         'removelower': ('transform', removelower),
         'reqallchar': ('filter', reqallchar),
@@ -537,7 +592,8 @@ def make_module(modulename, ncol, optargs=None):
 
 # MODULENAMES = ['allelegroup', 'collapsemerge', 'collapsepriority',
 #               'columns', 'maskchar', 'masklower', 'mincoverage',
-#               'notchar', 'promotelower', 'removechar', 'removelower',
+#               'notchar', 'promotelower', 'randomallele',
+#               'removechar', 'removelower',
 #               'reqallchar', 'reqcontig', 'reqinformative',
 #               'reqinvariant', 'reqonechar', 'reqregion',
 #               'reqsample', 'reqvariant', 'reqnonrefsample']

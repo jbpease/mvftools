@@ -663,6 +663,7 @@ def translate_mvf(args):
                     entrybuffer = []
                     nentry = 0
     else:
+        running_gene_index = -1
         for igene, gene in enumerate(gene_order):
             xcontiglabel = gff_genes[gene]['contig']
             xcontig = mvf.get_contig_indices(
@@ -672,9 +673,11 @@ def translate_mvf(args):
                     gff_genes[gene]['contig']))
             xcontigid = mvf.get_contig_ids(indices=xcontig)[0]
             if not gff_genes[gene]['cds']:
-                print(gene, gff_genes[gene])
+                print("""Warning: gene '{}' has no CDS regions specified.  It may
+                       be an error or an non-coding RNA.""")
+                continue
+            running_gene_index += 1
             min_gene_coord = gff_genes[gene]['cds'][0][0]
-
             max_gene_coord = gff_genes[gene]['cds'][-1][1]
             mvf_entries = {}
             if not igene % 100:
@@ -718,31 +721,58 @@ def translate_mvf(args):
                     amino_acids = outmvf.encode(''.join(amino_acids))
                 if args.output_data == 'protein':
                     entrybuffer.append((
-                        xcontigid if args.retain_contigs else igene,
-                        (coords[codoncoord]
-                         if args.retain_coords
-                         else coords[codoncoord]),
-                        (amino_acids, )))
+                        (
+                            xcontigid
+                            if args.retain_contigs
+                            else running_gene_index
+                        ),
+                        (
+                            coords[codoncoord]
+                            if args.retain_coords
+                            else coords[codoncoord]
+                        ),
+                        (
+                            amino_acids,
+                        )
+                    ))
                 elif args.output_data == 'codon':
                     entrybuffer.append((
-                        xcontigid if args.retain_contigs else igene,
-                        (coords[codoncoord]
-                         if args.retain_coords
-                         else coords[codoncoord]),
-                        (amino_acids,
-                         alleles[0],
-                         alleles[1],
-                         alleles[2])))
+                        (
+                            xcontigid
+                            if args.retain_contigs
+                            else running_gene_index
+                        ),
+                        (
+                            coords[codoncoord]
+                            if args.retain_coords
+                            else coords[codoncoord]
+                        ),
+                        (
+                            amino_acids,
+                            alleles[0],
+                            alleles[1],
+                            alleles[2]
+                        )
+                    ))
                 elif args.output_data == 'dna':
                     for j, elem in enumerate(
                             range(codoncoord,
                                   min(codoncoord + 3, len(coords)))):
                         entrybuffer.append((
-                            xcontigid if args.retain_contigs else igene,
-                            (coords[elem]
-                             if args.retain_coords
-                             else elem + 1),
-                            (alleles[j], )))
+                            (
+                                xcontigid
+                                if args.retain_contigs
+                                else igene
+                            ),
+                            (
+                                coords[elem]
+                                if args.retain_coords
+                                else elem + 1
+                            ),
+                            (
+                                alleles[j],
+                            )
+                        ))
                 nentry += 1
                 if nentry >= args.line_buffer:
                     args.qprint("Writing a block of {} entries.".format(
