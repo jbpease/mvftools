@@ -247,7 +247,7 @@ class MvfBioLib():
 
     def hapsplit(self, alleles, mode):
         """Process Alleles into Haplotypes"""
-        if all(x not in 'RYMKWS' for x in alleles):
+        if all(x not in 'RYMKWSBHDV' for x in alleles):
             if mode in ['major', 'minor', 'randomone']:
                 return alleles
             if mode in ['majorminor', 'randomboth']:
@@ -259,7 +259,7 @@ class MvfBioLib():
             order = [x[1] for x in counts]
             newalleles = []
             for base in alleles:
-                if base in 'RYMKWS':
+                if base in 'RYMKWSBHDV':
                     newalleles.extend(
                         [x for x in order if x in self.splitbases[base]])
                 else:

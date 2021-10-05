@@ -282,6 +282,7 @@ def parse_gff_exome(args):
                     else args.gene_pattern
                     )
     regex_genename = compile_search_pattern(gene_pattern)
+    regex_isoform = re.compile("isoform X([0-9]*)")
     with open(args.gff) as gff:
         for line in gff:
             if line[0] == '#':
@@ -297,12 +298,12 @@ def parse_gff_exome(args):
                 if args.require_annotation not in row[8]:
                     continue
             if row[2] == 'gene':
-                genename = re.findall(regex_genename, row[8])
+                genename = re.search(regex_genename, row[8])
                 if not genename:
                     raise RuntimeError("Gene IDs not parsing correctly, "
                                        "your current pattern is '{}'. Check "
                                        "your GFF file.".format(gene_pattern))
-                genename = genename[0]
+                genename = genename.group(1)
                 if genename not in gene_order:
                     gff_genes[genename] = {
                         'id': str(igene),
@@ -310,17 +311,18 @@ def parse_gff_exome(args):
                         'label': genename,
                         'length': max(coords) - min(coords),
                         'strand': strand,
+                        'isoform': None,
                         'cds': [],
                     }
                     igene += 1
                     gene_order.append(genename)
             elif row[2] == 'CDS':
-                genename = re.findall(regex_genename, row[8])
+                genename = re.search(regex_genename, row[8])
                 if not genename:
                     raise RuntimeError("Gene IDs not parsing correctly, "
                                        "your current pattern is '{}'. Check "
                                        "your GFF file.".format(gene_pattern))
-                genename = genename[0]
+                genename = genename.group(1)
                 if genename not in gene_order:
                     gff_genes[genename] = {
                         'id': str(igene),
@@ -328,12 +330,29 @@ def parse_gff_exome(args):
                         'label': genename,
                         'length': 0,
                         'strand': strand,
+                        'isoform': None,
                         'cds': [],
                     }
                     igene += 1
                     gene_order.append(genename)
+                isoform = None
+                if "isoform X" in row[8]:
+                    isoform = re.search(regex_isoform, row[8])
+                    if isoform:
+                        isoform = int(isoform.group(1))
+                        if gff_genes[genename]['isoform'] is None:
+                            gff_genes[genename]['cds'] = []
+                            gff_genes[genename]['isoform'] = 0 + isoform
+                        elif isoform < gff_genes[genename]['isoform']:
+                            gff_genes[genename]['cds'] = []
+                            gff_genes[genename]['isoform'] = 0 + isoform
+                        elif isoform > gff_genes[genename]['isoform']:
+                            continue
                 gff_genes[genename]['cds'].append(
-                    (min(coords), max(coords), )
+                    (
+                        min(coords),
+                        max(coords),
+                    )
                 )
     warn_genes = 0
     for gene in gff_genes:
@@ -346,7 +365,7 @@ def parse_gff_exome(args):
                   '{} CDS total length {} not divisible by 3'.format(
                       gene, total_cds_length))
         gff_genes[gene]['cds'] = tuple(
-            sorted(gff_genes[gene]['cds']))
+            sorted(set(gff_genes[gene]['cds'])))
         gff_genes[gene]['length'] = total_cds_length
     args.qprint("{} / {} genes did not have total CDS length divisible by "
                 "3".format(warn_genes, len(gene_order)))
@@ -673,10 +692,10 @@ def translate_mvf(args):
                     gff_genes[gene]['contig']))
             xcontigid = mvf.get_contig_ids(indices=xcontig)[0]
             if not gff_genes[gene]['cds']:
-                print("""Warning: gene '{}' has no CDS regions specified.  It may
-                       be an error or an non-coding RNA.""")
+                print(("Warning: gene '{}' has no CDS regions specified. "
+                       "It may be an error or an non-coding RNA.").format(
+                           gene))
                 continue
-            running_gene_index += 1
             min_gene_coord = gff_genes[gene]['cds'][0][0]
             max_gene_coord = gff_genes[gene]['cds'][-1][1]
             mvf_entries = {}
@@ -692,6 +711,7 @@ def translate_mvf(args):
                 mvf_entries[pos] = allelesets[0]
             reverse_strand = gff_genes[gene]['strand'] == '-'
             coords = []
+            running_gene_index += 1
             for elem in gff_genes[gene]['cds']:
                 coords.extend(list(range(elem[0], elem[1] + 1)))
             if reverse_strand:
@@ -729,7 +749,7 @@ def translate_mvf(args):
                         (
                             coords[codoncoord]
                             if args.retain_coords
-                            else coords[codoncoord]
+                            else codoncoord
                         ),
                         (
                             amino_acids,
@@ -745,7 +765,7 @@ def translate_mvf(args):
                         (
                             coords[codoncoord]
                             if args.retain_coords
-                            else coords[codoncoord]
+                            else codoncoord
                         ),
                         (
                             amino_acids,
@@ -762,7 +782,7 @@ def translate_mvf(args):
                             (
                                 xcontigid
                                 if args.retain_contigs
-                                else igene
+                                else running_gene_index
                             ),
                             (
                                 coords[elem]
