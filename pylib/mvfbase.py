@@ -702,9 +702,9 @@ class MultiVariantFile():
                         if all(x == allelesets[0][0]
                                for x in allelesets[0][1:]):
                             continue
-                if subset and not decode:
+                if subset and decode is False:
                     allelesets = [self.encode(x) for x in allelesets]
-                if decode and not subset:
+                if decode is True and not subset:
                     allelesets = [self.decode(x) for x in allelesets]
                 if onlyalleles:
                     yield allelesets

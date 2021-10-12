@@ -5,6 +5,10 @@
 
 # Version History
 
+**v.0.6.2**
+
+2021-10-12: Added 'randomallele' action in FilterMVF. Fixed issue with 'collapsemerge' in FilterMVF. Added ability to label columns in 'collapsemerge'.  Fixed program errors in TranslateMVF and MVF2Fasta.  Moved the insertion of commands used to generate MVF to notes lines. **Functionailty change**: The column specifications in the collapse functions are now done with respect to the original columns. You no longer need to adjust the numeric columns in later actions to account for changes in prior actions. **Functionality change**: RAxML-ng is now the default for InferTrees.  You can still run RAxML 8.2 by setting the options manually. 
+
 **v.0.6.1**
 
 2021-04-20: Updates to fix problems with the ConvertMAF2MVF Module.  Note that commas now separate the --sample-tags and --ref-tag is now required.

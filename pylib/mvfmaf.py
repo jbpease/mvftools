@@ -154,6 +154,7 @@ def maf2mvf(args):
         mvf.sample_data[i] = {'id': label, 'index': i}
     mvf.reset_max_sample()
     mvf.metadata['sourceformat'] = maf.metadata['sourceformat']
+    mvf.metadata.notes.append(args.command_string)
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
     args.qprint("MAF Headers Written")

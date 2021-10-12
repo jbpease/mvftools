@@ -364,7 +364,7 @@ def vcf2mvf(args=None):
     # ESTABLISH MVF
     args.qprint("Establishing output MVF: {}".format(args.out))
     mvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
-    mvf.metadata['origcmd'] = '"{}"'.format(args.origcmd)
+    mvf.notes.append(args.command_string)
     mvf.metadata['mvfversion'] = args.versionx
     # PROCESS CONTIG INFO
     args.qprint("Processing VCF headers.")

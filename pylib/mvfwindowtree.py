@@ -203,12 +203,20 @@ class WindowData():
             params['rootwith'] is not None else [])
         self.write_phylip(temp_filepath)
         try:
-            run_raxml(temp_filepath, jobname, params)
-            if params.get('bootstrap', 0):
-                tree = Phylo.read('RAxML_bipartitions.' + jobname, 'newick',
-                                  comments_are_confidence=True)
-            else:
-                tree = Phylo.read('RAxML_bestTree.' + jobname, 'newick')
+            if params['engine'] == 'raxml':
+                run_raxml(temp_filepath, jobname, params)
+                if params.get('bootstrap', 0):
+                    tree = Phylo.read('RAxML_bipartitions.' + jobname, 'newick',
+                                      comments_are_confidence=True)
+                else:
+                    tree = Phylo.read('RAxML_bestTree.' + jobname, 'newick')
+            elif params['engine'] == 'raxml-ng':
+                run_raxml_ng(temp_filepath, jobname, params)
+                if params.get('bootstrap', 0):
+                    tree = Phylo.read(jobname + '.raxml.support', 'newick',
+                                      comments_are_confidence=True)
+                else:
+                    tree = Phylo.read(jobname + '.raxml.bestTree', 'newick')
         except IOError:
             return {'status': 'IOerror',
                     'contig': self.contigname,
@@ -238,9 +246,12 @@ class WindowData():
             params['rootwith'] = [x for x in params['rootwith']
                                   if x in self.labels]
         topology = ladderize_alpha_tree(
-            tree.__format__('newick'),
+            #tree.__format__('newick'),
+            full_tree,
             rootwith=params.get('rootwith', self.labels[0]),
-            prune=params.get('prune', []))
+            prune=params.get('prune', []),
+            collapse_polytomies=params.get('collapse_polytomies', False)
+            )
         return {'status': 'ok',
                 'duplicates': bool(duplicates),
                 'contig': self.contigname,
@@ -358,13 +369,13 @@ class OutputFile():
 def verify_raxml(params):
     """verify raxml path"""
     try:
-        out = str(subprocess.check_output([params['raxmlpath'], "-v"]))
-        if out.find("RAxML version") == -1:
-            raise RuntimeError("RAxML program not found at path:{}\n{}".format(
-                params['raxmlpath'], out))
+        out = str(subprocess.check_output([params['engine_path'], "-v"]))
+        if out.find("RAxML") == -1:
+            raise RuntimeError("Program not found at path:{}\n{}".format(
+                params['engine_path'], out))
     except FileNotFoundError:
-        raise RuntimeError("RAxML program not found at path: {}".format(
-            params['raxmlpath']),)
+        raise RuntimeError("Program not found at path: {}".format(
+            params['engine_path']),)
     return ''
 
 
@@ -373,7 +384,7 @@ def run_raxml(filename, jobname, params):
         Parameters:
             filename: temporary phy filepath
             jobname: unique jobid for RAxML
-            raxmlpath: path to RAxML program (default=raxmlHPC)
+            engine_path: path to RAxML program (default=raxmlHPC)
             outgroup: list of outgroup labels
             threads: multithreading tasks (experimental)
             bootstrap: int bootstrap replicates (default=none)
@@ -383,7 +394,7 @@ def run_raxml(filename, jobname, params):
     outgroups = params.get('outgroups', '') or []
     logpath = params.get('logpath', jobname + '.log')
     log_file = open(logpath, 'a')
-    cmd = [params.get('raxmlpath', 'raxmlHPC'),
+    cmd = [params.get('engine_path', 'raxmlHPC'),
            '-m', params.get('model', 'GTRGAMMA'),
            '-n', jobname,
            '-s', filename,
@@ -397,7 +408,7 @@ def run_raxml(filename, jobname, params):
         else:
             cmd.extend(['-#', str(params['bootstrap']), '-f', 'a', '-x',
                         str(randint(1, 100000000))])
-    cmd.append(params.get('raxmlopts', ''))
+    cmd.append(params.get('engine_opts', ''))
     process = subprocess.Popen(' '.join(cmd), shell=True,
                                stdout=log_file, stderr=log_file)
     process.communicate()
@@ -405,7 +416,37 @@ def run_raxml(filename, jobname, params):
     return ''
 
 
-def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
+def run_raxml_ng(filename, jobname, params):
+    """Runs RAxML-ng
+        Parameters:
+            filename: temporary phy filepath
+            jobname: unique jobid for RAxML
+            engine_path: path to RAxML program (default=raxmlHPC)
+            bootstrap: int bootstrap replicates (default=none)
+            opts: any additional options (as a string)
+    """
+    outgroups = params.get('outgroups', '') or []
+    logpath = params.get('logpath', jobname + '.log')
+    log_file = open(logpath, 'a')
+    cmd = [params.get('engine_path', 'raxml-ng'),
+           '--model', params.get('model', 'GTR+G'),
+           '--prefix', jobname,
+           '--msa', filename
+           ]
+    if outgroups:
+        cmd.extend(['--outgroup', ','.join(outgroups)])
+    if params.get('bootstrap', 0):
+        cmd.extend(['-all', '--bs-trees', str(params['bootstrap'])])
+    cmd.append(params.get('engine_opts', ''))
+    process = subprocess.Popen(' '.join(cmd), shell=True,
+                               stdout=log_file, stderr=log_file)
+    process.communicate()
+    log_file.close()
+    return ''
+
+
+def ladderize_alpha_tree(treestring, prune=None, rootwith=None,
+                         collapse_polytomies=False):
     """Ladderizes and Alphabetizes the Tree to create a unique
        string for each topology
     """
@@ -414,6 +455,9 @@ def ladderize_alpha_tree(treestring, prune=None, rootwith=None):
         if prune:
             if any([x in node.name for x in prune]):
                 tree0.prune(node)
+    if collapse_polytomies is True:
+        tree0.collapse_all(lambda c: c.branch_length == 0.0 
+                           and c != tree0.root)
     for node in tree0.find_clades():
         node.branch_length = None
     for node in tree0.get_nonterminals(order="postorder"):
@@ -506,22 +550,34 @@ def infer_window_tree(args):
     main_labels = mvf.get_sample_ids(sample_indices)
     if args.choose_allele in ['randomboth', 'majorminor']:
         main_labels = [label + x for x in ['a', 'b'] for label in main_labels]
-    params = {'outgroups': args.raxml_outgroups or [],
-              'rootwith': (args.root_with.split(',') if
-                           args.root_with is not None else
-                           None),
-              'minsites': args.min_sites,
-              'minseqcoverage': args.min_seq_coverage,
-              'mindepth': args.min_depth,
-              'raxmlpath': args.raxml_path,
-              'raxmlopts': args.raxml_opts,
-              'duplicateseq': args.duplicate_seq,
-              'model': args.raxml_model,
-              'bootstrap': args.bootstrap,
-              'windowsize': args.windowsize,
-              'chooseallele': args.choose_allele,
-              'tempdir': args.temp_dir,
-              'tempprefix': args.temp_prefix}
+    params = {
+        'bootstrap': args.bootstrap,
+        'chooseallele': args.choose_allele,
+        'collapse_polytomies': args.collapse_polytomies,
+        'duplicateseq': args.duplicate_seq,
+        'engine': args.engine,
+        'engine_path': args.engine_path,
+        'engine_opts': args.engine_opts,
+        'mindepth': args.min_depth,
+        'minseqcoverage': args.min_seq_coverage,
+        'minsites': args.min_sites,
+        'model': args.model,
+        'outgroups': (args.raxml_outgroups 
+                      if args.raxml_outgroups is not None
+                      else None),
+        'rootwith': (args.root_with.split(',')
+                     if args.root_with is not None
+                    else []),
+        'tempdir': args.temp_dir,
+        'tempprefix': args.temp_prefix,
+        'windowsize': args.windowsize,
+        }
+    # DEFAULT MODEL
+    if params['model'] is None:
+        if params['engine'] == 'raxml':
+            params['model'] = 'GTRGAMMA'
+        elif params['engine'] == 'raxml-ng':
+            params['model'] = "GTR+G"
     # WINDOW START INTERATION
     verify_raxml(params)
     args.qprint("RAxML Found.")
@@ -553,7 +609,6 @@ def infer_window_tree(args):
                            (contig, pos), args.windowsize):
             # skip_contig = False
             if window_data is not None:
-
                 args.qprint(("Making tree for {} "
                              "at contig {} position {}").format(
                                  windowsizename,

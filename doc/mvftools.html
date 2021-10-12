@@ -1,26 +1,21 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="" />
-  <meta name="dcterms.date" content="2010-12-19" />
+  <meta name="date" content="2021-10-12" />
   <title>MVFtools</title>
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
+  <style type="text/css">code{white-space: pre;}</style>
 </head>
 <body>
-<header id="title-block-header">
+<div id="header">
 <h1 class="title">MVFtools <br><img src="logo.png" /></h1>
-<p class="author"></p>
-<p class="date">2010-12-19</p>
-</header>
-<nav id="TOC">
+<h2 class="author"></h2>
+<h3 class="date">2021-10-12</h3>
+</div>
+<div id="TOC">
 <ul>
 <li><a href="#introduction">Introduction</a><ul>
 <li><a href="#authors">Authors</a></li>
@@ -70,15 +65,15 @@
 <li><a href="#version-history">Version History</a></li>
 <li><a href="#license">License</a></li>
 </ul>
-</nav>
+</div>
 <p><link rel="stylesheet" type="text/css" media="all" href="mdmanstyle1.css"></p>
 <hr />
-<p><strong><em>Version 0.6.1</em></strong></p>
+<p><strong><em>Version 0.6.2</em></strong></p>
 <hr />
 <h1 id="introduction">Introduction</h1>
 <h2 id="authors">Authors</h2>
 <blockquote>
-<p>James B. Pease (<a href="http://www.peaselab.org">http://www.peaselab.org</a>)</p>
+<p>James B. Pease (<a href="http://www.peaselab.org" class="uri">http://www.peaselab.org</a>)</p>
 </blockquote>
 <blockquote>
 <p>Benjamin K. Rosenzweig</p>
@@ -93,7 +88,7 @@
 <h2 id="what-is-mvftools">What is MVFtools?</h2>
 <p>Multisample Variant Format (MVF) is designed for compact storage and efficient analysis of aligned multi-genome and multi-transcriptome datasets. The programs provided in MVFtools support this format, including data conversion, filtering and transformation, and data analysis and visualization modules. MVF format is designed specifically for biological data analysis, and sequence data is encoded based on the information content at a particular aligned sequence site. This contextual encoding allows for rapid computation of phylogenetic and population genetic analyses, and small file sizes that enable unified and compact data sharing and distribution.</p>
 <h2 id="how-do-i-cite-this">How do I cite this?</h2>
-<p>Pease JB and BK Rosenzweig. 2018. “Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics” <em>IEEE/ACM Transactions on Computational Biology and Bioinformatics</em>. 15(4):1231-1238. <a href="">http://www.dx.doi.org/10.1109/tcbb.2015.2509997</a></p>
+<p>Pease JB and BK Rosenzweig. 2018. &quot;Encoding Data Using Biological Principles: the Multisample Variant Format for Phylogenomics and Population Genomics&quot; <em>IEEE/ACM Transactions on Computational Biology and Bioinformatics</em>. 15(4):1231-1238. <a href="">http://www.dx.doi.org/10.1109/tcbb.2015.2509997</a></p>
 <p>Please also include the URL <a href="">https://www.github.com/peaselab/mvftools</a> in your methods section where the program is referenced.</p>
 <p>(Note this paper was originally published online in 2015, but did not receive final citation page numbering until 2018. You may see older citations as 2015, which is the same paper.)</p>
 <hr />
@@ -108,7 +103,8 @@
 </ul>
 <h3 id="additional-requirements-for-some-modules">Additional Requirements for Some Modules</h3>
 <ul>
-<li>RAxML: 8.x recommended; <a href="">https://sco.h-its.org/exelixis/web/software/raxml/index.html</a>)</li>
+<li>RAxML-ng; <a href="">https://github.com/amkozlov/raxml-ng</a>)</li>
+<li>RAxML: 8.2+.X; <a href="">https://sco.h-its.org/exelixis/web/software/raxml/index.html</a>)</li>
 <li>PAML: <a href="">http://abacus.gene.ucl.ac.uk/software/paml.html</a></li>
 </ul>
 <h2 id="installation">Installation</h2>
@@ -127,16 +123,21 @@ python3 mvftools.py InferWindowTree --mvf DATA.mvf --out WINDOWTREES.txt \
 <pre><code>python3 mvftools.py ConvertFasta2MVF --fasta DATA.fasta --mvf DATA.mvf
 python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \ 
 --windowsize 100000 --samples 0,1,2,3,4</code></pre>
-<p>The file is now ready to use as an input file for with dfoil: (<a href="http://www.github.com/jbpease/dfoil">http://www.github.com/jbpease/dfoil</a>).</p>
+<p>The file is now ready to use as an input file for with dfoil: (<a href="http://www.github.com/jbpease/dfoil" class="uri">http://www.github.com/jbpease/dfoil</a>).</p>
+<p><strong>Case #3: Convert a VCF file, then generate window-based counts for DFOIL/D-statistic introgression testing from the first five samples</strong>::</p>
+<pre><code>python3 mvftools.py ConvertVCF2MVF --vcf INPUT.vcf --mvf DATA.mvf
+python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \ 
+--windowsize 100000 --samples 0,1,2,3,4</code></pre>
+<p>The file is now ready to use as an input file for with dfoil: (<a href="http://www.github.com/jbpease/dfoil" class="uri">http://www.github.com/jbpease/dfoil</a>).</p>
 <hr />
 <h1 id="mvf-format-specification-version-1.2">MVF Format Specification (version 1.2)</h1>
 <h2 id="mvf-general-notes-and-usage">MVF General Notes and Usage</h2>
 <h3 id="general-features">General Features</h3>
 <p>MVF is primarily intended for site-wise analyses in phylogenomics and population genomics. MVF is formatted to contain one aligned site per line, but contains only allelic information, therefore MVF most closely mimics VCF files in formatting, but resembles MAF format in informational content, Additionally, MVF uses special formatting to lower file sizes and speed up filtering and analysis. MVF can readily be adapted from other common sequence formats including VCF, FSATA, and MAF. MVF is also designed to be able to accommodate readily store other information for phylogenomic projects, including tree topologies and sample metadata.</p>
 <h3 id="native-gzip-readwrite">Native Gzip read/write</h3>
-<p>MVF is designed to work natively with GZIP compression and uses a formatting that attempts to strike a balance between fast filtering, easy visual inspection, while using character patterns that create a good Gzip compression ratio. As long as any input or output file path ends with exactly “.gz”, all MVF scripts will natively read/write to gzip-compressed files.</p>
+<p>MVF is designed to work natively with GZIP compression and uses a formatting that attempts to strike a balance between fast filtering, easy visual inspection, while using character patterns that create a good Gzip compression ratio. As long as any input or output file path ends with exactly &quot;.gz&quot;, all MVF scripts will natively read/write to gzip-compressed files.</p>
 <h3 id="general-notes-on-filtering">General Notes on Filtering</h3>
-<p>MVF was specifically designed as a “vertical” format for rapid filtering of <em>sites</em> in large-scale phylogenomic analyses. (rather than being “horizontal” to visually show alignment) Therefore, the following should be noted to take advantage of MVF formatting for rapid filtering (i.e. with grep/zgrep).</p>
+<p>MVF was specifically designed as a &quot;vertical&quot; format for rapid filtering of <em>sites</em> in large-scale phylogenomic analyses. (rather than being &quot;horizontal&quot; to visually show alignment) Therefore, the following should be noted to take advantage of MVF formatting for rapid filtering (i.e. with grep/zgrep).</p>
 <ul>
 <li><code>#</code> is present iff. the line is in the header</li>
 <li><code>@</code> is present iff. the position is non-reference</li>
@@ -162,34 +163,34 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 <h3 id="sample-information">Sample information</h3>
 <p>Sample information (columns) header lines are specified by:</p>
 <ul>
-<li>line starts with <code>#s</code> (“s” for sample) with no leading spaces</li>
+<li>line starts with <code>#s</code> (&quot;s&quot; for sample) with no leading spaces</li>
 <li>LABEL (must be unique, no spaces)</li>
-<li>an arbitrary number of metadata fields in key=value format (‘label’ not allowed as key)</li>
+<li>an arbitrary number of metadata fields in key=value format ('label' not allowed as key)</li>
 </ul>
 <p>The first entry should be the reference sequence (if aligned to reference) or can be any sequence in the case of non-reference-aligned de novo alignment).</p>
 <h3 id="contig-information">Contig information</h3>
 <p>Contig information header lines are specified by:</p>
 <ul>
-<li>line starts with <code>#c</code> (“c” for contig)</li>
+<li>line starts with <code>#c</code> (&quot;c&quot; for contig)</li>
 <li>CONTIG_ID (must be unique, alpha-numeric strong recommended, must not contain <code>*:;,@!+</code> or spaces)</li>
 <li><code>label=[NAME]</code> (recommended by not required to be unique, no spaces allowed)</li>
 <li><code>len=[LENGTH]</code> (integer &gt; 0, or zero for unknown)</li>
 <li><code>ref=[0/1]</code>, indicates if contig is reference-based (=1) or not (=0)</li>
-<li>an arbitrary number of metadata fields in key=value format (“label”, “len”, and “ref” not allowed as key)</li>
+<li>an arbitrary number of metadata fields in key=value format (&quot;label&quot;, &quot;len&quot;, and &quot;ref&quot; not allowed as key)</li>
 </ul>
 <h3 id="tree-information">Tree information</h3>
 <p>Tree information may (optionally) be specified in header lines by:</p>
 <ul>
-<li>line starts with <code>#t</code> (“t” for tree/topology)</li>
+<li>line starts with <code>#t</code> (&quot;t&quot; for tree/topology)</li>
 <li><code>TREE_ID=[###]</code> (must be unique, alpha-numeric)</li>
-<li><code>TOPOLOGY=[tree_String]</code> in Newick/Phylip/parenthetical format (must end with ‘;’)</li>
+<li><code>TOPOLOGY=[tree_String]</code> in Newick/Phylip/parenthetical format (must end with ';')</li>
 <li>an arbitrary number of metadata fields in key=value format</li>
 </ul>
 <p>To take full advantage of MVF tree storage, use the same sample labels as in the <code>#s</code> header lines</p>
 <h3 id="notes">Notes</h3>
 <p>General project notes may (optionally) be specified in the header lines by:</p>
 <ul>
-<li>line starts with <code>#n</code> (“n” for notes)</li>
+<li>line starts with <code>#n</code> (&quot;n&quot; for notes)</li>
 <li>Text is unstructured and is not necessarily formatted as metadata</li>
 </ul>
 <h3 id="example-header">Example Header</h3>
@@ -221,8 +222,8 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 </ul>
 <h2 id="allele-formatting">Allele formatting</h2>
 <p><strong><em>Note: all examples show an MVF entry with five samples.</em></strong></p>
-<p>For reference-anchored contigs, the first allele is assumed to be the “reference” allele by default. Each entry must either (1) contain the same number of characters as sample labels specified in the header or (2) use one of the special cases in the section below.</p>
-<p><code>ATCTG</code> = (REF is ‘A’ samples 1&amp;3 are ‘T’, sample 2 is ‘C’, sample 4 is ‘G’)</p>
+<p>For reference-anchored contigs, the first allele is assumed to be the &quot;reference&quot; allele by default. Each entry must either (1) contain the same number of characters as sample labels specified in the header or (2) use one of the special cases in the section below.</p>
+<p><code>ATCTG</code> = (REF is 'A' samples 1&amp;3 are 'T', sample 2 is 'C', sample 4 is 'G')</p>
 <h2 id="special-cases">Special cases</h2>
 <h3 id="invariant-sites">Invariant sites</h3>
 <p>When all alleles are both present (non-gap) and all the same, this is represented by a single base.</p>
@@ -233,8 +234,8 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 <p><code>Aa = Aaaaa</code></p>
 <h3 id="single-variant-sites">Single-variant sites</h3>
 <p>When only one of the samples varies from the others, this is specified as:</p>
-<p><code>[reference_base, majority_base, "+", unique_base, unique_position]</code></p>
-<p>This is useful shorthand for both sites with one a single base that differs and samples with only one sample represented. When the site only has coverage via one sample (i.e. all other bases are empty, the ‘-’ is omitted from the second position.</p>
+<p><code>[reference_base, majority_base, &quot;+&quot;, unique_base, unique_position]</code></p>
+<p>This is useful shorthand for both sites with one a single base that differs and samples with only one sample represented. When the site only has coverage via one sample (i.e. all other bases are empty, the '-' is omitted from the second position.</p>
 <p><code>AC+T2 = ACTCC</code></p>
 <p><code>AA+C2 = AACAA</code></p>
 <p><code>-+A2  = --A--</code></p>
@@ -242,7 +243,7 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 <p><code>A+a2  = A-a--</code></p>
 <p><code>A+C2  = A-C--</code></p>
 <h3 id="non-reference-aligned-sites">Non-reference aligned sites</h3>
-<p>Added in MVF v.1.2, this facilitates using MVF for non-reference aligned sequences (e.g. aligned sets of orthologs from de novo assembled transcripts). These non-reference-anchored alignments can comprise the entire MVF file or be included in addition to reference-aligned contigs. Non-reference-contigs in their header entry should include the keyword “nonref” (see Section 1.3). Contigs labels and coordinates are labelled the same as reference-based entries. To denote that the sequence is non-reference and not simply a deletion in the reference, the character “@” should be the first character of the alignment. In the case an entirely non-reference MVF, all contigs can be labelled as “nonref,” but one sequence should be chosen as the reference for the purposes of the allele string. When this sequence is not present, <code>@</code> is still used.</p>
+<p>Added in MVF v.1.2, this facilitates using MVF for non-reference aligned sequences (e.g. aligned sets of orthologs from de novo assembled transcripts). These non-reference-anchored alignments can comprise the entire MVF file or be included in addition to reference-aligned contigs. Non-reference-contigs in their header entry should include the keyword &quot;nonref&quot; (see Section 1.3). Contigs labels and coordinates are labelled the same as reference-based entries. To denote that the sequence is non-reference and not simply a deletion in the reference, the character &quot;@&quot; should be the first character of the alignment. In the case an entirely non-reference MVF, all contigs can be labelled as &quot;nonref,&quot; but one sequence should be chosen as the reference for the purposes of the allele string. When this sequence is not present, <code>@</code> is still used.</p>
 <p><code>@AATT   = -AATT</code></p>
 <p><code>@A+T3   = -A-T-</code></p>
 <p><code>@-+A3   = ---A-</code></p>
@@ -262,15 +263,15 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 <li>Currently the ambiguous/rare symbols are not recognized (<code>BZ</code>)</li>
 </ul>
 <h3 id="use-of-x-for-ambiguous-nucleotides-and-amino-acids">Use of <code>X</code> for ambiguous nucleotides and amino acids</h3>
-<p>In standard notation, “<code>N</code>” is used for an ambiguous nucleotide, which could be any of A/C/G/T.<br />
-However, in amino acid notation <code>N</code> stands for “Asparagine” and is a valid character, while <code>X</code> is used for an ambiguous amino acid.</p>
+<p>In standard notation, &quot;<code>N</code>&quot; is used for an ambiguous nucleotide, which could be any of A/C/G/T.<br />
+However, in amino acid notation <code>N</code> stands for &quot;Asparagine&quot; and is a valid character, while <code>X</code> is used for an ambiguous amino acid.</p>
 <p>The MVF Standard since v1.2 adopts <code>X</code> as unified ambiguity character for both nucleotides and proteins for MVF files for two purposes:</p>
-<ol type="1">
+<ol style="list-style-type: decimal">
 <li><p>To creates a unified ambiguity character for MVF codon files for faster processing</p></li>
 <li><p>To allow fast filtering of ambiguous lines</p></li>
 </ol>
-<p>Also note that while “<code>X</code>” in expanded IUPAC notation refers to “xanthosine,” MVF currently does not support rare nucleotides.</p>
-<p><strong><em>NOTE: In all conversion utilities that export from MVF format to another file format conversion to the standard “N”/“X” for ambiguous nucleotides/amino acids should be implemented.</em></strong></p>
+<p>Also note that while &quot;<code>X</code>&quot; in expanded IUPAC notation refers to &quot;xanthosine,&quot; MVF currently does not support rare nucleotides.</p>
+<p><strong><em>NOTE: In all conversion utilities that export from MVF format to another file format conversion to the standard &quot;N&quot;/&quot;X&quot; for ambiguous nucleotides/amino acids should be implemented.</em></strong></p>
 <hr />
 <h2 id="examples-of-the-same-data-in-mvf-format-and-other-formats">Examples of the same data in MVF Format and other formats</h2>
 <h3 id="mvf-format">MVF Format</h3>
@@ -356,12 +357,12 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with –contig-labels. (type=None, default=None)</p>
-<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with –contig-ids (type=None, default=None)</p>
+<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)</p>
+<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)</p>
 <p><code>--mincoverage</code> = Mininum sample coverage for sites. (type=integer, default=None)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
 <hr />
 <h2 id="calccharactercount">CalcCharacterCount</h2>
@@ -369,14 +370,14 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--base-match/--basematch</code> = String of bases to match (i.e. numerator). (type=None, default=None)</p>
-<p><code>--base-total/--basetotal</code> = String of bases for total (i.e. denominator). (type=None, default=None)</p>
-<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with –contig-labels. (type=None, default=None)</p>
-<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with –contig-ids (type=None, default=None)</p>
+<p><code>--base-match/--basematch</code> = String of bases to match (i.e. numerator). (type=None, default=None)</p>
+<p><code>--base-total/--basetotal</code> = String of bases for total (i.e. denominator). (type=None, default=None)</p>
+<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)</p>
+<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)</p>
 <p><code>--mincoverage</code> = Mininum sample coverage for sites. (type=integer, default=None)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
 <hr />
 <h2 id="calcdstatcombinations">CalcDstatCombinations</h2>
@@ -384,26 +385,26 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with –contig-labels. (type=None, default=None)</p>
-<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with –contig-ids (type=None, default=None)</p>
-<p><code>--outgroup-indices/--outgroupindices</code> = Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with –outgroup_labels. (type=None, default=None)</p>
-<p><code>--outgroup-labels/--outgrouplabels</code> = Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –outgroup_indicies. (type=None, default=None)</p>
+<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)</p>
+<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)</p>
+<p><code>--outgroup-indices/--outgroupindices</code> = Specify comma-separated list of outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels. (type=None, default=None)</p>
+<p><code>--outgroup-labels/--outgrouplabels</code> = Specify comma-separated list of outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies. (type=None, default=None)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <hr />
 <h2 id="calcpairwisedistances">CalcPairwiseDistances</h2>
 <p><strong><em>Calculates pairwise sequence distances for combinations ofspecified taxa in an MVF file.</em></strong></p>
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--ambig</code> = By default, ambiguous nucleotides are excluded. This option will include sets of ambiguous characters by randomly choosing one of the options for: RYMKWS (‘random2’) or RYMKWS+BDHV (‘random3’) (type=None, default=None) Choices: (‘random2’, ‘random3’)</p>
-<p><code>--data-type/--datatype</code> = Data type to compare.(This option is only needed for codon MVF files, others will default.) (type=None, default=None) Choices: (‘dna’, ‘prot’)</p>
+<p><code>--ambig</code> = By default, ambiguous nucleotides are excluded. This option will include sets of ambiguous characters by randomly choosing one of the options for: RYMKWS ('random2') or RYMKWS+BDHV ('random3') (type=None, default=None) Choices: ('random2', 'random3')</p>
+<p><code>--data-type/--datatype</code> = Data type to compare.(This option is only needed for codon MVF files, others will default.) (type=None, default=None) Choices: ('dna', 'prot')</p>
 <p><code>--emit-counts</code> = output additional file that presents the raw counts of pairwise patterns for each sample pair tested for each window (flag, default=False)</p>
 <p><code>--mincoverage</code> = Mininum sample coverage for sites. (type=integer, default=None)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 2 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of 2 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
 <hr />
 <h2 id="calcpatterncount">CalcPatternCount</h2>
@@ -414,8 +415,8 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--mincoverage</code> = Mininum sample coverage for sites. (type=integer, default=None)</p>
 <p><code>--output-lists</code> = None (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
 <hr />
 <h2 id="calcsamplecoverage">CalcSampleCoverage</h2>
@@ -423,11 +424,11 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with –contig-labels. (type=None, default=None)</p>
-<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with –contig-ids (type=None, default=None)</p>
+<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)</p>
+<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <hr />
 <h2 id="concatenatemvf">ConcatenateMVF</h2>
 <p><strong><em>Combine non-overlapping contigs from one or more MVF files into asingle MVF file. This does NOT merge columns.Use MergeMVF to merge sample columns from multiple files.</em></strong></p>
@@ -436,8 +437,8 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
 <p><code>--main_header_file/--mainheaderfile</code> = Output file will use same headers as this input file (default=first in list). (type=None, default=None)</p>
-<p><code>--new-contigs/--newcontigs</code> = By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s contigs as distinct. (flag, default=False)</p>
-<p><code>--newsamples</code> = By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s sample columns as distinct. (flag, default=False)</p>
+<p><code>--new-contigs/--newcontigs</code> = By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's contigs as distinct. (flag, default=False)</p>
+<p><code>--newsamples</code> = By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's sample columns as distinct. (flag, default=False)</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <hr />
@@ -447,16 +448,16 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--fasta</code> (required) = input FASTA file(s) (type=None, default=None)</p>
 <p><code>--out</code> (required) = output MVF file (type=None, default=None)</p>
 <p><code>--contig-by-file/--contigbyfile</code> = Contigs are designated by separate files. (flag, default=False)</p>
-<p><code>--contig-field/--contigfield</code> = When headers are split by –field-sep, the 0-based index of the contig id. (type=integer, default=None)</p>
+<p><code>--contig-field/--contigfield</code> = When headers are split by --field-sep, the 0-based index of the contig id. (type=integer, default=None)</p>
 <p><code>--contig-ids/--contigids</code> = manually specify one or more contig ids as ID:LABEL (type=None, default=None)</p>
-<p><code>--field-sep/--fieldsep</code> = FASTA field separator; assumes ‘&gt;database accession locus’ format (type=None, default=None) Choices: [‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’, ‘PIPE’, ‘AT’, ‘UNDER’, ‘DBLUNDER’]</p>
-<p><code>--flavor</code> = type of file [dna] or protein (type=None, default=dna) Choices: [‘dna’, ‘protein’]</p>
-<p><code>--manual-coord/--manualcoord</code> = manually specify reference coordinates for each file in the format CONTIGID:START..STOP, … (type=None, default=None)</p>
+<p><code>--field-sep/--fieldsep</code> = FASTA field separator; assumes '&gt;database accession locus' format (type=None, default=None) Choices: ['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED', 'PIPE', 'AT', 'UNDER', 'DBLUNDER']</p>
+<p><code>--flavor</code> = type of file [dna] or protein (type=None, default=dna) Choices: ['dna', 'protein']</p>
+<p><code>--manual-coord/--manualcoord</code> = manually specify reference coordinates for each file in the format CONTIGID:START..STOP, ... (type=None, default=None)</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <p><code>--read-buffer/--readbuffer</code> = number of lines to hold in READ buffer (type=integer, default=100000)</p>
 <p><code>--ref-label/--reflabel</code> = label for reference sample (type=None, default=REF)</p>
-<p><code>--sample-field/--samplefield</code> = when headers are split by –field-sep, the 0-based index of the sample id (type=integer, default=None)</p>
+<p><code>--sample-field/--samplefield</code> = when headers are split by --field-sep, the 0-based index of the sample id (type=integer, default=None)</p>
 <p><code>--sample-replace/--samplereplace</code> = one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique (type=None, default=None)</p>
 <p><code>--write-buffer/--writebuffer</code> = number of lines to hold in WRITE buffer (type=integer, default=100000)</p>
 <hr />
@@ -465,10 +466,10 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--maf</code> (required) = input MAF file (type=file path, default=None)</p>
 <p><code>--out</code> (required) = output MVF file (type=file path, default=None)</p>
-<p><code>--ref-tag/--reftag</code> (required) = Specify which TAG in –sample-tags is the reference genome. (type=None, default=None)</p>
-<p><code>--sample-tags/--sampletags</code> (required) = One or more TAG:NEW or TAG, items separated by commas.Each TAG is partial text-matched to the sample labels in the MAF. For example, hsap18.chr1 and hsap18.chr2 would be matched tag ‘hsap18’. If :NEW is added, then the MVF sample will be labeled NEW. Otherwise, the sample will be labeled simply TAG. (type=None, default=None)</p>
+<p><code>--ref-tag/--reftag</code> (required) = Specify which TAG in --sample-tags is the reference genome. (type=None, default=None)</p>
+<p><code>--sample-tags/--sampletags</code> (required) = One or more TAG:NEW or TAG, items separated by commas.Each TAG is partial text-matched to the sample labels in the MAF. For example, hsap18.chr1 and hsap18.chr2 would be matched tag 'hsap18'. If :NEW is added, then the MVF sample will be labeled NEW. Otherwise, the sample will be labeled simply TAG. (type=None, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
-<p><code>--mvf-ref-label/--mvfreflabel</code> = new label for reference sample (default=‘REF’) (type=None, default=REF)</p>
+<p><code>--mvf-ref-label/--mvfreflabel</code> = new label for reference sample (default='REF') (type=None, default=REF)</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <hr />
@@ -479,12 +480,12 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--out</code> (required) = Output path of FASTA file. (type=file path, default=None)</p>
 <p><code>--buffer</code> = size (Mbp) of write buffer for each sample (type=integer, default=10)</p>
 <p><code>--gene-mode</code> = None (flag, default=False)</p>
-<p><code>--label-type/--labeltype</code> = Long labels with all metadata or short ids (type=None, default=long) Choices: (‘long’, ‘short’)</p>
-<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: (‘dna’, ‘rna’, ‘prot’)</p>
+<p><code>--label-type/--labeltype</code> = Long labels with all metadata or short ids (type=None, default=long) Choices: ('long', 'short')</p>
+<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: ('dna', 'rna', 'prot')</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--regions</code> = Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank. (type=file path, default=None)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--regions</code> = Path of a plain text file containing one more lines with entries 'contigid,stop,start' (one per line, inclusive coordinates) all data will be returned if left blank. (type=file path, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--temp_dir/--tempdir</code> = directory to write temporary fasta files (type=None, default=.)</p>
 <hr />
 <h2 id="convertmvf2fastagene">ConvertMVF2FastaGene</h2>
@@ -493,12 +494,12 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--output-dir</code> (required) = Output directory of FASTA files. (type=file path, default=None)</p>
 <p><code>--buffer</code> = size (Mbp) of write buffer for each sample (type=integer, default=10)</p>
-<p><code>--choose-allele/--chooseallele</code> = Chooses how heterozygous alleles are handled. (none=no splitting (default); random1=pick one allele randomly (type=None, default=none) Choices: [‘none’, ‘random1’]</p>
+<p><code>--choose-allele/--chooseallele</code> = Chooses how heterozygous alleles are handled. (none=no splitting (default); random1=pick one allele randomly (type=None, default=none) Choices: ['none', 'random1']</p>
 <p><code>--ignore-strand</code> = Do not read strand info from contigs (flag, default=False)</p>
-<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: (‘dna’, ‘rna’, ‘prot’)</p>
+<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: ('dna', 'rna', 'prot')</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--temp_dir/--tempdir</code> = directory to write temporary fasta files (type=None, default=.)</p>
 <hr />
 <h2 id="convertmvf2phylip">ConvertMVF2Phylip</h2>
@@ -507,13 +508,13 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output Phylip file. (type=file path, default=None)</p>
 <p><code>--buffer</code> = size (bp) of write buffer for each sample (type=integer, default=100000)</p>
-<p><code>--label-type/--labeltype</code> = Long labels with all metadata or short ids (type=None, default=short) Choices: (‘long’, ‘short’)</p>
-<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: (‘dna’, ‘rna’, ‘prot’)</p>
+<p><code>--label-type/--labeltype</code> = Long labels with all metadata or short ids (type=None, default=short) Choices: ('long', 'short')</p>
+<p><code>--output-data/--outputdata</code> = Output dna, rna or prot data. (type=None, default=None) Choices: ('dna', 'rna', 'prot')</p>
 <p><code>--partition</code> = Output a CSV partitions file with RAxMLformatting for use in partitioned phylogenetic methods. (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--regions</code> = Path of a plain text file containing one more lines with entries ‘contigid,stop,start’ (one per line, inclusive coordinates) all data will be returned if left blank. (type=file path, default=None)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--regions</code> = Path of a plain text file containing one more lines with entries 'contigid,stop,start' (one per line, inclusive coordinates) all data will be returned if left blank. (type=file path, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--temp_dir/--tempdir</code> = directory to write temporary fasta files (type=None, default=.)</p>
 <hr />
 <h2 id="convertvcf2mvf">ConvertVCF2MVF</h2>
@@ -522,7 +523,7 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--out</code> (required) = output MVF file (type=None, default=None)</p>
 <p><code>--alleles-from/--allelesfrom</code> = get additional alignment columns from INFO fields (:-separated) (type=None, default=None)</p>
 <p><code>--contig-ids/--contigids</code> = manually specify one or more contig ids as ID;VCFLABE;MVFLABEL, note that VCFLABEL must match EXACTLY the contig string labels in the VCF file (type=None, default=None)</p>
-<p><code>--field-sep/--fieldsep</code> = VCF field separator (default=‘TAB’) (type=None, default=TAB) Choices: [‘TAB’, ‘SPACE’, ‘DBLSPACE’, ‘COMMA’, ‘MIXED’]</p>
+<p><code>--field-sep/--fieldsep</code> = VCF field separator (default='TAB') (type=None, default=TAB) Choices: ['TAB', 'SPACE', 'DBLSPACE', 'COMMA', 'MIXED']</p>
 <p><code>--filter-nonref-empty</code> = Do not output entries that are masked or empty for all samples (not the reference). (flag, default=False)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
 <p><code>--low-depth/--lowdepth</code> = below this read depth coverage, convert to lower case set to 0 to disable (type=integer, default=3)</p>
@@ -530,12 +531,12 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--mask-depth/--maskdepth</code> = below this read depth mask with N/n (type=integer, default=1)</p>
 <p><code>--mask-qual/--maskqual</code> = low quality cutoff, bases replaced by N/- set to 0 to disable (type=integer, default=3)</p>
 <p><code>--no-autoindex/--noautoindex</code> = do not automatically index contigs from the VCF (flag, default=False)</p>
-<p><code>--out-flavor/--outflavor</code> = choose output MVF flavor to include quality scores and/or indels (type=None, default=dna) Choices: [‘dna’, ‘dnaqual’, ‘dnaqual-indel’, ‘dna-indel’]</p>
+<p><code>--out-flavor/--outflavor</code> = choose output MVF flavor to include quality scores and/or indels (type=None, default=dna) Choices: ['dna', 'dnaqual', 'dnaqual-indel', 'dna-indel']</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--ploidy</code> = Use for hexaploid and tetraploid (Experimental, use with caution (type=integer, default=2) Choices: (2, 4, 6)</p>
 <p><code>--qual</code> = Include Phred genotype quality (GQ) scores (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--ref-label/--reflabel</code> = label for reference sample (default=‘REF’) (type=None, default=REF)</p>
+<p><code>--ref-label/--reflabel</code> = label for reference sample (default='REF') (type=None, default=REF)</p>
 <p><code>--sample-replace/--samplereplace</code> = one or more TAG:NEWLABEL or TAG, items, if TAG found in sample label, replace with NEW (or TAG if NEW not specified) NEW and TAG must each be unique (type=None, default=None)</p>
 <p><code>--skip-contig-label-check</code> = When there are many contigs skip checking for repeat labels. (use with caution). (flag, default=False)</p>
 <p><code>--vcf</code> = VCF input file (type=file path, default=None)</p>
@@ -589,23 +590,25 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
 <p><code>--bootstrap</code> = turn on rapid bootstrapping for RAxML and perform specified number of replicates (type=integer, default=None)</p>
-<p><code>--choose-allele/--chooseallele/--hapmode</code> = Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele (type=None, default=none) Choices: [‘none’, ‘randomone’, ‘randomboth’]</p>
-<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with –contig-labels. (type=None, default=None)</p>
-<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with –contig-ids (type=None, default=None)</p>
-<p><code>--duplicate-seq/--duplicateseq</code> = dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment (type=None, default=dontuse) Choices: [‘dontuse’, ‘keep’, ‘remove’]</p>
+<p><code>--choose-allele/--chooseallele/--hapmode</code> = Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele (type=None, default=none) Choices: ['none', 'randomone', 'randomboth']</p>
+<p><code>--collapse-polytomies/--collapsepolytomies</code> = Collapses internal branches with length 0to polytomies. Off by default, so arbitrarytopological resolutions in trees may bemaintained if sequences are highly similar. (flag, default=False)</p>
+<p><code>--contig-ids/--contigids</code> = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)</p>
+<p><code>--contig-labels/--contiglabels</code> = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)</p>
+<p><code>--duplicate-seq/--duplicateseq</code> = dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment (type=None, default=dontuse) Choices: ['dontuse', 'keep', 'remove']</p>
+<p><code>--engine</code> = Choose a phylogenetic inference 'engine' application. The defaultis 'raxml-ng'. (type=None, default=raxml-ng) Choices: ('raxml', 'raxml-ng')</p>
+<p><code>--engine-opts/--engineopts/--raxml-opts/--raxmlopts</code> = specify additional RAxML arguments as a double-quotes encased string (type=None, default=)</p>
+<p><code>--engine-path/--enginepath/--raxml-path/--raxmlpath</code> = manually specify the path of the phylogenetic engine. (type=None, default=raxml-ng)</p>
 <p><code>--min-depth/--mindepth</code> = minimum number of alleles per site (type=integer, default=4)</p>
 <p><code>--min-seq-coverage/--minseqcoverage</code> = proportion of total alignment a sequencemust cover to be retianed [0.1] (type=float, default=0.1)</p>
 <p><code>--min-sites/--minsites</code> = minimum number of sites (type=integer, default=100)</p>
+<p><code>--model/--model/--raxml-model</code> = choose model of sequence evolution. defaults are GTRGAMMA for RAxML, or GTR+G for RAxML-ng. (type=None, default=None)</p>
 <p><code>--output-contig-labels/--outputcontiglabels</code> = Output will use contig labels instead of id numbers. (flag, default=False)</p>
 <p><code>--output-empty/--outputempty</code> = Include entries of windows with no data in output. (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--raxml-model/--raxmlmodel</code> = choose RAxML model (type=None, default=GTRGAMMA)</p>
-<p><code>--raxml-opts/--raxmlopts</code> = specify additional RAxML arguments as a double-quotes encased string (type=None, default=)</p>
 <p><code>--raxml-outgroups/--raxmloutgroups</code> = Comma-separated list of outgroup taxon labels to use in RAxML. (type=None, default=None)</p>
-<p><code>--raxml-path/--raxmlpath</code> = RAxML path for manual specification. (type=None, default=raxml)</p>
 <p><code>--root-with/--rootwith</code> = Comma-separated list of taxon labels to root trees with after RAxML (type=None, default=None)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--temp-dir/--tempdir</code> = Temporary directory path (type=file path, default=./raxmltemp)</p>
 <p><code>--temp-prefix/--tempprefix</code> = Temporary file prefix (type=None, default=mvftree)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
@@ -617,8 +620,8 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
 <p><code>--main_header_file/--mainheaderfile</code> = Output file will use same headers as this input file (default=first in list). (type=None, default=None)</p>
-<p><code>--new-contigs/--newcontigs</code> = By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s contigs as distinct. (flag, default=False)</p>
-<p><code>--newsamples</code> = By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file’s sample columns as distinct. (flag, default=False)</p>
+<p><code>--new-contigs/--newcontigs</code> = By default, contigs are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's contigs as distinct. (flag, default=False)</p>
+<p><code>--newsamples</code> = By default, samples are matched between files using their text labels in the header. Use this option to turn matching off and treat each file's sample columns as distinct. (flag, default=False)</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <p><code>--skip-index/--skipindex</code> = Skip index because index exists (flag, default=False)</p>
@@ -627,19 +630,19 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong><em>Plot a Chromoplot from an MVF file for all combinationsof the specified samples.</em></strong></p>
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
-<p><code>--colors</code> = three colors to use for chromoplot (type=None, default=None) Choices: {‘lgrey’: (250, 250, 250), ‘dgrey’: (192, 192, 192), ‘black’: (0, 0, 0), ‘white’: (255, 255, 255), ‘red’: (192, 0, 0), ‘orange’: (217, 95, 2), ‘yellow’: (192, 192, 0), ‘green’: (0, 192, 0), ‘blue’: (0, 0, 192), ‘teal’: (27, 158, 119), ‘puce’: (117, 112, 179), ‘purple’: (192, 0, 192), ‘none’: ()}</p>
+<p><code>--colors</code> = three colors to use for chromoplot (type=None, default=None) Choices: {'lgrey': (250, 250, 250), 'dgrey': (192, 192, 192), 'black': (0, 0, 0), 'white': (255, 255, 255), 'red': (192, 0, 0), 'orange': (217, 95, 2), 'yellow': (192, 192, 0), 'green': (0, 192, 0), 'blue': (0, 0, 192), 'teal': (27, 158, 119), 'puce': (117, 112, 179), 'purple': (192, 0, 192), 'none': ()}</p>
 <p><code>--contig-ids/--contigids/--contigs</code> = Enter the labels of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF) (type=None, default=None)</p>
 <p><code>--contig-labels/--contiglabels</code> = Enter the ids of one or more contigs in the order they will appear in the chromoplot (as comma-separated list)(defaults to all ids in order present in MVF) (type=None, default=None)</p>
-<p><code>--empty-mask/--emptymask</code> = Mask empty regions with this color. (type=None, default=none) Choices: {‘lgrey’: (250, 250, 250), ‘dgrey’: (192, 192, 192), ‘black’: (0, 0, 0), ‘white’: (255, 255, 255), ‘red’: (192, 0, 0), ‘orange’: (217, 95, 2), ‘yellow’: (192, 192, 0), ‘green’: (0, 192, 0), ‘blue’: (0, 0, 192), ‘teal’: (27, 158, 119), ‘puce’: (117, 112, 179), ‘purple’: (192, 0, 192), ‘none’: ()}</p>
+<p><code>--empty-mask/--emptymask</code> = Mask empty regions with this color. (type=None, default=none) Choices: {'lgrey': (250, 250, 250), 'dgrey': (192, 192, 192), 'black': (0, 0, 0), 'white': (255, 255, 255), 'red': (192, 0, 0), 'orange': (217, 95, 2), 'yellow': (192, 192, 0), 'green': (0, 192, 0), 'blue': (0, 0, 192), 'teal': (27, 158, 119), 'puce': (117, 112, 179), 'purple': (192, 0, 192), 'none': ()}</p>
 <p><code>--info-track/--infotrack</code> = Include an additional coverage information track that will show empty, uninformative, and informative loci. (Useful for ranscriptomes/RAD or other reduced sampling. (flag, default=False)</p>
 <p><code>--majority</code> = Plot only 100% shading in the majority track rather than shaded proportions in all tracks. (flag, default=False)</p>
 <p><code>--out-prefix/--outprefix</code> = Output prefix (not required). (type=None, default=None)</p>
-<p><code>--outgroup-indices/--outgroupindices</code> = Specify comma-separated list of 1 or more outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with –outgroup_labels. (type=None, default=None)</p>
-<p><code>--outgroup-labels/--outgrouplabels</code> = Specify comma-separated list of 1 or more outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –outgroup_indicies. (type=None, default=None)</p>
-<p><code>--plot-type/--plottype</code> = PNG image (default) or graph via matplotlib (experimental) (type=None, default=image) Choices: [‘graph’, ‘image’]</p>
+<p><code>--outgroup-indices/--outgroupindices</code> = Specify comma-separated list of 1 or more outgroup sample numerical indices (first column is 0). Leave blank for all samples. Do not use with --outgroup_labels. (type=None, default=None)</p>
+<p><code>--outgroup-labels/--outgrouplabels</code> = Specify comma-separated list of 1 or more outgroup sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --outgroup_indicies. (type=None, default=None)</p>
+<p><code>--plot-type/--plottype</code> = PNG image (default) or graph via matplotlib (experimental) (type=None, default=image) Choices: ['graph', 'image']</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with –sample_labels. (type=None, default=None)</p>
-<p><code>--sample-labels</code> = Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with –sample_indicies. (type=None, default=None)</p>
+<p><code>--sample-indices/--sampleindices</code> = Specify comma-separated list of 3 or more sample numerical indices (first sample is 0). Leave blank for all samples. Do not use with --sample_labels. (type=None, default=None)</p>
+<p><code>--sample-labels</code> = Specify comma-separated list of 3 or more sample labels. Labels must be exact (case-sensitive). Leave blank for all samples.Do not use with --sample_indicies. (type=None, default=None)</p>
 <p><code>--windowsize</code> = Set integer window size. Use 0 for whole file. Use -1 for whole contigs. (flag, default=100000)</p>
 <p><code>--xscale</code> = Width (in number of pixels) for each window (type=integer, default=1)</p>
 <p><code>--yscale</code> = Height (in number of pixels) for each track (type=integer, default=20)</p>
@@ -649,16 +652,16 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--filter-annotation/--filterannotation</code> = skip GFF entries with text matching this in their ‘Notes’ field (type=None, default=None)</p>
-<p><code>--gene-pattern/--genepattern</code> = Gene name pattern finder when interpreting GFF/GTF. Use % in place of gene name. (type=None, default=gene_id “%”)</p>
+<p><code>--filter-annotation/--filterannotation</code> = skip GFF entries with text matching this in their 'Notes' field (type=None, default=None)</p>
+<p><code>--gene-pattern/--genepattern</code> = Gene name pattern finder when interpreting GFF/GTF. Use %% in place of gene name. (type=None, default=gene_id &quot;%&quot;)</p>
 <p><code>--gff</code> = Input gff annotation file. (type=file path, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
 <p><code>--non-genic-margin/--nongenicmargin</code> = For –-non-genic-mode, pad the boundaries of unannotated regions by this amount. (type=integer, default=0)</p>
 <p><code>--non-genic-mode/--nongenicmode</code> = Instead of returning annotated genes, return the non-genic regions without changing contigs or coordinates. (flag, default=False)</p>
-<p><code>--output-data/--outputdata</code> = dna=single data column of dna alleles; protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3 (type=None, default=codon) Choices: [‘dna’, ‘protein’, ‘codon’]</p>
+<p><code>--output-data/--outputdata</code> = dna=single data column of dna alleles; protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3 (type=None, default=codon) Choices: ['dna', 'protein', 'codon']</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--require-annotation/--requireannotation</code> = require GFF entries with text matching this in their ‘Notes’ field (type=None, default=None)</p>
+<p><code>--require-annotation/--requireannotation</code> = require GFF entries with text matching this in their 'Notes' field (type=None, default=None)</p>
 <p><code>--retain-contigs</code> = maintain original contig numbering (flag, default=False)</p>
 <p><code>--retain-coords</code> = maintain original coordinates (flag, default=False)</p>
 <hr />
@@ -669,32 +672,32 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <hr />
 <h2 id="legacyannotatemvf">LegacyAnnotateMVF</h2>
-<p><strong><em>This is deprecated now, but maintained for legacy functions.Use TranslateMVF with –output-data dna to annotate regions.Annotates a chromosomal MVF file with new contigboundaries based on genes/features from a GFF file.</em></strong></p>
+<p><strong><em>This is deprecated now, but maintained for legacy functions.Use TranslateMVF with --output-data dna to annotate regions.Annotates a chromosomal MVF file with new contigboundaries based on genes/features from a GFF file.</em></strong></p>
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--filter-annotation/--filterannotation</code> = Skip entries in the GFF file that contain this string in their ‘Notes’ (type=None, default=None)</p>
-<p><code>--gene-pattern/--genepattern</code> = Gene name pattern finder when interpreting GFF/GTF. Use % in place of gene name. (type=None, default=gene_id “%”)</p>
+<p><code>--filter-annotation/--filterannotation</code> = Skip entries in the GFF file that contain this string in their 'Notes' (type=None, default=None)</p>
+<p><code>--gene-pattern/--genepattern</code> = Gene name pattern finder when interpreting GFF/GTF. Use % in place of gene name. (type=None, default=gene_id &quot;%&quot;)</p>
 <p><code>--gff</code> = Input gff annotation file. (type=file path, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
-<p><code>--nongenic-margin/--nongenicmargin</code> = for –nongenic-mode, only retain positions that are this number of bp away from an annotated region boundary (type=integer, default=0)</p>
+<p><code>--nongenic-margin/--nongenicmargin</code> = for --nongenic-mode, only retain positions that are this number of bp away from an annotated region boundary (type=integer, default=0)</p>
 <p><code>--nongenic-mode/--nongenicmode</code> = Instead of returning annotated genes, return the non-genic regions without without changing contigs or coordinates (flag, default=False)</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
 <hr />
 <h2 id="legacytranslatemvf">LegacyTranslateMVF</h2>
-<p><strong><em>Note this is deprecated now, but maintained for legacy function.Use TranslateMVF with ‘–output-data protein’or’–output-data codon.’Translate a DNA MVF to a protein or codon MVF</em></strong></p>
+<p><strong><em>Note this is deprecated now, but maintained for legacy function.Use TranslateMVF with '--output-data protein'or '--output-data codon.'Translate a DNA MVF to a protein or codon MVF</em></strong></p>
 <p><strong>Parameters</strong></p>
 <p><code>--mvf</code> (required) = Input MVF file. (type=file path, default=None)</p>
 <p><code>--out</code> (required) = Output file (type=file path, default=None)</p>
-<p><code>--filter-annotation/--filterannotation</code> = skip GFF entries with text matching this in their ‘Notes’ field (type=None, default=None)</p>
+<p><code>--filter-annotation/--filterannotation</code> = skip GFF entries with text matching this in their 'Notes' field (type=None, default=None)</p>
 <p><code>--gff</code> = Input GFF3 file. If GFF3 not provided, alignments are assumed to be in-frame coding sequences. (type=file path, default=None)</p>
 <p><code>--line-buffer/--linebuffer</code> = Number of entries to store in memory at a time. (type=integer, default=100000)</p>
-<p><code>--output-data/--outputdata</code> = protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3 (type=None, default=codon) Choices: [‘protein’, ‘codon’]</p>
+<p><code>--output-data/--outputdata</code> = protein=single data column of protein alleles; codon=four columns with: protein frame1 frame2 frame3 (type=None, default=codon) Choices: ['protein', 'codon']</p>
 <p><code>--overwrite</code> = USE WITH CAUTION: force overwrite of outputs (flag, default=False)</p>
-<p><code>--parent-gene-pattern/--parentgenepattern</code> = Parent genes prefix when interpretingGFF files. For GFF3 files, ‘gene:’ is standard, but for older or custom GFF files this may vary. Use ‘none’ to make empty. (type=None, default=gene_id “%”)</p>
+<p><code>--parent-gene-pattern/--parentgenepattern</code> = Parent genes prefix when interpretingGFF files. For GFF3 files, 'gene:' is standard, but for older or custom GFF files this may vary. Use 'none' to make empty. (type=None, default=gene_id &quot;%&quot;)</p>
 <p><code>--quiet</code> = Suppress screen output. (flag, default=False)</p>
-<p><code>--require-annotation/--requireannotation</code> = require GFF entries with text matching this in their ‘Notes’ field (type=None, default=None)</p>
+<p><code>--require-annotation/--requireannotation</code> = require GFF entries with text matching this in their 'Notes' field (type=None, default=None)</p>
 <p><code>--verbose</code> = Output excessive data to screen for debugging (flag, default=False)</p>
 <h1 id="retired-modules">Retired Modules</h1>
 <ul>
@@ -702,8 +705,10 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <li>CheckMVF &gt; Use VerifyMVF instead.</li>
 </ul>
 <h1 id="version-history">Version History</h1>
+<p><strong>v.0.6.2</strong></p>
+<p>2021-10-12: Added 'randomallele' action in FilterMVF. Fixed issue with 'collapsemerge' in FilterMVF. Added ability to label columns in 'collapsemerge'. Fixed program errors in TranslateMVF and MVF2Fasta. Moved the insertion of commands used to generate MVF to notes lines. <strong>Functionailty change</strong>: The column specifications in the collapse functions are now done with respect to the original columns. You no longer need to adjust the numeric columns in later actions to account for changes in prior actions. <strong>Functionality change</strong>: RAxML-ng is now the default for InferTrees. You can still run RAxML 8.2 by setting the options manually.</p>
 <p><strong>v.0.6.1</strong></p>
-<p>2021-04-20: Updates to fix problems with the ConvertMAF2MVF Module. Note that commas now separate the –sample-tags and –ref-tag is now required.</p>
+<p>2021-04-20: Updates to fix problems with the ConvertMAF2MVF Module. Note that commas now separate the --sample-tags and --ref-tag is now required.</p>
 <p><strong>v.0.6.0</strong></p>
 <p><em>2020-12-20: Major Update</em> - Major update to the back-end of MVF for speed and stability. Adds support for faster file access by creating an MVF index, fixes to the filtering modules, changes to the specification of sample and contig labels to improve usability. Major improvements to the MVFTranslate module. Added support for tetraploid and hexaploid VCF files. Many other fixes</p>
 <p><strong>v.0.5.4</strong></p>
@@ -711,9 +716,9 @@ However, in amino acid notation <code>N</code> stands for “Asparagine” and i
 <p><strong>v.0.5.3</strong></p>
 <p>2019-07-14: Critial update, strongly recommend updating to this version. Major efficiency fix in the base iteration modules. Several key bug fixes implemented in FilterMVF, MergeMVF. Enhanced support for ambiguous sequences and polyploids in several modules including CalcPairwiseDistance. Restructuring of FilterMVF for cleaner syntax.</p>
 <p><strong>v.0.5.2</strong></p>
-<p>2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution). JoinMVF is now called ConcatenateMVF to avoid confusion. CheckMVF changed to VerifyMVF to make it more clear. ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the –ploidy flag. Other small fixes to the software and manual to update issues with the VCF interpreter.</p>
+<p>2019-06-29: Added MergeMVF to join several files together (still experimental, use with caution). JoinMVF is now called ConcatenateMVF to avoid confusion. CheckMVF changed to VerifyMVF to make it more clear. ConvertVCF2MVF now has experimental support for tetraploid and hexaploid VCF files through the --ploidy flag. Other small fixes to the software and manual to update issues with the VCF interpreter.</p>
 <p><strong>v.0.5.1</strong></p>
-<p>2018-02-01: Changes to the –sample and –outgroup arguments for some calculations into separate –sample-indices and –sample-labels arguments. This fixes an issue where if the sample labels are numerical they are misinterpreted when specified at the command line. All sample/outgroup indices or labels should be specified as a single comma-separated list.</p>
+<p>2018-02-01: Changes to the --sample and --outgroup arguments for some calculations into separate --sample-indices and --sample-labels arguments. This fixes an issue where if the sample labels are numerical they are misinterpreted when specified at the command line. All sample/outgroup indices or labels should be specified as a single comma-separated list.</p>
 <p><strong>v.0.5.0</strong></p>
 <p><em>2017-11-27 - Major Upgrade</em>: Change to single-command structure</p>
 <p><strong>v.2017-06-25</strong></p>

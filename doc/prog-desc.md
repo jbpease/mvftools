@@ -587,6 +587,10 @@ Choices: (2, 4, 6)
 ``--choose-allele/--chooseallele/--hapmode`` = Chooses how heterozygous alleles are handled. (none=no splitting (default); randomone=pick one allele randomly (recommended); randomboth=pick two alleles randomly, but keep both; major=pick the more common allele (type=None, default=none)
 Choices: ['none', 'randomone', 'randomboth']
 
+
+``--collapse-polytomies/--collapsepolytomies`` = Collapses internal branches with length 0to polytomies.  Off by default, so arbitrarytopological resolutions in trees may bemaintained if sequences are highly similar. (flag, default=False)
+
+
 ``--contig-ids/--contigids`` = Specify comma-separated list of contig short ids. Must match exactly. Do not use with --contig-labels. (type=None, default=None)
 
 ``--contig-labels/--contiglabels`` = Specify comma-separated list of contig full labels. Must match exactly. Do not use with --contig-ids (type=None, default=None)
@@ -594,11 +598,20 @@ Choices: ['none', 'randomone', 'randomboth']
 ``--duplicate-seq/--duplicateseq`` = dontuse=remove duplicate sequences prior to RAxML tree inference, then add them to the tree manually as zero-branch-length sister taxa; keep=keep in for RAxML tree inference (may cause errors for RAxML); remove=remove entirely from alignment (type=None, default=dontuse)
 Choices: ['dontuse', 'keep', 'remove']
 
+``--engine`` = Choose a phylogenetic inference 'engine' application. The defaultis 'raxml-ng'. (type=None, default=raxml-ng)
+Choices: ('raxml', 'raxml-ng')
+
+``--engine-opts/--engineopts/--raxml-opts/--raxmlopts`` = specify additional RAxML arguments as a double-quotes encased string (type=None, default=)
+
+``--engine-path/--enginepath/--raxml-path/--raxmlpath`` = manually specify the path of the phylogenetic engine. (type=None, default=raxml-ng)
+
 ``--min-depth/--mindepth`` = minimum number of alleles per site (type=integer, default=4)
 
 ``--min-seq-coverage/--minseqcoverage`` = proportion of total alignment a sequencemust cover to be retianed [0.1] (type=float, default=0.1)
 
 ``--min-sites/--minsites`` = minimum number of sites  (type=integer, default=100)
+
+``--model/--model/--raxml-model`` = choose model of sequence evolution. defaults are GTRGAMMA for RAxML, or GTR+G for RAxML-ng. (type=None, default=None)
 
 
 ``--output-contig-labels/--outputcontiglabels`` = Output will use contig labels instead of id numbers. (flag, default=False)
@@ -612,13 +625,7 @@ Choices: ['dontuse', 'keep', 'remove']
 ``--quiet`` = Suppress screen output. (flag, default=False)
 
 
-``--raxml-model/--raxmlmodel`` = choose RAxML model (type=None, default=GTRGAMMA)
-
-``--raxml-opts/--raxmlopts`` = specify additional RAxML arguments as a double-quotes encased string (type=None, default=)
-
 ``--raxml-outgroups/--raxmloutgroups`` = Comma-separated list of outgroup taxon labels to use in RAxML. (type=None, default=None)
-
-``--raxml-path/--raxmlpath`` = RAxML path for manual specification. (type=None, default=raxml)
 
 ``--root-with/--rootwith`` = Comma-separated list of taxon labels to root trees with after RAxML (type=None, default=None)
 
@@ -737,7 +744,7 @@ Choices: ['graph', 'image']
 
 ``--filter-annotation/--filterannotation`` = skip GFF entries with text matching this in their 'Notes' field (type=None, default=None)
 
-``--gene-pattern/--genepattern`` = Gene name pattern finder when interpreting GFF/GTF.  Use % in place of gene name. (type=None, default=gene_id "%")
+``--gene-pattern/--genepattern`` = Gene name pattern finder when interpreting GFF/GTF.  Use %% in place of gene name. (type=None, default=gene_id "%")
 
 ``--gff`` = Input gff annotation file. (type=file path, default=None)
 

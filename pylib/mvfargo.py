@@ -36,7 +36,7 @@ class MvfArgumentParser(argparse.ArgumentParser):
     """Creates common argparse elements for various MVF modules"""
 
     def __init__(self):
-        version = '0.6.0'
+        version = '0.6.2'
         super(MvfArgumentParser, self).__init__()
         setattr(self, 'formatter_class',
                 argparse.ArgumentDefaultsHelpFormatter)

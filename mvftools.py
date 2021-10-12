@@ -107,7 +107,7 @@ class MVFcall():
             epilog=_LICENSE)
         parser.add_argument("command", help="MVFtools command to run")
         parser.add_argument("--version", action="version",
-                            version="0.6.1",
+                            version="0.6.2",
                             help="display version information")
         args = parser.parse_args(self.arguments[:1])
         if args.command in OLDCOMMAND:
@@ -175,6 +175,7 @@ class MVFcall():
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         mvfanalysis.calc_character_count(args)
         return ''
 
@@ -247,6 +248,7 @@ class MVFcall():
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         mvfanalysis.calc_pairwise_distances(args)
         return ''
 
@@ -299,6 +301,7 @@ class MVFcall():
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         mvfanalysis.calc_sample_coverage(args)
         return ''
 
@@ -409,6 +412,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         fasta2mvf(args)
         return ''
 
@@ -447,6 +451,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         maf2mvf(args)
         return ''
 
@@ -670,7 +675,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
-        args.origcmd = " ".join(self.arguments)
+        args.command_string = ' '.join(args)
         vcf2mvf(args)
         return ''
 
@@ -799,6 +804,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         calc_group_unique_allele_window(args)
         return ''
 
@@ -847,6 +853,14 @@ class MVFcall():
                       "randomly, but keep both; major=pick the "
                       "more common allele"))
             parser.add_argument(
+                "--collapse-polytomies", "--collapsepolytomies",
+                action='store_true',
+                help=("Collapses internal branches with length 0"
+                      "to polytomies.  Off by default, so arbitrary"
+                      "topological resolutions in trees may be"
+                      "maintained if sequences are highly similar.")
+                )
+            parser.add_argument(
                 "--min-sites", "--minsites", type=int, default=100,
                 help="minimum number of sites ")
             parser.add_argument(
@@ -861,14 +875,27 @@ class MVFcall():
                 "--bootstrap", type=int,
                 help=("turn on rapid bootstrapping for RAxML and "
                       "perform specified number of replicates"))
+            parser.add_argument("--engine", 
+                                choices=("raxml", "raxml-ng"),
+                                default="raxml-ng",
+                                help=("Choose a phylogenetic inference "
+                                      "'engine' application. The default"
+                                      "is 'raxml-ng'."))
             parser.add_argument(
-                "--raxml-model", "--raxmlmodel", default="GTRGAMMA",
-                help=("choose RAxML model"))
+                "--model", "--model", "--raxml-model",
+                help=("choose model of sequence evolution. "
+                      "defaults are GTRGAMMA for RAxML, "
+                      "or GTR+G for RAxML-ng."))
             parser.add_argument(
-                "--raxml-path", "--raxmlpath", default="raxml",
-                help="RAxML path for manual specification.")
+                "--engine-path", "--enginepath",
+                "--raxml-path", "--raxmlpath",
+                default="raxml-ng",
+                help=("manually specify the path "
+                      "of the phylogenetic engine."))
             parser.add_argument(
-                "--raxml-opts", "--raxmlopts", default="",
+                "--engine-opts", "--engineopts", 
+                "--raxml-opts", "--raxmlopts", 
+                default="",
                 help=("specify additional RAxML arguments as a "
                       "double-quotes encased string"))
             parser.add_argument(
@@ -894,6 +921,7 @@ class MVFcall():
         args = parser.parse_args(self.arguments[1:])
         mutex_check(args)
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         infer_window_tree(args)
         return ''
 
@@ -937,6 +965,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         merge_mvf(args)
         return ''
 
@@ -1077,6 +1106,7 @@ class MVFcall():
             return parser
         args = parser.parse_args(self.arguments[1:])
         args.qprint = make_qprint(args.quiet, self.time0)
+        args.command_string = ' '.join(args)
         translate_mvf(args)
         return ''
 

@@ -123,6 +123,10 @@ def make_module(modulename, ncol, optargs=None):
                 entry = "{}{}{}".format(
                     entry[0:3], MLIB.merge_bases([entry[1], entry[3]]),
                     optargs[0][0])
+            else:
+                entry = "{}{}".format(
+                    entry[:4], 
+                    num - len([x for x in optargs[0] if x < num]))
             return entry
         if mvfenc == 'refvar':
             if optargs[0][0] == 0:
@@ -686,13 +690,38 @@ def filter_mvf(args):
         for i in range(len(args.actions)):
             action = args.actions[i]
             arr = action.split(':')
-            if arr[0] in ('columns', 'collapsepriority', 'collapsemerge',
-                          'allelegroup', 'notmultigroup', 'reqsample'):
+            if arr[0] in ('collapsepriority', 'collapsemerge'):
+                arr[1] = ','.join([
+                    str(mvf.sample_id_to_index[x])
+                    for x in arr[1].split(',')])
+            if arr[0] in ('columns', 'allelegroup', 
+                          'notmultigroup', 'reqsample'):
                 for j in range(1, len(arr)):
                     arr[j] = ','.join([
                         str(mvf.sample_id_to_index[x])
                         for x in arr[j].split(',')])
             args.actions[i] = ':'.join(arr)
+    removed_columns = set([])
+    for i in range(len(args.actions)):
+        action = args.actions[i]
+        arr = action.split(':')
+        if arr[0] in ('collapsepriority', 'collapsemerge'):
+            tmp_arr = arr[1][:]
+            arr[1] = ','.join([
+                str(int(x) - len([y for y in removed_columns if y < int(x)]))
+                for x in arr[1].split(',')])
+            removed_columns.update([int(x) for x in tmp_arr.split(',')[1:]])
+            print(arr)
+            print(removed_columns)
+        if arr[0] in ('columns', 'allelegroup', 
+                      'notmultigroup', 'reqsample'):
+            for j in range(1, len(arr)):
+                arr[j] = ','.join([
+                    str(int(x) - len([y for y in removed_columns if y < int(x)]))
+                    for x in arr[j].split(',')])
+        args.actions[i] = ':'.join(arr)
+            
+            
     actionset = build_actionset(args.actions, ncol)
     args.qprint("Actions established.")
     args.qprint(actionset)
@@ -754,6 +783,8 @@ def filter_mvf(args):
     # Set up file handler
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.copy_headers_from(mvf)
+
+    removed_indices = set([])
     # reprocess header if actions are used that filter columns
     if any(x == y[0] for x in ('columns', 'collapsepriority', 'collapsemerge')
            for y in actionset):
@@ -765,18 +796,22 @@ def filter_mvf(args):
                 else:
                     oldindices = [int(x) for x in actionarg[0]]
             elif actionname in ('collapsepriority', 'collapsemerge'):
-                if args.labels:
-                    oldindices = [outmvf.sample_id_to_index[int(x)]
-                                  for x in outmvf.sample_indices
-                                  if str(x) not in actionarg[0][1:]]
-                else:
-                    oldindices = [x for x in outmvf.sample_indices
-                                  if x not in actionarg[0][1:]]
+                actionarg[0] = [x - len([y for y in removed_indices if y < x])
+                                 for x in actionarg[0]]
+                oldindices = [x for x in outmvf.sample_indices
+                              if x not in actionarg[0][1:]]
             outmvf.sample_ids = outmvf.get_sample_ids(oldindices)
             outmvf.sample_data = dict(
                 (i, outmvf.sample_data[oldindices[i]])
                 for i, _ in enumerate(oldindices))
+
+            if actionname in ('collapsepriority', 'collapsemerge'):
+                if len(actionarg) == 2:
+                    outmvf.sample_data[actionarg[0][0]]['id'] = actionarg[1][0]
+                    outmvf.sample_ids[actionarg[0][0]] = actionarg[1][0]
             outmvf.sample_indices = list(range(len(oldindices)))
+    Youtmvf.metadata['ncol'] = len(outmvf.sample_indices)
+    outmvf.notes.append(args.command_string)
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF established.")
     # End header editing

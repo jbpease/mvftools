@@ -1,14 +1,14 @@
 % MVFtools
   <br>![](logo.png)
 %
-% 2010-12-19
+% 2021-10-12
 
 
 <link rel="stylesheet" type="text/css" media="all" href="mdmanstyle1.css">
 
 ---
 
-***Version 0.6.1***
+***Version 0.6.2***
 
 ---
 
@@ -50,7 +50,8 @@ Please also include the URL [https://www.github.com/peaselab/mvftools]() in your
 * Matplotlib [http://www.matplotlib.org/]()
 
 ### Additional Requirements for Some Modules
-* RAxML: 8.x recommended; [https://sco.h-its.org/exelixis/web/software/raxml/index.html]())
+* RAxML-ng; [https://github.com/amkozlov/raxml-ng]())
+* RAxML: 8.2+.X; [https://sco.h-its.org/exelixis/web/software/raxml/index.html]())
 * PAML: [http://abacus.gene.ucl.ac.uk/software/paml.html]()
 
 ## Installation
@@ -84,6 +85,16 @@ python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \
 ```
 The file is now ready to use as an input file for with dfoil:
 ([http://www.github.com/jbpease/dfoil](http://www.github.com/jbpease/dfoil)).
+
+**Case #3: Convert a VCF file, then generate window-based counts for DFOIL/D-statistic introgression testing from the first five samples**::
+```
+python3 mvftools.py ConvertVCF2MVF --vcf INPUT.vcf --mvf DATA.mvf
+python3 mvftools.py CalcPatternCount --mvf DATA.mvf --out PATTERNS.txt \ 
+--windowsize 100000 --samples 0,1,2,3,4
+```
+The file is now ready to use as an input file for with dfoil:
+([http://www.github.com/jbpease/dfoil](http://www.github.com/jbpease/dfoil)).
+
 
 ---
 

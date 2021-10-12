@@ -376,6 +376,7 @@ def fasta2mvf(args):
         mvf.sample_data[i]= {'id': label}
     mvf.metadata['ncol'] = len(mvf.metadata['labels'])
     mvf.metadata['sourceformat'] = 'fasta'
+    mvf.metadata.notes.append(args.command_string)
     mvf.flavor = args.flavor
     # WRITE MVF HEADER
     mvf.write_data(mvf.get_header())
@@ -419,15 +420,19 @@ def mvf2phy(args):
     if args.regions is not None:
         _, max_region_coord, _ = parse_regions_arg(
             args.regions, mvf.get_contig_ids())
-    sample_labels = mvf.get_sample_ids()
     if args.sample_indices is not None:
         sample_indices = [int(x) for x in
                           args.sample_indices[0].split(",")]
+        sample_labels = mvf.get_sample_ids(
+                indices=sample_indices)
     elif args.sample_labels is not None:
         sample_indices = mvf.get_sample_indices(
             ids=args.sample_labels[0].split(","))
+        sample_labels = mvf.get_sample_ids(
+                indices=sample_indices)
     else:
         sample_indices = mvf.get_sample_indices()
+        sample_labels = mvf.get_sample_ids()
     skipcontig = ''
     tmp_files = dict((fn, open("{}-{}.tmp".format(
         fn, randint(1000000, 9999999)), 'w+', args.buffer))
@@ -442,7 +447,8 @@ def mvf2phy(args):
     for contig, _, allelesets in mvf.iterentries(
             contig_ids=(mvf.get_contig_ids()
                         if args.regions is None
-                        else max_region_coord[:]), decode=True):
+                        else max_region_coord[:]), 
+                decode=True):
         if contig == skipcontig:
             continue
         if contig not in max_region_coord:

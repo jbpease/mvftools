@@ -186,6 +186,7 @@ def concatenate_mvf(args):
                 transformer.set_contig(contigid, newid)
         transformers.append(transformer)
     # Write output header
+    concatmvf.notes.append(args.command_string) 
     concatmvf.write_data(concatmvf.get_header())
     # Now loop through each file
     entries = []
@@ -281,6 +282,7 @@ def merge_mvf(args):
     # Write output header
     args.qprint("Writing headers to merge output")
     concatmvf.reset_max_sample()
+    concatmvf.notes.append(args.command_string) 
     concatmvf.write_data(concatmvf.get_header())
     # Now loop through each file
     blank_entry = '-' * len(concatmvf.sample_indices)

@@ -227,9 +227,11 @@ def calc_pattern_count(args):
     else:
         sample_indices = mvf.get_sample_indices()
     nsamples = len(sample_indices)
-    for contig, pos, allelesets in mvf:
+    for contig, pos, allelesets in mvf.iterentries(decode=True,
+                                                   subset=sample_indices):
+        alleles = allelesets[0]
         # Check Minimum Site Coverage
-        if check_mincoverage(args.mincoverage, allelesets[0]) is False:
+        if check_mincoverage(args.mincoverage, alleles) is False:
             continue
         # Establish first contig
         if current_contig is None:
@@ -252,22 +254,12 @@ def calc_pattern_count(args):
             else:
                 current_position += (0 if args.windowsize == -1
                                      else args.windowsize)
-        if len(allelesets[0]) == 1:
-            if allelesets[0] in 'ATGC':
-                pattern = 'A' * nsamples
-            else:
-                continue
-        elif allelesets[0][1] == '+':
+        if set(alleles) - set("ACGT"):
             continue
-        else:
-            alleles = mvf.decode(allelesets[0])
-            alleles = [alleles[x] for x in sample_indices]
-            if any(x in alleles for x in 'X-RYKMWS'):
-                continue
-            if len(set(alleles)) > 2:
-                continue
-            pattern = ''.join(['A' if x == alleles[-1] else 'B'
-                               for x in alleles[:-1]]) + 'A'
+        if len(set(alleles)) > 2:
+            continue
+        pattern = ''.join(['A' if x == alleles[-1] else 'B'
+                           for x in alleles[:-1]]) + 'A'
         sitepatterns[pattern] = sitepatterns.get(pattern, 0) + 1
     if sitepatterns:
         data[(current_contig, current_position)] = dict([

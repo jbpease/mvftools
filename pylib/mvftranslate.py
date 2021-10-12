@@ -355,7 +355,14 @@ def parse_gff_exome(args):
                     )
                 )
     warn_genes = 0
+    empty_genes = []
     for gene in gff_genes:
+        if not gff_genes[gene]['cds']:
+            print(("Warning: gene '{}' has no CDS regions specified. "
+                   "It may be an error or an non-coding RNA.").format(
+                       gene))
+            empty_genes.append(gene)
+            continue
         total_cds_length = sum(y - x + 1 for (x, y)
                                in gff_genes[gene]['cds'])
         if total_cds_length % 3:
@@ -369,6 +376,15 @@ def parse_gff_exome(args):
         gff_genes[gene]['length'] = total_cds_length
     args.qprint("{} / {} genes did not have total CDS length divisible by "
                 "3".format(warn_genes, len(gene_order)))
+    for gene in empty_genes:
+        gene_order.remove(gene)
+        del gff_genes[gene]
+    for i, gene in enumerate(gene_order):
+        gff_genes[gene]['id'] = str(i)
+        gff_genes[gene]['isoform'] = (0 
+                                      if gff_genes[gene]['isoform'] is None
+                                      else gff_genes[gene]['isoform']
+                                      ) 
     return gff_genes, gene_order
 
 
@@ -618,7 +634,9 @@ def translate_mvf(args):
         args.qprint("GFF processed.")
     outmvf = MultiVariantFile(args.out, 'write', overwrite=args.overwrite)
     outmvf.copy_headers_from(mvf)
-    outmvf.contig_data = dict((i, dict((y, z)
+    outmvf.contig_data = dict(
+         (
+                i, dict((y, z)
                                        for (y, z) in gff_genes[x].items()
                                        if y not in ('cds', )))
                               for (i, x) in enumerate(gene_order))
@@ -628,6 +646,7 @@ def translate_mvf(args):
     outmvf.contig_labels = [gff_genes[x]['label']
                             for x in gene_order]
     outmvf.flavor = args.output_data
+    outmvf.metadata.notes.append(args.command_string)
     outmvf.write_data(outmvf.get_header())
     args.qprint("Output MVF Established.")
     entrybuffer = []
@@ -691,11 +710,6 @@ def translate_mvf(args):
                 print("Warning: contig {} not found".format(
                     gff_genes[gene]['contig']))
             xcontigid = mvf.get_contig_ids(indices=xcontig)[0]
-            if not gff_genes[gene]['cds']:
-                print(("Warning: gene '{}' has no CDS regions specified. "
-                       "It may be an error or an non-coding RNA.").format(
-                           gene))
-                continue
             min_gene_coord = gff_genes[gene]['cds'][0][0]
             max_gene_coord = gff_genes[gene]['cds'][-1][1]
             mvf_entries = {}

@@ -32,14 +32,15 @@ Or the PDF Manual: https://github.com/peaselab/mvftools/blob/main/doc/mvftools.p
 ## Requirements
 
 MVFtools requires:
-  * **Python 3.x** (will not work on Python 2.x), but can be run on any operating system.
+  * **Python 3.x** but can be run on any operating system. (***Python 2.x will NOT work***)
   * BioPython: https://biopython.org/
   * Numpy: https://www.numpy.org/
   * Scipy: https://www.scipy.org/
   * MatplotLib: https://www.matplotlib.org/
 
 *Optionally required for certain modules:*
-  * RAxML: 8.x recommended; https://sco.h-its.org/exelixis/web/software/
+  * RAxML-ng: https://github.com/amkozlov/raxml-ng
+  * RAxML: 8.2+; https://sco.h-its.org/exelixis/web/software/
 raxml/index.html
   * PAML: http://abacus.gene.ucl.ac.uk/software/paml.html
 
@@ -57,6 +58,9 @@ For questions, contact James Pease by email (info at http://www.peaselab.org)
 * https://doi.org/10.1093/gbe/evy227
 * https://doi.org/10.1093/molbev/msy198
 * https://doi.org/10.1534/genetics.118.301831
+* https://doi.org/10.1111/mec.14877
+* https://doi.org/10.1186/s13059-018-1471-8
+* https://doi.org/10.1093/molbev/msaa148
 
 
 ## License
